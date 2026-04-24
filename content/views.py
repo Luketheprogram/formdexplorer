@@ -10,10 +10,10 @@ def article_list(request):
     articles = Article.objects.exclude(published_at__isnull=True).order_by("-published_at")
     ctx = {
         "articles": articles,
-        "page_title": "Learn — Form D Explorer",
+        "page_title": "About — Form D Explorer",
         "meta_description": (
-            "Guides and explainers on SEC Form D filings, Regulation D, "
-            "private placements, and related compliance topics."
+            "Form D Explorer is a clean, fast search interface over SEC Form D filings. "
+            "Free issuer lookup; paid plans for CSV export, alerts, and API access."
         ),
         "canonical_path": "/learn/",
     }
