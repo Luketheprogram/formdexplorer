@@ -1,7 +1,16 @@
 """Parse EDGAR daily-index form.idx files for Form D / D/A entries."""
 
+import re
 from dataclasses import dataclass
 from datetime import date, timedelta
+
+_ROW = re.compile(
+    r"^\s*(?P<form>\S+)\s{2,}"
+    r"(?P<company>.+?)\s{2,}"
+    r"(?P<cik>\d+)\s+"
+    r"(?P<date>\d{4}-\d{2}-\d{2})\s+"
+    r"(?P<filename>edgar/\S+)\s*$"
+)
 
 
 @dataclass
@@ -30,33 +39,30 @@ def iter_business_days(start: date, end: date):
 
 
 def parse_form_idx(text: str) -> list[IndexEntry]:
-    """Parse a form.idx file. Fixed-width; header ends with a line of dashes."""
+    """Parse a form.idx file. Regex-based because EDGAR's column widths drift."""
     lines = text.splitlines()
     data_start = 0
     for i, line in enumerate(lines):
         if line.startswith("----"):
             data_start = i + 1
             break
-    # Column positions derived from EDGAR's standard form.idx layout.
-    # Form Type (12) | Company Name (62) | CIK (12) | Date Filed (12) | Filename
-    entries = []
+    entries: list[IndexEntry] = []
     for line in lines[data_start:]:
         if not line.strip():
             continue
-        form_type = line[0:12].strip()
+        m = _ROW.match(line)
+        if not m:
+            continue
+        form_type = m.group("form")
         if form_type not in ("D", "D/A"):
             continue
-        company = line[12:74].strip()
-        cik = line[74:86].strip()
-        date_filed = line[86:98].strip()
-        filename = line[98:].strip()
         entries.append(
             IndexEntry(
                 form_type=form_type,
-                company=company,
-                cik=cik,
-                filing_date=date_filed,
-                filename=filename,
+                company=m.group("company").strip(),
+                cik=m.group("cik"),
+                filing_date=m.group("date"),
+                filename=m.group("filename"),
             )
         )
     return entries
