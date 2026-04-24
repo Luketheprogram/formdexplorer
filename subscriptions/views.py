@@ -4,9 +4,11 @@ import uuid
 import stripe
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponseBadRequest
+from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from .plans import PLANS, price_id_for
 
@@ -80,3 +82,29 @@ def checkout_cancel(request):
         "robots": "noindex",
     }
     return render(request, "subscriptions/checkout_cancel.html", ctx)
+
+
+@csrf_exempt
+@require_POST
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE", "")
+    secret = settings.DJSTRIPE_WEBHOOK_SECRET
+    if not secret:
+        log.error("DJSTRIPE_WEBHOOK_SECRET not set")
+        return HttpResponseBadRequest("webhook not configured")
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, secret)
+    except ValueError:
+        return HttpResponseBadRequest("invalid payload")
+    except stripe.error.SignatureVerificationError:
+        return HttpResponseBadRequest("invalid signature")
+
+    try:
+        from djstripe.models import Event as DJEvent
+        dj_event = DJEvent._create_from_stripe_object(event)
+        dj_event.invoke_webhook_handlers()
+    except Exception:
+        log.exception("Webhook processing failed for %s", event.get("id"))
+        return HttpResponse(status=500)
+    return HttpResponse(status=200)
