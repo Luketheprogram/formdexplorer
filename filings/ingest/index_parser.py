@@ -8,7 +8,7 @@ _ROW = re.compile(
     r"^\s*(?P<form>\S+)\s{2,}"
     r"(?P<company>.+?)\s{2,}"
     r"(?P<cik>\d+)\s+"
-    r"(?P<date>\d{4}-\d{2}-\d{2})\s+"
+    r"(?P<date>\d{4}-?\d{2}-?\d{2})\s+"
     r"(?P<filename>edgar/\S+)\s*$"
 )
 

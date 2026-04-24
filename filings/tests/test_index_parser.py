@@ -6,14 +6,16 @@ from filings.ingest.index_parser import (
     primary_doc_url,
 )
 
-SAMPLE = """Description:           Master Index of EDGAR Dissemination Feed
-Last Data Received:   April 20, 2026
+# Matches EDGAR's real form.idx layout: no leading space, YYYYMMDD date.
+SAMPLE = """Description:           Daily Index of EDGAR Dissemination Feed by Form Type
+Last Data Received:    Apr 21, 2026
 
- Form Type   Company Name                                                  CIK         Date Filed  Filename
- ----------- ------------------------------------------------------------ ----------- ----------- ----------------------------------------------------
- D           ACME VENTURES FUND III LP                                    0001234567  2026-04-20  edgar/data/1234567/0001234567-26-000001.txt
- D/A         OTHER FUND LP                                                0002222222  2026-04-20  edgar/data/2222222/0002222222-26-000002.txt
- 10-K        SOMETHING ELSE INC                                           0003333333  2026-04-20  edgar/data/3333333/0003333333-26-000003.txt
+Form Type   Company Name                                                  CIK         Date Filed  File Name
+---------------------------------------------------------------------------------------------------------------------------------------------
+1-A              Upstream Life Securities Fund I, LLC                          2126686     20260421    edgar/data/2126686/0002126686-26-000001.txt
+D                ACME VENTURES FUND III LP                                     1234567     20260420    edgar/data/1234567/0001234567-26-000001.txt
+D/A              OTHER FUND LP                                                 2222222     20260420    edgar/data/2222222/0002222222-26-000002.txt
+10-K             SOMETHING ELSE INC                                            3333333     20260420    edgar/data/3333333/0003333333-26-000003.txt
 """
 
 
