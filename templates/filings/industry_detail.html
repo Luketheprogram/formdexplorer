@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load money %}
 {% block content %}
 <nav class="text-sm text-slate-500 mb-4"><a href="/" class="hover:text-slate-900">Home</a> / Industry</nav>
 <h1 class="text-2xl font-semibold text-slate-900">{{ industry }} — Form D filings</h1>
@@ -13,7 +14,7 @@
     <li class="p-3 flex items-center justify-between text-sm">
       <a href="/issuer/{{ i.issuer__name_slug }}-{{ i.issuer__cik }}/" class="text-slate-900 hover:underline truncate">{{ i.issuer__name }}</a>
       <div class="text-right shrink-0">
-        <div class="text-slate-900">{% if i.total_raised %}${{ i.total_raised|stringformat:"d" }}{% else %}—{% endif %}</div>
+        <div class="text-slate-900">{{ i.total_raised|dollars }}</div>
         <div class="text-xs text-slate-500">{{ i.filing_count }} filing{{ i.filing_count|pluralize }}</div>
       </div>
     </li>
@@ -36,7 +37,7 @@
           </div>
         </div>
         <div class="text-right text-sm shrink-0">
-          {% if f.total_offering_amount %}<div class="text-slate-900">${{ f.total_offering_amount|stringformat:"d" }}</div>{% endif %}
+          {% if f.total_offering_amount %}<div class="text-slate-900">{{ f.total_offering_amount|dollars }}</div>{% endif %}
           <a href="/filing/{{ f.accession_number }}/" class="text-xs text-slate-500 hover:text-slate-900">view →</a>
         </div>
       </div>

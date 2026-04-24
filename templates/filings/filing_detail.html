@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load money %}
 {% block content %}
 <nav class="text-sm text-slate-500 mb-4">
   <a href="/" class="hover:text-slate-900">Home</a> /
@@ -18,12 +19,12 @@
     <dl class="mt-3 text-sm text-slate-800 space-y-2">
       <div class="flex justify-between"><dt class="text-slate-500">Industry</dt><dd>{{ filing.industry_group|default:"—" }}</dd></div>
       <div class="flex justify-between"><dt class="text-slate-500">Exemptions</dt><dd>{{ filing.offering_type|default:"—" }}</dd></div>
-      <div class="flex justify-between"><dt class="text-slate-500">Total offering</dt><dd>{% if filing.total_offering_amount %}${{ filing.total_offering_amount|stringformat:"d" }}{% else %}—{% endif %}</dd></div>
-      <div class="flex justify-between"><dt class="text-slate-500">Total sold</dt><dd>{% if filing.total_amount_sold %}${{ filing.total_amount_sold|stringformat:"d" }}{% else %}—{% endif %}</dd></div>
-      <div class="flex justify-between"><dt class="text-slate-500">Minimum investment</dt><dd>{% if filing.minimum_investment %}${{ filing.minimum_investment|stringformat:"d" }}{% else %}—{% endif %}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Total offering</dt><dd>{{ filing.total_offering_amount|dollars_full }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Total sold</dt><dd>{{ filing.total_amount_sold|dollars_full }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Minimum investment</dt><dd>{{ filing.minimum_investment|dollars_full }}</dd></div>
       <div class="flex justify-between"><dt class="text-slate-500">Investors</dt><dd>{{ filing.num_investors|default:"—" }}</dd></div>
-      <div class="flex justify-between"><dt class="text-slate-500">Sales commission</dt><dd>{% if filing.sales_commission %}${{ filing.sales_commission|stringformat:"d" }}{% else %}—{% endif %}</dd></div>
-      <div class="flex justify-between"><dt class="text-slate-500">Finders' fees</dt><dd>{% if filing.finders_fees %}${{ filing.finders_fees|stringformat:"d" }}{% else %}—{% endif %}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Sales commission</dt><dd>{{ filing.sales_commission|dollars_full }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Finders' fees</dt><dd>{{ filing.finders_fees|dollars_full }}</dd></div>
     </dl>
   </div>
 
