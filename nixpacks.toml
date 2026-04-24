@@ -1,0 +1,7 @@
+[phases.build]
+dependsOn = ["install"]
+cmds = [
+  "curl -sSLo /tmp/tailwindcss https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-x64",
+  "chmod +x /tmp/tailwindcss",
+  "/tmp/tailwindcss -c tailwind.config.js -i static/src/input.css -o static/css/app.css --minify"
+]

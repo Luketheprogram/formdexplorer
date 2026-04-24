@@ -5,5 +5,5 @@ module.exports = {
     "./**/templates/**/*.html",
   ],
   theme: { extend: {} },
-  plugins: [require("@tailwindcss/typography")],
+  plugins: [],
 };
