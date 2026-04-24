@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-semibold text-slate-900">Account</h1>
+
+<section class="mt-6 rounded-md border border-slate-200 bg-white p-5">
+  <dl class="text-sm text-slate-800 space-y-2">
+    <div class="flex justify-between"><dt class="text-slate-500">Email</dt><dd>{{ user.email }}</dd></div>
+    <div class="flex justify-between"><dt class="text-slate-500">Plan</dt><dd>{{ user.get_subscription_tier_display }}</dd></div>
+    <div class="flex justify-between"><dt class="text-slate-500">Status</dt><dd>{{ user.subscription_status|default:"—" }}</dd></div>
+    <div class="flex justify-between"><dt class="text-slate-500">One-time exports available</dt><dd>{{ export_tokens_unused }}</dd></div>
+  </dl>
+  <div class="mt-4 flex gap-3">
+    {% if not user.is_paid %}<a href="{% url 'subscriptions:pricing' %}" class="rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium">Upgrade to Pro</a>{% endif %}
+    <a href="{% url 'filings:saved_search_list' %}" class="rounded-md border border-slate-300 px-4 py-2 text-sm">Saved searches</a>
+    <a href="{% url 'accounts:api_keys' %}" class="rounded-md border border-slate-300 px-4 py-2 text-sm">API keys</a>
+    <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+      <button type="submit" class="rounded-md border border-slate-300 px-4 py-2 text-sm">Log out</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

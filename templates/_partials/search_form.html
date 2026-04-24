@@ -1,0 +1,31 @@
+<form
+  class="w-full"
+  hx-get="{% url 'filings:search_partial' %}"
+  hx-trigger="keyup changed delay:250ms from:input[name=q], change from:select, submit"
+  hx-target="#search-results"
+  hx-push-url="false"
+>
+  <div class="flex flex-col md:flex-row gap-3">
+    <input
+      type="search"
+      name="q"
+      value="{{ q|default:'' }}"
+      placeholder="Search issuers by name..."
+      class="flex-1 rounded-md border border-slate-300 px-4 py-3 text-base focus:border-slate-500 focus:ring-1 focus:ring-slate-500 outline-none"
+      autocomplete="off"
+    >
+    <button type="submit" class="rounded-md bg-slate-900 px-5 py-3 text-white text-sm font-medium hover:bg-slate-800">
+      Search
+    </button>
+  </div>
+  <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+    <input name="state" placeholder="State (e.g. CA)" value="{{ request.GET.state|default:'' }}"
+      class="rounded-md border border-slate-300 px-3 py-2">
+    <input name="industry" placeholder="Industry" value="{{ request.GET.industry|default:'' }}"
+      class="rounded-md border border-slate-300 px-3 py-2">
+    <input name="min_amount" type="number" placeholder="Min $" value="{{ request.GET.min_amount|default:'' }}"
+      class="rounded-md border border-slate-300 px-3 py-2">
+    <input name="max_amount" type="number" placeholder="Max $" value="{{ request.GET.max_amount|default:'' }}"
+      class="rounded-md border border-slate-300 px-3 py-2">
+  </div>
+</form>

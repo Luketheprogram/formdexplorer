@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="prose prose-slate max-w-3xl">
+  <h1>{{ article.title }}</h1>
+  <p class="text-sm text-slate-500">{{ article.published_at|date:"F j, Y" }}</p>
+
+  <!-- ADSENSE SLOT -->
+
+  {{ body_html }}
+</article>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-semibold text-slate-900">API keys</h1>
+<p class="mt-2 text-sm text-slate-500">Bearer-token authentication for the Form D Explorer API.</p>
+
+{% if new_key %}
+<div class="mt-6 rounded-md border border-emerald-200 bg-emerald-50 p-4">
+  <div class="text-sm font-medium text-emerald-900">New API key — copy it now, it won't be shown again:</div>
+  <pre class="mt-2 whitespace-pre-wrap break-all text-sm bg-white rounded border border-emerald-200 p-3">{{ new_key }}</pre>
+</div>
+{% endif %}
+
+{% if user.subscription_tier != 'api' %}
+<div class="mt-6 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+  API keys require the API Access subscription. <a href="{% url 'subscriptions:pricing' %}" class="underline font-medium">View pricing</a>.
+</div>
+{% else %}
+<form method="post" action="{% url 'accounts:api_key_create' %}" class="mt-6 flex gap-2">
+  {% csrf_token %}
+  <input name="name" placeholder="Key label (e.g. production)" maxlength="80"
+         class="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm">
+  <button type="submit" class="rounded-md bg-slate-900 px-4 py-2 text-sm text-white font-medium">Create key</button>
+</form>
+{% endif %}
+
+<ul class="mt-6 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+  {% for k in keys %}
+  <li class="p-4 flex items-start justify-between gap-4">
+    <div>
+      <div class="font-medium text-slate-900">{{ k.name }} <span class="text-slate-400 font-normal">· {{ k.key_prefix }}…</span></div>
+      <div class="text-xs text-slate-500 mt-1">Created {{ k.created_at|date:"Y-m-d" }} · Used {{ k.usage_count }}/{{ k.monthly_limit }}</div>
+    </div>
+    <form method="post" action="{% url 'accounts:api_key_revoke' k.pk %}">{% csrf_token %}
+      <button type="submit" class="rounded-md border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50">Revoke</button>
+    </form>
+  </li>
+  {% empty %}
+  <li class="p-6 text-sm text-slate-500">No active keys.</li>
+  {% endfor %}
+</ul>
+
+<p class="mt-6 text-sm text-slate-500">
+  Docs: <a class="underline" href="/learn/api/">Form D Explorer API reference</a>.
+</p>
+{% endblock %}

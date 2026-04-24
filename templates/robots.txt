@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /search/
+Disallow: /search/partial/
+Allow: /
+
+Sitemap: {{ SITE_URL }}/sitemap.xml

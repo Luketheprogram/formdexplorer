@@ -1,0 +1,9 @@
+New Form D matches for "{{ search.name }}":
+
+{% for f in results %}- {{ f.issuer.name }} ({{ f.form_type }}, {{ f.filing_date|date:"Y-m-d" }}{% if f.issuer.state %}, {{ f.issuer.state }}{% endif %})
+  {{ site_url }}/filing/{{ f.accession_number }}/
+{% endfor %}
+
+Manage your saved searches: {{ site_url }}/saved-searches/
+
+— Form D Explorer

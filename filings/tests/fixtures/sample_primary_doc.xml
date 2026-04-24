@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edgarSubmission>
+  <headerData>
+    <submissionType>D</submissionType>
+    <filerInfo>
+      <filingDate>2026-04-20</filingDate>
+    </filerInfo>
+  </headerData>
+  <primaryIssuer>
+    <cik>0001234567</cik>
+    <entityName>Acme Ventures Fund III LP</entityName>
+    <entityType>Limited Partnership</entityType>
+    <jurisdictionOfInc>DELAWARE</jurisdictionOfInc>
+    <yearOfInc>
+      <value>2022</value>
+    </yearOfInc>
+    <issuerAddress>
+      <street1>123 Market Street</street1>
+      <city>San Francisco</city>
+      <stateOrCountry>CA</stateOrCountry>
+      <zipCode>94105</zipCode>
+    </issuerAddress>
+    <issuerPhoneNumber>415-555-0100</issuerPhoneNumber>
+  </primaryIssuer>
+  <offeringData>
+    <industryGroup>
+      <industryGroupType>Pooled Investment Fund</industryGroupType>
+    </industryGroup>
+    <federalExemptionsExclusions>
+      <item>06b</item>
+      <item>3(c)(1)</item>
+    </federalExemptionsExclusions>
+    <offeringSalesAmounts>
+      <totalOfferingAmount>50000000</totalOfferingAmount>
+      <totalAmountSold>12500000</totalAmountSold>
+    </offeringSalesAmounts>
+    <minimumInvestmentAccepted>250000</minimumInvestmentAccepted>
+    <numberAlreadyInvested>18</numberAlreadyInvested>
+    <salesCommissionsAmount>0</salesCommissionsAmount>
+    <findersFeesAmount>0</findersFeesAmount>
+    <relatedPersonsList>
+      <relatedPersonInfo>
+        <relatedPersonName>
+          <firstName>Jane</firstName>
+          <lastName>Doe</lastName>
+        </relatedPersonName>
+        <relatedPersonAddress>
+          <city>San Francisco</city>
+          <stateOrCountry>CA</stateOrCountry>
+        </relatedPersonAddress>
+        <relatedPersonRelationshipList>
+          <relationship>Executive Officer</relationship>
+        </relatedPersonRelationshipList>
+      </relatedPersonInfo>
+    </relatedPersonsList>
+  </offeringData>
+</edgarSubmission>

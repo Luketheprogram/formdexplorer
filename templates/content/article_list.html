@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-semibold text-slate-900">Learn</h1>
+<p class="mt-2 text-slate-600">Guides and explainers on Form D, Regulation D, and private placements.</p>
+
+<!-- ADSENSE SLOT -->
+
+<ul class="mt-8 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+  {% for a in articles %}
+  <li class="p-5">
+    <a href="/learn/{{ a.slug }}/" class="text-lg font-medium text-slate-900 hover:underline">{{ a.title }}</a>
+    <div class="text-sm text-slate-500 mt-1">{{ a.published_at|date:"Y-m-d" }}</div>
+    {% if a.meta_description %}<p class="text-sm text-slate-600 mt-2">{{ a.meta_description }}</p>{% endif %}
+  </li>
+  {% empty %}
+  <li class="p-6 text-sm text-slate-500">No articles yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="max-w-3xl">
+  <h1 class="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900">Search SEC Form D filings.</h1>
+  <p class="mt-3 text-slate-600 text-lg">Find private placements by issuer, state, industry, or offering size. Fast and clean.</p>
+  <div class="mt-6">{% include "_partials/search_form.html" %}</div>
+  <div id="search-results" class="mt-6"></div>
+</section>
+
+<section class="mt-14">
+  <div class="flex items-baseline justify-between">
+    <h2 class="text-xl font-semibold text-slate-900">Recently filed</h2>
+    <a href="{% url 'filings:recent' %}" class="text-sm text-slate-500 hover:text-slate-900">See all →</a>
+  </div>
+  <ul class="mt-4 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+    {% for f in recent %}
+    <li class="p-4 hover:bg-slate-50">
+      <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+          <a href="/issuer/{{ f.issuer.url_slug }}/" class="font-medium text-slate-900 hover:underline truncate block">{{ f.issuer.name }}</a>
+          <div class="text-sm text-slate-500 mt-1">
+            {{ f.form_type }} &middot; {{ f.filing_date|date:"Y-m-d" }}
+            {% if f.issuer.state %} &middot; {{ f.issuer.state }}{% endif %}
+            {% if f.industry_group %} &middot; {{ f.industry_group }}{% endif %}
+          </div>
+        </div>
+        <a href="/filing/{{ f.accession_number }}/" class="text-slate-500 hover:text-slate-900 text-sm shrink-0">view →</a>
+      </div>
+    </li>
+    {% empty %}
+    <li class="p-6 text-sm text-slate-500">No filings yet. Run <code class="rounded bg-slate-100 px-1">python manage.py ingest_form_d --days 7</code>.</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="mt-14">
+  <h2 class="text-xl font-semibold text-slate-900">Browse by industry</h2>
+  <div class="mt-4 flex flex-wrap gap-2">
+    {% for name, slug in industries %}
+      <a href="/industry/{{ slug }}/" class="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 hover:bg-slate-50">{{ name }}</a>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

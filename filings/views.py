@@ -1,0 +1,264 @@
+import csv
+from datetime import timedelta
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Avg, Count, Sum
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
+from .industry import NAME_TO_SLUG, SLUG_TO_NAME
+from .models import Filing, Issuer, SavedSearch
+from .search import build_filing_query
+
+
+def _aggregate_stats(qs):
+    last_365 = timezone.now().date() - timedelta(days=365)
+    last_year = qs.filter(filing_date__gte=last_365)
+    agg = qs.aggregate(
+        total_filings=Count("id"),
+        total_raised=Sum("total_offering_amount"),
+        avg_raised=Avg("total_offering_amount"),
+    )
+    agg["filings_last_year"] = last_year.count()
+    return agg
+
+FREE_RESULT_LIMIT = 10
+EXPORT_ROW_LIMIT = 5000
+
+
+def _is_paid(request) -> bool:
+    user = getattr(request, "user", None)
+    return bool(user and user.is_authenticated and getattr(user, "is_paid", False))
+
+
+def home(request):
+    recent = Filing.objects.select_related("issuer").order_by("-filing_date", "-id")[:20]
+    industries = [(name, slug) for name, slug in NAME_TO_SLUG.items()]
+    ctx = {
+        "recent": recent,
+        "industries": industries,
+        "page_title": "Form D Explorer — Search SEC Form D Filings",
+        "meta_description": (
+            "Search SEC Form D filings by company, state, industry, or offering size. "
+            "Clean, fast, free."
+        ),
+    }
+    return render(request, "filings/home.html", ctx)
+
+
+def search(request):
+    qs = build_filing_query(request.GET)
+    paid = _is_paid(request)
+    limit = None if paid else FREE_RESULT_LIMIT
+    results = list(qs[: (limit or 500)])
+    total_est = qs.count() if qs.query.can_filter() else len(results)
+    ctx = {
+        "q": request.GET.get("q", ""),
+        "results": results,
+        "total": total_est,
+        "paid": paid,
+        "limit_hit": (not paid) and total_est > FREE_RESULT_LIMIT,
+        "page_title": f"Search — Form D Explorer",
+        "meta_description": "Search SEC Form D filings by issuer, state, industry, or offering size.",
+        "robots": "noindex,follow",
+    }
+    return render(request, "filings/search.html", ctx)
+
+
+def search_partial(request):
+    qs = build_filing_query(request.GET)
+    paid = _is_paid(request)
+    limit = None if paid else FREE_RESULT_LIMIT
+    results = list(qs[: (limit or 500)])
+    total_est = qs.count()
+    return render(
+        request,
+        "_partials/search_results.html",
+        {
+            "results": results,
+            "total": total_est,
+            "paid": paid,
+            "limit_hit": (not paid) and total_est > FREE_RESULT_LIMIT,
+            "q": request.GET.get("q", ""),
+        },
+    )
+
+
+def issuer_detail(request, slug_cik: str):
+    if "-" not in slug_cik:
+        raise Http404
+    slug, _, cik = slug_cik.rpartition("-")
+    if not cik.isdigit():
+        raise Http404
+    issuer = get_object_or_404(Issuer, cik=cik)
+    filings = issuer.filings.all().order_by("-filing_date")
+    ctx = {
+        "issuer": issuer,
+        "filings": filings,
+        "page_title": f"{issuer.name} SEC Form D Filings | Form D Explorer",
+        "meta_description": (
+            f"{issuer.name} (CIK {issuer.cik}) — all SEC Form D filings, offering "
+            f"amounts, related persons, and filing history."
+        ),
+        "canonical_path": f"/issuer/{issuer.url_slug}/",
+    }
+    return render(request, "filings/issuer_detail.html", ctx)
+
+
+def filing_detail(request, accession_number: str):
+    filing = get_object_or_404(
+        Filing.objects.select_related("issuer").prefetch_related("related_persons"),
+        accession_number=accession_number,
+    )
+    ctx = {
+        "filing": filing,
+        "page_title": (
+            f"Form {filing.form_type} — {filing.issuer.name} ({filing.filing_date}) | Form D Explorer"
+        ),
+        "meta_description": (
+            f"{filing.issuer.name} filed Form {filing.form_type} on {filing.filing_date}. "
+            f"Offering details, related persons, and SEC EDGAR link."
+        ),
+        "canonical_path": f"/filing/{filing.accession_number}/",
+    }
+    return render(request, "filings/filing_detail.html", ctx)
+
+
+def industry_detail(request, slug: str):
+    name = SLUG_TO_NAME.get(slug)
+    if not name:
+        raise Http404
+    qs = Filing.objects.filter(industry_group__iexact=name)
+    stats = _aggregate_stats(qs)
+    list_qs = qs.select_related("issuer").order_by("-filing_date")
+    paginator = Paginator(list_qs, 50)
+    page = paginator.get_page(request.GET.get("page"))
+    ctx = {
+        "industry": name,
+        "slug": slug,
+        "page_obj": page,
+        "stats": stats,
+        "page_title": f"{name} — SEC Form D Filings | Form D Explorer",
+        "meta_description": (
+            f"Recent SEC Form D filings in {name}. Offering amounts, issuers, and filing history."
+        ),
+        "canonical_path": f"/industry/{slug}/",
+    }
+    return render(request, "filings/industry_detail.html", ctx)
+
+
+def state_detail(request, state: str):
+    state_up = state.upper()
+    qs = Filing.objects.filter(issuer__state=state_up)
+    if not qs.exists():
+        raise Http404
+    stats = _aggregate_stats(qs)
+    list_qs = qs.select_related("issuer").order_by("-filing_date")
+    paginator = Paginator(list_qs, 50)
+    page = paginator.get_page(request.GET.get("page"))
+    ctx = {
+        "state": state_up,
+        "page_obj": page,
+        "stats": stats,
+        "page_title": f"{state_up} — SEC Form D Filings | Form D Explorer",
+        "meta_description": (
+            f"SEC Form D filings from issuers in {state_up}. Offering amounts, industries, dates."
+        ),
+        "canonical_path": f"/state/{state_up}/",
+    }
+    return render(request, "filings/state_detail.html", ctx)
+
+
+def recent(request):
+    qs = Filing.objects.select_related("issuer").order_by("-filing_date", "-id")[:50]
+    ctx = {
+        "filings": qs,
+        "page_title": "Recent SEC Form D Filings | Form D Explorer",
+        "meta_description": "The 50 most recent SEC Form D filings.",
+        "canonical_path": "/recent/",
+    }
+    return render(request, "filings/recent.html", ctx)
+
+
+@login_required
+def export_csv(request):
+    user = request.user
+    token = None
+    if not user.is_paid:
+        token = user.export_tokens.filter(used_at__isnull=True).first()
+        if token is None:
+            messages.info(request, "CSV export requires Pro or a one-time export purchase.")
+            return redirect("subscriptions:pricing")
+
+    qs = build_filing_query(request.GET)[:EXPORT_ROW_LIMIT]
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="form-d-filings.csv"'
+    writer = csv.writer(response)
+    writer.writerow([
+        "accession_number", "form_type", "filing_date", "issuer_name", "cik",
+        "state", "industry_group", "total_offering_amount", "total_amount_sold",
+        "minimum_investment", "num_investors", "exemptions",
+    ])
+    for f in qs.iterator():
+        writer.writerow([
+            f.accession_number, f.form_type, f.filing_date, f.issuer.name, f.issuer.cik,
+            f.issuer.state, f.industry_group, f.total_offering_amount, f.total_amount_sold,
+            f.minimum_investment, f.num_investors, f.offering_type,
+        ])
+    if token is not None:
+        token.consume()
+    return response
+
+
+@login_required
+def saved_search_list(request):
+    searches = request.user.saved_searches.all()
+    return render(
+        request,
+        "filings/saved_searches.html",
+        {
+            "searches": searches,
+            "max_searches": 10,
+            "page_title": "Saved searches — Form D Explorer",
+            "robots": "noindex",
+        },
+    )
+
+
+@login_required
+def saved_search_create(request):
+    if not request.user.is_paid:
+        messages.info(request, "Saved search alerts are a Pro feature.")
+        return redirect("subscriptions:pricing")
+    if request.user.saved_searches.count() >= 10:
+        messages.error(request, "You've hit the 10 saved search limit.")
+        return redirect("filings:saved_search_list")
+
+    if request.method == "POST":
+        name = (request.POST.get("name") or "").strip()[:120]
+        params = {
+            k: v
+            for k, v in request.POST.items()
+            if k in {"q", "state", "industry", "min_amount", "max_amount", "date_from", "date_to"} and v
+        }
+        if not name:
+            messages.error(request, "Name is required.")
+        else:
+            SavedSearch.objects.create(user=request.user, name=name, params=params)
+            return redirect("filings:saved_search_list")
+    return render(
+        request,
+        "filings/saved_search_form.html",
+        {"page_title": "New saved search", "robots": "noindex"},
+    )
+
+
+@login_required
+def saved_search_delete(request, pk: int):
+    search = get_object_or_404(SavedSearch, pk=pk, user=request.user)
+    if request.method == "POST":
+        search.delete()
+    return redirect("filings:saved_search_list")

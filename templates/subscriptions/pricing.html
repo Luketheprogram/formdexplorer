@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-3xl">
+  <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Pricing</h1>
+  <p class="mt-2 text-slate-600">Free search for everyone. Upgrade for unlimited results, exports, and alerts.</p>
+</div>
+
+<div class="mt-10 grid gap-6 md:grid-cols-3">
+  {% for plan in plans %}
+  <div class="rounded-lg border border-slate-200 bg-white p-6 flex flex-col">
+    <h2 class="text-lg font-semibold text-slate-900">{{ plan.name }}</h2>
+    <div class="mt-2 text-3xl font-semibold text-slate-900">{{ plan.price_display }}</div>
+    <p class="mt-1 text-sm text-slate-500">{{ plan.description }}</p>
+    <ul class="mt-5 space-y-2 text-sm text-slate-700">
+      {% for f in plan.features %}<li>· {{ f }}</li>{% endfor %}
+    </ul>
+    <div class="mt-6">
+      {% if plan.phase == 3 %}
+        <button disabled class="w-full rounded-md border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-500 cursor-not-allowed">Coming soon</button>
+      {% elif user.is_authenticated %}
+        <a href="{% url 'subscriptions:checkout' plan.key %}" class="block text-center w-full rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium hover:bg-slate-800">Get {{ plan.name }}</a>
+      {% else %}
+        <a href="{% url 'accounts:signup' %}?next={% url 'subscriptions:checkout' plan.key %}" class="block text-center w-full rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium hover:bg-slate-800">Sign up to purchase</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

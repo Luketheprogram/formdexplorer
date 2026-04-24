@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-xl">
+  <h1 class="text-2xl font-semibold text-slate-900">New saved search</h1>
+  <form method="post" class="mt-6 space-y-4">
+    {% csrf_token %}
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Name</label>
+      <input name="name" required maxlength="120" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2">
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <input name="q" placeholder="Issuer contains..." class="rounded-md border border-slate-300 px-3 py-2">
+      <input name="state" placeholder="State (e.g. CA)" class="rounded-md border border-slate-300 px-3 py-2">
+      <input name="industry" placeholder="Industry" class="rounded-md border border-slate-300 px-3 py-2 col-span-2">
+      <input name="min_amount" type="number" placeholder="Min $" class="rounded-md border border-slate-300 px-3 py-2">
+      <input name="max_amount" type="number" placeholder="Max $" class="rounded-md border border-slate-300 px-3 py-2">
+    </div>
+    <button type="submit" class="rounded-md bg-slate-900 px-5 py-2 text-white text-sm font-medium">Save</button>
+    <a href="{% url 'filings:saved_search_list' %}" class="text-sm text-slate-500 ml-3">Cancel</a>
+  </form>
+</div>
+{% endblock %}
