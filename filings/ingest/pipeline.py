@@ -1,6 +1,5 @@
 import logging
-from dataclasses import asdict
-from datetime import date
+from datetime import date, datetime
 
 from django.db import transaction
 from django.utils.text import slugify
@@ -8,6 +7,7 @@ from django.utils.text import slugify
 from ..models import Filing, Issuer, RelatedPerson
 from .edgar_client import EdgarClient
 from .index_parser import (
+    IndexEntry,
     accession_from_filename,
     daily_index_paths,
     iter_business_days,
@@ -15,6 +15,15 @@ from .index_parser import (
     primary_doc_url,
 )
 from .xml_parser import ParsedFiling, parse_primary_doc
+
+
+def _parse_index_date(raw: str) -> date | None:
+    for fmt in ("%Y%m%d", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(raw, fmt).date()
+        except ValueError:
+            continue
+    return None
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +41,7 @@ class IngestPipeline:
             stats["entries"] += len(entries)
             for e in entries:
                 try:
-                    parsed = self._fetch_and_parse(e.filename)
+                    parsed = self._fetch_and_parse(e)
                     if parsed is None:
                         continue
                     stats["parsed"] += 1
@@ -53,15 +62,20 @@ class IngestPipeline:
             return parse_form_idx(text)
         return []
 
-    def _fetch_and_parse(self, filename: str) -> ParsedFiling | None:
-        url = primary_doc_url(filename)
-        accession = accession_from_filename(filename)
+    def _fetch_and_parse(self, entry: IndexEntry) -> ParsedFiling | None:
+        url = primary_doc_url(entry.filename)
+        accession = accession_from_filename(entry.filename)
         try:
             xml_bytes = self.client.get_bytes(url)
         except Exception as exc:  # noqa: BLE001
             log.warning("No primary_doc.xml for %s: %s", accession, exc)
             return None
         pf = parse_primary_doc(xml_bytes, accession)
+        if pf.filing_date is None:
+            pf.filing_date = _parse_index_date(entry.filing_date)
+        if pf.form_type not in ("D", "D/A"):
+            pf.form_type = entry.form_type
+            pf.is_amendment = entry.form_type == "D/A"
         if not self.store_raw_xml:
             pf.raw_xml = ""
         return pf
