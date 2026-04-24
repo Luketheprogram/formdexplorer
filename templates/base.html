@@ -7,6 +7,18 @@
 <meta name="description" content="{% block meta_description %}{{ meta_description|default:DEFAULT_META_DESCRIPTION }}{% endblock %}">
 {% block robots %}{% if robots %}<meta name="robots" content="{{ robots }}">{% endif %}{% endblock %}
 {% if canonical_path %}<link rel="canonical" href="{{ SITE_URL }}{{ canonical_path }}">{% endif %}
+<link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
+<link rel="alternate icon" href="{% static 'favicon.svg' %}">
+<meta property="og:site_name" content="{{ SITE_NAME }}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{% block og_title %}{{ page_title|default:SITE_NAME }}{% endblock %}">
+<meta property="og:description" content="{{ meta_description|default:DEFAULT_META_DESCRIPTION }}">
+<meta property="og:url" content="{{ SITE_URL }}{{ canonical_path|default:request.path }}">
+<meta property="og:image" content="{{ SITE_URL }}{% static 'og-image.svg' %}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ page_title|default:SITE_NAME }}">
+<meta name="twitter:description" content="{{ meta_description|default:DEFAULT_META_DESCRIPTION }}">
+<meta name="twitter:image" content="{{ SITE_URL }}{% static 'og-image.svg' %}">
 <link rel="stylesheet" href="{% static 'css/app.css' %}">
 <script src="https://unpkg.com/htmx.org@2.0.2" defer></script>
 {% block head_extra %}{% endblock %}

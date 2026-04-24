@@ -7,9 +7,17 @@
     <div class="flex items-start justify-between gap-4">
       <div class="min-w-0">
         <a href="/issuer/{{ f.issuer.url_slug }}/" class="font-medium text-slate-900 hover:underline truncate block">{{ f.issuer.name }}</a>
-        <div class="text-sm text-slate-500 mt-1">{{ f.form_type }} &middot; {{ f.filing_date|date:"Y-m-d" }}{% if f.issuer.state %} &middot; {{ f.issuer.state }}{% endif %}{% if f.industry_group %} &middot; {{ f.industry_group }}{% endif %}</div>
+        <div class="text-sm text-slate-500 mt-1">
+          {{ f.form_type }} &middot; {{ f.filing_date|date:"Y-m-d" }}
+          {% if f.issuer.state %}&middot; <a href="/state/{{ f.issuer.state }}/" class="hover:underline">{{ f.issuer.state }}</a>{% endif %}
+          {% if f.industry_group %} &middot; {{ f.industry_group }}{% endif %}
+        </div>
       </div>
-      <a href="/filing/{{ f.accession_number }}/" class="text-slate-500 text-sm">view →</a>
+      <div class="text-right text-sm shrink-0">
+        {% if f.total_offering_amount %}<div class="text-slate-900 font-medium">${{ f.total_offering_amount|stringformat:"d" }}</div>{% endif %}
+        {% if f.num_investors %}<div class="text-xs text-slate-500">{{ f.num_investors }} investor{{ f.num_investors|pluralize }}</div>{% endif %}
+        <a href="/filing/{{ f.accession_number }}/" class="text-xs text-slate-500 hover:text-slate-900">view →</a>
+      </div>
     </div>
   </li>
   {% empty %}

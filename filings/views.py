@@ -4,14 +4,15 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Avg, Count, Sum
+from django.db.models import Avg, Count, Max, Min, Sum
+from django.db.models.functions import ExtractYear
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .industry import NAME_TO_SLUG, SLUG_TO_NAME
 from .models import Filing, Issuer, SavedSearch
-from .search import build_filing_query
+from .search import active_filters, build_filing_query
 
 
 def _aggregate_stats(qs):
@@ -26,6 +27,7 @@ def _aggregate_stats(qs):
     return agg
 
 FREE_RESULT_LIMIT = 10
+PAYWALL_PEEK = 10
 EXPORT_ROW_LIMIT = 5000
 
 
@@ -49,42 +51,40 @@ def home(request):
     return render(request, "filings/home.html", ctx)
 
 
-def search(request):
+def _search_context(request):
     qs = build_filing_query(request.GET)
     paid = _is_paid(request)
-    limit = None if paid else FREE_RESULT_LIMIT
-    results = list(qs[: (limit or 500)])
-    total_est = qs.count() if qs.query.can_filter() else len(results)
-    ctx = {
+    total = qs.count()
+    if paid:
+        visible = list(qs[:500])
+        peek: list = []
+    else:
+        visible = list(qs[:FREE_RESULT_LIMIT])
+        peek = list(qs[FREE_RESULT_LIMIT : FREE_RESULT_LIMIT + PAYWALL_PEEK])
+    return {
         "q": request.GET.get("q", ""),
-        "results": results,
-        "total": total_est,
+        "results": visible,
+        "peek_results": peek,
+        "total": total,
         "paid": paid,
-        "limit_hit": (not paid) and total_est > FREE_RESULT_LIMIT,
-        "page_title": f"Search — Form D Explorer",
+        "limit_hit": (not paid) and total > FREE_RESULT_LIMIT,
+        "active_filters": active_filters(request.GET),
+        "sort": request.GET.get("sort") or ("relevance" if (request.GET.get("q") or "").strip() else "newest"),
+    }
+
+
+def search(request):
+    ctx = _search_context(request)
+    ctx.update({
+        "page_title": "Search — Form D Explorer",
         "meta_description": "Search SEC Form D filings by issuer, state, industry, or offering size.",
         "robots": "noindex,follow",
-    }
+    })
     return render(request, "filings/search.html", ctx)
 
 
 def search_partial(request):
-    qs = build_filing_query(request.GET)
-    paid = _is_paid(request)
-    limit = None if paid else FREE_RESULT_LIMIT
-    results = list(qs[: (limit or 500)])
-    total_est = qs.count()
-    return render(
-        request,
-        "_partials/search_results.html",
-        {
-            "results": results,
-            "total": total_est,
-            "paid": paid,
-            "limit_hit": (not paid) and total_est > FREE_RESULT_LIMIT,
-            "q": request.GET.get("q", ""),
-        },
-    )
+    return render(request, "_partials/search_results.html", _search_context(request))
 
 
 def issuer_detail(request, slug_cik: str):
@@ -95,9 +95,28 @@ def issuer_detail(request, slug_cik: str):
         raise Http404
     issuer = get_object_or_404(Issuer, cik=cik)
     filings = issuer.filings.all().order_by("-filing_date")
+    agg = filings.aggregate(
+        total_offered=Sum("total_offering_amount"),
+        total_sold=Sum("total_amount_sold"),
+        first_filed=Min("filing_date"),
+        last_filed=Max("filing_date"),
+        count=Count("id"),
+    )
+    by_year = list(
+        filings.annotate(year=ExtractYear("filing_date"))
+        .values("year")
+        .annotate(total=Sum("total_offering_amount"), count=Count("id"))
+        .order_by("year")
+    )
+    max_year_total = max((row["total"] or 0 for row in by_year), default=0)
+    industry_slug = NAME_TO_SLUG.get(filings.first().industry_group) if filings.exists() and filings.first().industry_group else None
     ctx = {
         "issuer": issuer,
         "filings": filings,
+        "stats": agg,
+        "by_year": by_year,
+        "max_year_total": max_year_total,
+        "industry_slug": industry_slug,
         "page_title": f"{issuer.name} SEC Form D Filings | Form D Explorer",
         "meta_description": (
             f"{issuer.name} (CIK {issuer.cik}) — all SEC Form D filings, offering "
@@ -127,6 +146,14 @@ def filing_detail(request, accession_number: str):
     return render(request, "filings/filing_detail.html", ctx)
 
 
+def _top_issuers(qs, limit: int = 10):
+    return list(
+        qs.values("issuer__name", "issuer__cik", "issuer__name_slug")
+        .annotate(total_raised=Sum("total_offering_amount"), filing_count=Count("id"))
+        .order_by("-total_raised")[:limit]
+    )
+
+
 def industry_detail(request, slug: str):
     name = SLUG_TO_NAME.get(slug)
     if not name:
@@ -134,6 +161,7 @@ def industry_detail(request, slug: str):
     qs = Filing.objects.filter(industry_group__iexact=name)
     stats = _aggregate_stats(qs)
     list_qs = qs.select_related("issuer").order_by("-filing_date")
+    top_issuers = _top_issuers(qs)
     paginator = Paginator(list_qs, 50)
     page = paginator.get_page(request.GET.get("page"))
     ctx = {
@@ -141,6 +169,7 @@ def industry_detail(request, slug: str):
         "slug": slug,
         "page_obj": page,
         "stats": stats,
+        "top_issuers": top_issuers,
         "page_title": f"{name} — SEC Form D Filings | Form D Explorer",
         "meta_description": (
             f"Recent SEC Form D filings in {name}. Offering amounts, issuers, and filing history."
@@ -157,12 +186,23 @@ def state_detail(request, state: str):
         raise Http404
     stats = _aggregate_stats(qs)
     list_qs = qs.select_related("issuer").order_by("-filing_date")
+    top_issuers = _top_issuers(qs)
+    top_industries = list(
+        qs.exclude(industry_group="")
+        .values("industry_group")
+        .annotate(count=Count("id"), total=Sum("total_offering_amount"))
+        .order_by("-count")[:8]
+    )
+    for ind in top_industries:
+        ind["slug"] = NAME_TO_SLUG.get(ind["industry_group"])
     paginator = Paginator(list_qs, 50)
     page = paginator.get_page(request.GET.get("page"))
     ctx = {
         "state": state_up,
         "page_obj": page,
         "stats": stats,
+        "top_issuers": top_issuers,
+        "top_industries": top_industries,
         "page_title": f"{state_up} — SEC Form D Filings | Form D Explorer",
         "meta_description": (
             f"SEC Form D filings from issuers in {state_up}. Offering amounts, industries, dates."

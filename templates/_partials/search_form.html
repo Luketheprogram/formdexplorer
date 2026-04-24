@@ -1,7 +1,7 @@
 <form
   class="w-full"
   hx-get="{% url 'filings:search_partial' %}"
-  hx-trigger="keyup changed delay:250ms from:input[name=q], change from:select, submit"
+  hx-trigger="keyup changed delay:250ms from:input[name=q], change from:select, change from:input[name=state], change from:input[name=industry], change from:input[name=min_amount], change from:input[name=max_amount], submit"
   hx-target="#search-results"
   hx-push-url="false"
 >
@@ -14,6 +14,13 @@
       class="flex-1 rounded-md border border-slate-300 px-4 py-3 text-base focus:border-slate-500 focus:ring-1 focus:ring-slate-500 outline-none"
       autocomplete="off"
     >
+    <select name="sort" class="rounded-md border border-slate-300 px-3 py-3 text-sm bg-white">
+      <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest first</option>
+      <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Oldest first</option>
+      <option value="largest" {% if sort == "largest" %}selected{% endif %}>Largest offering</option>
+      <option value="smallest" {% if sort == "smallest" %}selected{% endif %}>Smallest offering</option>
+      <option value="relevance" {% if sort == "relevance" %}selected{% endif %}>Relevance</option>
+    </select>
     <button type="submit" class="rounded-md bg-slate-900 px-5 py-3 text-white text-sm font-medium hover:bg-slate-800">
       Search
     </button>
