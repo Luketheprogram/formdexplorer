@@ -11,24 +11,27 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .industry import NAME_TO_SLUG, SLUG_TO_NAME
-from .models import Filing, Issuer, SavedSearch
+from .models import Filing, Issuer, IssuerWatch, SavedSearch
 from .search import active_filters, build_filing_query
 
 
 def _aggregate_stats(qs):
     last_365 = timezone.now().date() - timedelta(days=365)
     last_year = qs.filter(filing_date__gte=last_365)
-    agg = qs.aggregate(
-        total_filings=Count("id"),
+    sane = qs.filter(total_offering_amount__lte=OUTLIER_CAP)
+    agg = qs.aggregate(total_filings=Count("id"))
+    money = sane.aggregate(
         total_raised=Sum("total_offering_amount"),
         avg_raised=Avg("total_offering_amount"),
     )
+    agg.update(money)
     agg["filings_last_year"] = last_year.count()
     return agg
 
 FREE_RESULT_LIMIT = 10
 PAYWALL_PEEK = 10
 EXPORT_ROW_LIMIT = 5000
+OUTLIER_CAP = 10_000_000_000  # $10B — above this is almost always bad data
 
 
 def _is_paid(request) -> bool:
@@ -95,21 +98,34 @@ def issuer_detail(request, slug_cik: str):
         raise Http404
     issuer = get_object_or_404(Issuer, cik=cik)
     filings = issuer.filings.all().order_by("-filing_date")
-    agg = filings.aggregate(
+    sane_filings = filings.filter(total_offering_amount__lte=OUTLIER_CAP)
+    agg = sane_filings.aggregate(
         total_offered=Sum("total_offering_amount"),
         total_sold=Sum("total_amount_sold"),
+    )
+    meta = filings.aggregate(
         first_filed=Min("filing_date"),
         last_filed=Max("filing_date"),
         count=Count("id"),
     )
+    agg.update(meta)
     by_year = list(
-        filings.annotate(year=ExtractYear("filing_date"))
+        sane_filings.annotate(year=ExtractYear("filing_date"))
         .values("year")
         .annotate(total=Sum("total_offering_amount"), count=Count("id"))
         .order_by("year")
     )
     max_year_total = max((row["total"] or 0 for row in by_year), default=0)
     industry_slug = NAME_TO_SLUG.get(filings.first().industry_group) if filings.exists() and filings.first().industry_group else None
+    related = []
+    if issuer.normalized_name:
+        related = list(
+            Issuer.objects.filter(normalized_name=issuer.normalized_name)
+            .exclude(pk=issuer.pk)[:6]
+        )
+    is_watching = False
+    if request.user.is_authenticated:
+        is_watching = IssuerWatch.objects.filter(user=request.user, issuer=issuer).exists()
     ctx = {
         "issuer": issuer,
         "filings": filings,
@@ -117,6 +133,8 @@ def issuer_detail(request, slug_cik: str):
         "by_year": by_year,
         "max_year_total": max_year_total,
         "industry_slug": industry_slug,
+        "related_issuers": related,
+        "is_watching": is_watching,
         "page_title": f"{issuer.name} SEC Form D Filings | Form D Explorer",
         "meta_description": (
             f"{issuer.name} (CIK {issuer.cik}) — all SEC Form D filings, offering "
@@ -125,6 +143,36 @@ def issuer_detail(request, slug_cik: str):
         "canonical_path": f"/issuer/{issuer.url_slug}/",
     }
     return render(request, "filings/issuer_detail.html", ctx)
+
+
+@login_required
+def issuer_watch_toggle(request, cik: str):
+    if request.method != "POST":
+        return redirect("filings:home")
+    if not request.user.is_paid:
+        messages.info(request, "Watchlists are a Pro feature.")
+        return redirect("subscriptions:pricing")
+    issuer = get_object_or_404(Issuer, cik=cik)
+    watch = IssuerWatch.objects.filter(user=request.user, issuer=issuer).first()
+    if watch:
+        watch.delete()
+    else:
+        IssuerWatch.objects.create(user=request.user, issuer=issuer)
+    return redirect(f"/issuer/{issuer.url_slug}/")
+
+
+@login_required
+def watchlist(request):
+    watches = request.user.watches.select_related("issuer").order_by("-created_at")
+    return render(
+        request,
+        "filings/watchlist.html",
+        {
+            "watches": watches,
+            "page_title": "Watchlist — Form D Explorer",
+            "robots": "noindex",
+        },
+    )
 
 
 def filing_detail(request, accession_number: str):
@@ -148,7 +196,8 @@ def filing_detail(request, accession_number: str):
 
 def _top_issuers(qs, limit: int = 10):
     return list(
-        qs.values("issuer__name", "issuer__cik", "issuer__name_slug")
+        qs.filter(total_offering_amount__lte=OUTLIER_CAP)
+        .values("issuer__name", "issuer__cik", "issuer__name_slug")
         .annotate(total_raised=Sum("total_offering_amount"), filing_count=Count("id"))
         .order_by("-total_raised")[:limit]
     )

@@ -2,6 +2,10 @@
 {% block content %}
 <h1 class="text-2xl font-semibold text-slate-900">Search</h1>
 <div class="mt-4">{% include "_partials/search_form.html" %}</div>
+<div id="search-spinner" class="htmx-indicator mt-3 flex items-center gap-2 text-sm text-slate-500">
+  <span class="inline-block w-3 h-3 rounded-full bg-slate-400 animate-pulse"></span>
+  Searching…
+</div>
 <div id="search-results" class="mt-6">
   {% include "_partials/search_results.html" %}
 </div>

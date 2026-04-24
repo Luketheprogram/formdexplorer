@@ -19,7 +19,22 @@
 <meta name="twitter:title" content="{{ page_title|default:SITE_NAME }}">
 <meta name="twitter:description" content="{{ meta_description|default:DEFAULT_META_DESCRIPTION }}">
 <meta name="twitter:image" content="{{ SITE_URL }}{% static 'og-image.svg' %}">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Form D Explorer",
+  "url": "{{ SITE_URL }}",
+  "logo": "{{ SITE_URL }}{% static 'favicon.svg' %}",
+  "description": "{{ DEFAULT_META_DESCRIPTION }}",
+  "sameAs": ["https://dawncrestconsulting.com"]
+}
+</script>
 <link rel="stylesheet" href="{% static 'css/app.css' %}">
+<style>
+  .htmx-indicator { display: none; }
+  .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: flex; }
+</style>
 <script src="https://unpkg.com/htmx.org@2.0.2" defer></script>
 {% block head_extra %}{% endblock %}
 </head>

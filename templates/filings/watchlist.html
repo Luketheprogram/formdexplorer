@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-semibold text-slate-900">Watchlist</h1>
+<p class="mt-2 text-sm text-slate-500">Issuers you follow. New filings trigger an email alert.</p>
+
+<ul class="mt-6 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+  {% for w in watches %}
+  <li class="p-4 flex items-start justify-between gap-4">
+    <div>
+      <a href="/issuer/{{ w.issuer.url_slug }}/" class="font-medium text-slate-900 hover:underline">{{ w.issuer.name }}</a>
+      <div class="text-sm text-slate-500 mt-1">CIK {{ w.issuer.cik }} · since {{ w.created_at|date:"Y-m-d" }}</div>
+    </div>
+    <form method="post" action="{% url 'filings:issuer_watch_toggle' w.issuer.cik %}">{% csrf_token %}
+      <button type="submit" class="rounded-md border border-slate-300 px-3 py-1 text-sm hover:bg-slate-50">Unfollow</button>
+    </form>
+  </li>
+  {% empty %}
+  <li class="p-6 text-sm text-slate-500">Not following anyone yet. Hit the "Follow" button on any issuer page.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

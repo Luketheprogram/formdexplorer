@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Filing, Issuer, RelatedPerson, SavedSearch
+from .models import Filing, Issuer, IssuerWatch, RelatedPerson, SavedSearch
 
 
 @admin.register(Issuer)
@@ -35,3 +35,9 @@ class RelatedPersonAdmin(admin.ModelAdmin):
 class SavedSearchAdmin(admin.ModelAdmin):
     list_display = ("name", "user", "created_at", "last_checked_at")
     search_fields = ("name", "user__email")
+
+
+@admin.register(IssuerWatch)
+class IssuerWatchAdmin(admin.ModelAdmin):
+    list_display = ("user", "issuer", "created_at", "last_notified_at")
+    search_fields = ("user__email", "issuer__name", "issuer__cik")

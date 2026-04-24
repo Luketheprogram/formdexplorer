@@ -16,6 +16,11 @@ def _bool(val: str | None, default: bool = False) -> bool:
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-insecure-key-change-me")
 DEBUG = _bool(os.environ.get("DEBUG"), default=True)
+
+if not DEBUG and SECRET_KEY == "dev-insecure-key-change-me":
+    raise RuntimeError(
+        "Refusing to boot in production without a real SECRET_KEY env var."
+    )
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "*").split(",") if h.strip()]
 
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")
@@ -148,6 +153,7 @@ DJSTRIPE_FOREIGN_KEY_TO_FIELD = "id"
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
 
 STRIPE_PRICE_PRO_MONTHLY = os.environ.get("STRIPE_PRICE_PRO_MONTHLY", "")
+STRIPE_PRICE_PRO_ANNUAL = os.environ.get("STRIPE_PRICE_PRO_ANNUAL", "")
 STRIPE_PRICE_ONE_TIME_EXPORT = os.environ.get("STRIPE_PRICE_ONE_TIME_EXPORT", "")
 STRIPE_PRICE_API_MONTHLY = os.environ.get("STRIPE_PRICE_API_MONTHLY", "")
 STRIPE_PUBLIC_KEY = STRIPE_LIVE_PUBLIC_KEY if STRIPE_LIVE_MODE else STRIPE_TEST_PUBLIC_KEY
@@ -163,3 +169,17 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = _bool(os.environ.get("EMAIL_USE_TLS"), default=True)
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "noreply@formdexplorer.com")
+
+# Sentry (opt-in via SENTRY_DSN)
+SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0.0")),
+        send_default_pii=False,
+        environment="production" if not DEBUG else "development",
+    )

@@ -1,0 +1,9 @@
+New filings from {{ watch.issuer.name }}:
+
+{% for f in filings %}- {{ f.form_type }} filed {{ f.filing_date|date:"Y-m-d" }}{% if f.total_offering_amount %} (offering ${{ f.total_offering_amount }}){% endif %}
+  {{ site_url }}/filing/{{ f.accession_number }}/
+{% endfor %}
+
+Manage your watchlist: {{ site_url }}/watchlist/
+
+— Form D Explorer

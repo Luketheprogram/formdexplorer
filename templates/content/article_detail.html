@@ -1,11 +1,39 @@
 {% extends "base.html" %}
 {% block content %}
-<article class="max-w-3xl space-y-4 text-slate-800 leading-relaxed">
-  <h1>{{ article.title }}</h1>
+<nav class="text-sm text-slate-500 mb-4"><a href="/" class="hover:text-slate-900">Home</a> / <a href="/learn/" class="hover:text-slate-900">About</a> / Article</nav>
+<article class="max-w-3xl space-y-4 text-slate-800 leading-relaxed [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-8 [&_h3]:font-semibold [&_h3]:mt-6 [&_pre]:bg-slate-100 [&_pre]:rounded [&_pre]:p-3 [&_pre]:text-sm [&_pre]:overflow-x-auto [&_code]:text-sm [&_ul]:list-disc [&_ul]:pl-6 [&_a]:underline [&_a]:text-slate-900">
+  <h1 class="text-3xl font-semibold">{{ article.title }}</h1>
   <p class="text-sm text-slate-500">{{ article.published_at|date:"F j, Y" }}</p>
 
   <!-- ADSENSE SLOT -->
 
   {{ body_html }}
 </article>
+{% endblock %}
+
+{% block head_extra %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{{ article.title|escapejs }}",
+  "description": "{{ article.meta_description|escapejs }}",
+  "datePublished": "{{ article.published_at|date:'c' }}",
+  "dateModified": "{{ article.updated_at|date:'c' }}",
+  "author": {"@type": "Organization", "name": "Form D Explorer"},
+  "publisher": {"@type": "Organization", "name": "Form D Explorer", "logo": {"@type": "ImageObject", "url": "{{ SITE_URL }}/static/favicon.svg"}},
+  "mainEntityOfPage": "{{ SITE_URL }}/learn/{{ article.slug }}/"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ SITE_URL }}/"},
+    {"@type": "ListItem", "position": 2, "name": "About", "item": "{{ SITE_URL }}/learn/"},
+    {"@type": "ListItem", "position": 3, "name": "{{ article.title|escapejs }}", "item": "{{ SITE_URL }}/learn/{{ article.slug }}/"}
+  ]
+}
+</script>
 {% endblock %}

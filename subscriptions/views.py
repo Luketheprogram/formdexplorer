@@ -3,6 +3,7 @@ import uuid
 
 import stripe
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
@@ -82,6 +83,19 @@ def checkout_cancel(request):
         "robots": "noindex",
     }
     return render(request, "subscriptions/checkout_cancel.html", ctx)
+
+
+@login_required
+def billing_portal(request):
+    if not request.user.stripe_customer_id:
+        messages.info(request, "No billing history yet. Subscribe first.")
+        return redirect("subscriptions:pricing")
+    stripe.api_key = _stripe_api_key()
+    session = stripe.billing_portal.Session.create(
+        customer=request.user.stripe_customer_id,
+        return_url=request.build_absolute_uri(reverse("accounts:account")),
+    )
+    return redirect(session.url)
 
 
 @csrf_exempt
