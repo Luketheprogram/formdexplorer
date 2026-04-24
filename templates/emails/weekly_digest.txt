@@ -1,0 +1,12 @@
+Top 10 Form D raises since {{ since|date:"Y-m-d" }}:
+
+{% for f in filings %}{{ forloop.counter }}. {{ f.issuer.name }}
+   Offering: ${{ f.total_offering_amount }}
+   Form {{ f.form_type }} filed {{ f.filing_date|date:"Y-m-d" }}{% if f.industry_group %} · {{ f.industry_group }}{% endif %}{% if f.issuer.state %} · {{ f.issuer.state }}{% endif %}
+   {{ site_url }}/filing/{{ f.accession_number }}/
+
+{% endfor %}
+
+Browse more at {{ site_url }}
+
+Unsubscribe: {{ site_url }}/learn/newsletter/unsubscribe/{{ email }}/

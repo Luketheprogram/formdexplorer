@@ -119,17 +119,13 @@ class IngestPipeline:
             },
         )
         filing.related_persons.all().delete()
-        RelatedPerson.objects.bulk_create(
-            [
-                RelatedPerson(
+        for rp in pf.related_persons:
+            if rp.name:
+                RelatedPerson.objects.create(
                     filing=filing,
                     name=rp.name,
                     relationship=rp.relationship,
                     city=rp.city,
                     state=rp.state,
                 )
-                for rp in pf.related_persons
-                if rp.name
-            ]
-        )
         return filing

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="max-w-3xl space-y-4 text-slate-800 leading-relaxed">
+  <h1 class="text-3xl font-semibold text-slate-900">Terms of Service</h1>
+  <p class="text-sm text-slate-500">Last updated: {{ updated }}</p>
+
+  <p>These terms govern your use of Form D Explorer ("the Service"), operated by Dawn Crest Consulting ("we", "us"). By accessing the Service you agree to these terms. If you don't, don't use the Service.</p>
+
+  <h2 class="text-xl font-semibold mt-8">The Service</h2>
+  <p>Form D Explorer re-indexes SEC Form D filings from EDGAR and provides search, alerts, exports, and an API. Filing data is sourced from public SEC records but is not guaranteed to be complete, current, or error-free.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Not investment or legal advice</h2>
+  <p>Nothing on the Service constitutes investment, legal, tax, or accounting advice. Form D filings are self-reported by issuers; we do not verify them. Before making any financial decision, consult qualified professionals and verify data against primary sources at <a class="underline" href="https://www.sec.gov/edgar" rel="noopener">SEC EDGAR</a>.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Accounts</h2>
+  <p>You're responsible for the activity under your account and for keeping your credentials safe. One account per person. Don't share logins.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Paid plans and billing</h2>
+  <ul class="list-disc pl-6 space-y-1">
+    <li>Subscriptions renew automatically until you cancel in the <a class="underline" href="/account/">billing portal</a>.</li>
+    <li>All fees are charged in USD via Stripe.</li>
+    <li>One-time exports are non-refundable once the token is consumed.</li>
+    <li>Monthly and annual subscriptions can be canceled at any time; access continues through the end of the paid period. No prorated refunds.</li>
+    <li>We may change pricing with 30 days' notice; existing subscribers keep their current rate for the remainder of their billing period.</li>
+  </ul>
+
+  <h2 class="text-xl font-semibold mt-8">Acceptable use</h2>
+  <ul class="list-disc pl-6 space-y-1">
+    <li>No scraping that exceeds the published API rate limits or circumvents the paywall.</li>
+    <li>No reselling or redistributing the raw dataset to third parties.</li>
+    <li>No attempts to disrupt, reverse-engineer, or probe for vulnerabilities (security researchers: responsible disclosure welcome at <a class="underline" href="mailto:luke@dawncrestconsulting.com">luke@dawncrestconsulting.com</a>).</li>
+    <li>No use in violation of applicable law.</li>
+  </ul>
+
+  <h2 class="text-xl font-semibold mt-8">API</h2>
+  <p>API access is provided with the "API Access" plan. Keys are personal and non-transferable. 10,000 requests per rolling 30-day window. Abuse (credential sharing, exceeding rate limits) may result in key revocation.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Intellectual property</h2>
+  <p>Everything we create (UI, code, content we've written) is owned by Dawn Crest Consulting. SEC data is public. Our aggregations, rankings, and structured metadata are ours; you can't redistribute them wholesale.</p>
+
+  <h2 class="text-xl font-semibold mt-8">No warranty; limitation of liability</h2>
+  <p>The Service is provided "as is" without warranties of any kind. To the maximum extent permitted by law, our total liability for any claim arising from the Service is limited to the fees you paid us in the prior 12 months.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Termination</h2>
+  <p>We may suspend or terminate accounts that violate these terms. You may close your account at any time by emailing us.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Changes</h2>
+  <p>We may update these terms; material changes will be announced via email or on-site notice at least 14 days before taking effect.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Governing law</h2>
+  <p>These terms are governed by the laws of the State of California, USA. Disputes are resolved in courts located in Los Angeles County, California.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Contact</h2>
+  <p><a class="underline" href="mailto:luke@dawncrestconsulting.com">luke@dawncrestconsulting.com</a></p>
+
+  <p class="mt-6 text-sm text-slate-500">These terms are intended to describe our commercial relationship in plain English. They are not a substitute for legal advice.</p>
+</article>
+{% endblock %}

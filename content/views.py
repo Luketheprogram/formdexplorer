@@ -1,9 +1,12 @@
 import markdown as md
+from django.contrib import messages
 from django.http import Http404
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django.views.decorators.http import require_POST
 
-from .models import Article
+from .models import Article, NewsletterSubscriber
 
 
 def article_list(request):
@@ -45,3 +48,27 @@ def api_docs(request):
         "canonical_path": "/learn/api/",
     }
     return render(request, "content/api_docs.html", ctx)
+
+
+@require_POST
+def newsletter_subscribe(request):
+    email = (request.POST.get("email") or "").strip().lower()
+    if not email or "@" not in email:
+        messages.error(request, "Enter a valid email.")
+        return redirect("content:article_list")
+    sub, _ = NewsletterSubscriber.objects.get_or_create(email=email)
+    if sub.unsubscribed_at:
+        sub.unsubscribed_at = None
+        sub.save(update_fields=["unsubscribed_at"])
+    messages.success(request, "Subscribed. You'll get the weekly Form D digest.")
+    return redirect("content:article_list")
+
+
+def newsletter_unsubscribe(request, email: str):
+    try:
+        sub = NewsletterSubscriber.objects.get(email=email.lower())
+    except NewsletterSubscriber.DoesNotExist:
+        return render(request, "content/unsubscribed.html", {"email": email, "already": True})
+    sub.unsubscribed_at = timezone.now()
+    sub.save(update_fields=["unsubscribed_at"])
+    return render(request, "content/unsubscribed.html", {"email": email})

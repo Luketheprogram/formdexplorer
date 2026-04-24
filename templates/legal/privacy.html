@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="max-w-3xl space-y-4 text-slate-800 leading-relaxed">
+  <h1 class="text-3xl font-semibold text-slate-900">Privacy Policy</h1>
+  <p class="text-sm text-slate-500">Last updated: {{ updated }}</p>
+
+  <p>This policy explains what information Form D Explorer collects, how it is used, and the choices you have. Form D Explorer ("we", "us") is operated by Dawn Crest Consulting (Rancho Palos Verdes, CA, USA). Contact: <a class="underline" href="mailto:luke@dawncrestconsulting.com">luke@dawncrestconsulting.com</a>.</p>
+
+  <h2 class="text-xl font-semibold mt-8">What we collect</h2>
+  <ul class="list-disc pl-6 space-y-1">
+    <li><strong>Account data</strong> — email address and hashed password when you sign up.</li>
+    <li><strong>Billing data</strong> — handled by Stripe. We store only the Stripe customer ID and subscription status; card details never touch our servers.</li>
+    <li><strong>Usage data</strong> — server logs (IP address, user agent, requested URLs) retained for up to 30 days for security and debugging.</li>
+    <li><strong>Saved searches, watchlists, newsletter subscriptions</strong> — what you explicitly save.</li>
+    <li><strong>Public SEC data</strong> — issuer names, CIKs, officer names, and offering amounts sourced from SEC EDGAR. This data is public record; we re-index it.</li>
+  </ul>
+
+  <h2 class="text-xl font-semibold mt-8">How we use it</h2>
+  <ul class="list-disc pl-6 space-y-1">
+    <li>To operate your account and deliver the features you've signed up for.</li>
+    <li>To send transactional emails (account, billing, alerts) and, if opted in, the weekly digest.</li>
+    <li>To detect abuse and enforce the Terms of Service.</li>
+  </ul>
+
+  <h2 class="text-xl font-semibold mt-8">Service providers</h2>
+  <p>We use the following third parties. Their own privacy policies govern their handling of any data passed to them:</p>
+  <ul class="list-disc pl-6 space-y-1">
+    <li><strong>Stripe</strong> — payments and billing.</li>
+    <li><strong>Railway</strong> — hosting.</li>
+    <li><strong>Postmark / SendGrid</strong> — transactional email delivery.</li>
+    <li><strong>Sentry</strong> — error monitoring (scrubbed of request bodies and PII).</li>
+    <li><strong>SEC EDGAR</strong> — source of filing data (public).</li>
+  </ul>
+
+  <h2 class="text-xl font-semibold mt-8">Cookies</h2>
+  <p>We use a session cookie and a CSRF cookie. Both are necessary for the site to work. We do not currently use advertising or analytics cookies. If that changes, this policy will be updated and a cookie banner will appear.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Your rights</h2>
+  <p>You can:</p>
+  <ul class="list-disc pl-6 space-y-1">
+    <li>See your data in <a class="underline" href="/account/">your account page</a>.</li>
+    <li>Request export or deletion by emailing <a class="underline" href="mailto:luke@dawncrestconsulting.com">luke@dawncrestconsulting.com</a>. We honor requests within 30 days.</li>
+    <li>Unsubscribe from the weekly digest via the link in every email.</li>
+  </ul>
+  <p>California residents (CCPA/CPRA) and EU/UK residents (GDPR) have additional rights (access, correction, deletion, portability, objection). Email us to exercise them.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Data retention</h2>
+  <p>We keep account data as long as your account is active. On deletion we remove personal data within 30 days; transactional billing records are retained for seven years for tax/audit compliance.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Security</h2>
+  <p>Passwords are hashed with Django's default PBKDF2. All traffic is encrypted in transit (TLS). We don't store card numbers.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Children</h2>
+  <p>Form D Explorer is not intended for users under 18. We don't knowingly collect data from minors.</p>
+
+  <h2 class="text-xl font-semibold mt-8">Changes</h2>
+  <p>We'll update this page when our practices change and post a new "Last updated" date at the top.</p>
+
+  <p class="mt-6 text-sm text-slate-500">This policy is intended to describe our actual practices in plain English. It is not legal advice.</p>
+</article>
+{% endblock %}

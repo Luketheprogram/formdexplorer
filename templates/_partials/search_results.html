@@ -7,9 +7,20 @@
 </div>
 {% endif %}
 
+{% if persons %}
+<div class="mb-4 rounded-md border border-slate-200 bg-white p-3">
+  <div class="text-xs uppercase tracking-wide text-slate-500 mb-2">People</div>
+  <ul class="flex flex-wrap gap-2">
+    {% for p in persons %}
+    <li><a href="/person/{{ p.name_slug }}/" class="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50">{{ p.name }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
 {% if results %}
 <div class="text-sm text-slate-500 mb-3">
-  {{ total }} match{{ total|pluralize:"es" }}{% if limit_hit %} — showing {{ results|length }} (free tier){% endif %}
+  {% if total_capped %}500+{% else %}{{ total }}{% endif %} match{{ total|pluralize:"es" }}{% if limit_hit %} — showing {{ results|length }} (free tier){% endif %}
 </div>
 <ul class="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
   {% for f in results %}

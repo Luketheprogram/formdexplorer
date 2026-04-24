@@ -145,12 +145,21 @@ class RelatedPerson(models.Model):
     ]
     filing = models.ForeignKey(Filing, on_delete=models.CASCADE, related_name="related_persons")
     name = models.CharField(max_length=255)
+    name_slug = models.SlugField(max_length=200, blank=True, default="", db_index=True)
     relationship = models.CharField(max_length=64, blank=True, default="")
     city = models.CharField(max_length=128, blank=True, default="")
     state = models.CharField(max_length=8, blank=True, default="")
 
     class Meta:
-        indexes = [models.Index(fields=["filing"])]
+        indexes = [
+            models.Index(fields=["filing"]),
+            GinIndex(fields=["name"], name="rp_name_trgm", opclasses=["gin_trgm_ops"]),
+        ]
 
     def __str__(self) -> str:
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.name_slug and self.name:
+            self.name_slug = slugify(self.name)[:195] or "person"
+        super().save(*args, **kwargs)

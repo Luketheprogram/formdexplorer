@@ -1,7 +1,8 @@
 from django.contrib.postgres.search import TrigramSimilarity
+from django.db import connection
 from django.db.models import Q, QuerySet
 
-from .models import Filing
+from .models import Filing, RelatedPerson
 
 SORT_CHOICES = {
     "newest": ("-filing_date", "-id"),
@@ -11,15 +12,22 @@ SORT_CHOICES = {
 }
 
 
+def _is_postgres() -> bool:
+    return connection.vendor == "postgresql"
+
+
 def build_filing_query(params) -> QuerySet:
     qs = Filing.objects.select_related("issuer").all()
 
     q = (params.get("q") or "").strip()
     has_text_search = bool(q)
     if q:
-        qs = qs.annotate(sim=TrigramSimilarity("issuer__name", q)).filter(
-            Q(issuer__name__icontains=q) | Q(sim__gt=0.15)
-        )
+        if _is_postgres():
+            qs = qs.annotate(sim=TrigramSimilarity("issuer__name", q)).filter(
+                Q(issuer__name__icontains=q) | Q(sim__gt=0.15)
+            )
+        else:
+            qs = qs.filter(issuer__name__icontains=q)
 
     state = (params.get("state") or "").strip().upper()
     if state:
@@ -44,13 +52,44 @@ def build_filing_query(params) -> QuerySet:
         qs = qs.filter(total_offering_amount__lte=max_amt)
 
     sort = params.get("sort") or ("relevance" if has_text_search else "newest")
-    if sort == "relevance" and has_text_search:
+    if sort == "relevance" and has_text_search and _is_postgres():
         qs = qs.order_by("-sim", "-filing_date")
     elif sort in SORT_CHOICES:
         qs = qs.order_by(*SORT_CHOICES[sort])
     else:
         qs = qs.order_by(*SORT_CHOICES["newest"])
     return qs
+
+
+def search_persons(q: str, limit: int = 20) -> list[dict]:
+    """Top-N distinct people whose name matches q (trigram + icontains)."""
+    if not q or len(q.strip()) < 2:
+        return []
+    q = q.strip()
+    if _is_postgres():
+        qs = (
+            RelatedPerson.objects.annotate(sim=TrigramSimilarity("name", q))
+            .filter(Q(name__icontains=q) | Q(sim__gt=0.2))
+            .values("name_slug", "name")
+            .order_by("name_slug")
+            .distinct()
+        )
+    else:
+        qs = (
+            RelatedPerson.objects.filter(name__icontains=q)
+            .values("name_slug", "name")
+            .order_by("name_slug")
+            .distinct()
+        )
+    # Rank by aggregate similarity of the best-matching row for each slug.
+    seen: dict[str, dict] = {}
+    for row in qs[:limit * 3]:
+        slug = row["name_slug"]
+        if slug and slug not in seen:
+            seen[slug] = row
+        if len(seen) >= limit:
+            break
+    return list(seen.values())
 
 
 def active_filters(params) -> list[dict]:

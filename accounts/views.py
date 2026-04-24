@@ -6,8 +6,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from api.models import ApiKey
 
 from .forms import SignupForm
+from .throttle import rate_limit
 
 
+@rate_limit(name="signup", max_hits=5, window_seconds=300)
 def signup(request):
     if request.user.is_authenticated:
         return redirect("accounts:account")

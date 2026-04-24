@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import feeds, views
 
 app_name = "filings"
 
@@ -16,6 +16,11 @@ urlpatterns = [
     path("issuer/<slug:slug_cik>/", views.issuer_detail, name="issuer_detail"),
     path("issuer/<str:cik>/watch/", views.issuer_watch_toggle, name="issuer_watch_toggle"),
     path("watchlist/", views.watchlist, name="watchlist"),
+    path("person/<slug:slug>/", views.person_detail, name="person_detail"),
+    path("feed/recent/", feeds.RecentFeed(), name="feed_recent"),
+    path("feed/issuer/<str:cik>/", feeds.IssuerFeed(), name="feed_issuer"),
+    path("feed/industry/<slug:slug>/", feeds.IndustryFeed(), name="feed_industry"),
+    path("feed/state/<str:state>/", feeds.StateFeed(), name="feed_state"),
     path("filing/<str:accession_number>/", views.filing_detail, name="filing_detail"),
     path("industry/<slug:slug>/", views.industry_detail, name="industry_detail"),
     path("state/<str:state>/", views.state_detail, name="state_detail"),

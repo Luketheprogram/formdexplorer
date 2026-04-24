@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load money %}
+{% block content %}
+<nav class="text-sm text-slate-500 mb-4"><a href="/" class="hover:text-slate-900">Home</a> / Person</nav>
+<header>
+  <h1 class="text-3xl font-semibold tracking-tight text-slate-900">{{ display_name }}</h1>
+  <div class="mt-2 text-sm text-slate-500">
+    Listed on {{ filings_total }} Form D filing{{ filings_total|pluralize }} across {{ issuers|length }}+ issuer{{ issuers|length|pluralize }}
+    {% if relationships %} &middot; {{ relationships|join:", " }}{% endif %}
+  </div>
+</header>
+
+{% if issuers %}
+<section class="mt-8">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Associated issuers</h2>
+  <ul class="mt-3 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+    {% for i in issuers %}
+    <li class="p-3 text-sm flex items-center justify-between">
+      <a href="/issuer/{{ i.url_slug }}/" class="text-slate-900 hover:underline truncate">{{ i.name }}</a>
+      <span class="text-slate-500 shrink-0">CIK {{ i.cik }}{% if i.state %} &middot; {{ i.state }}{% endif %}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="mt-8">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Filings ({{ filings_total }})</h2>
+  <ul class="mt-3 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+    {% for f in filings %}
+    <li class="p-4">
+      <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+          <a href="/issuer/{{ f.issuer.url_slug }}/" class="font-medium text-slate-900 hover:underline truncate block">{{ f.issuer.name }}</a>
+          <div class="text-sm text-slate-500 mt-1">
+            {{ f.form_type }} &middot; {{ f.filing_date|date:"Y-m-d" }}
+            {% if f.issuer.state %}&middot; {{ f.issuer.state }}{% endif %}
+            {% if f.industry_group %}&middot; {{ f.industry_group }}{% endif %}
+          </div>
+        </div>
+        <div class="text-right text-sm shrink-0">
+          {% if f.total_offering_amount %}<div class="text-slate-900">{{ f.total_offering_amount|dollars }}</div>{% endif %}
+          <a href="/filing/{{ f.accession_number }}/" class="text-xs text-slate-500 hover:text-slate-900">view →</a>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if filings_total > 100 %}
+  <p class="mt-3 text-sm text-slate-500">Showing 100 most recent. Use <a href="/search/?q={{ display_name|urlencode }}" class="underline">search</a> for filters.</p>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block head_extra %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "{{ display_name|escapejs }}",
+  "url": "{{ SITE_URL }}/person/{{ slug }}/"
+}
+</script>
+{% endblock %}

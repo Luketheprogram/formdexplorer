@@ -1,5 +1,5 @@
 import csv
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -11,8 +11,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .industry import NAME_TO_SLUG, SLUG_TO_NAME
-from .models import Filing, Issuer, IssuerWatch, SavedSearch
-from .search import active_filters, build_filing_query
+from .models import Filing, Issuer, IssuerWatch, RelatedPerson, SavedSearch
+from .search import active_filters, build_filing_query, search_persons
 
 
 def _aggregate_stats(qs):
@@ -54,25 +54,38 @@ def home(request):
     return render(request, "filings/home.html", ctx)
 
 
+def _capped_count(qs, cap: int = 500) -> tuple[int, bool]:
+    """COUNT(*) capped at `cap` so keystroke-driven search stays fast.
+    Returns (count, is_capped). If is_capped is True, actual count >= cap."""
+    ids = list(qs.order_by().values_list("id", flat=True)[: cap + 1])
+    if len(ids) > cap:
+        return cap, True
+    return len(ids), False
+
+
 def _search_context(request):
     qs = build_filing_query(request.GET)
     paid = _is_paid(request)
-    total = qs.count()
+    total, capped = _capped_count(qs)
     if paid:
         visible = list(qs[:500])
         peek: list = []
     else:
         visible = list(qs[:FREE_RESULT_LIMIT])
         peek = list(qs[FREE_RESULT_LIMIT : FREE_RESULT_LIMIT + PAYWALL_PEEK])
+    q_text = (request.GET.get("q") or "").strip()
+    persons = search_persons(q_text, limit=6) if q_text else []
     return {
         "q": request.GET.get("q", ""),
         "results": visible,
         "peek_results": peek,
         "total": total,
+        "total_capped": capped,
         "paid": paid,
         "limit_hit": (not paid) and total > FREE_RESULT_LIMIT,
         "active_filters": active_filters(request.GET),
-        "sort": request.GET.get("sort") or ("relevance" if (request.GET.get("q") or "").strip() else "newest"),
+        "sort": request.GET.get("sort") or ("relevance" if q_text else "newest"),
+        "persons": persons,
     }
 
 
@@ -98,6 +111,7 @@ def issuer_detail(request, slug_cik: str):
         raise Http404
     issuer = get_object_or_404(Issuer, cik=cik)
     filings = issuer.filings.all().order_by("-filing_date")
+    page_obj = Paginator(filings, 50).get_page(request.GET.get("page"))
     sane_filings = filings.filter(total_offering_amount__lte=OUTLIER_CAP)
     agg = sane_filings.aggregate(
         total_offered=Sum("total_offering_amount"),
@@ -129,6 +143,7 @@ def issuer_detail(request, slug_cik: str):
     ctx = {
         "issuer": issuer,
         "filings": filings,
+        "page_obj": page_obj,
         "stats": agg,
         "by_year": by_year,
         "max_year_total": max_year_total,
@@ -161,6 +176,38 @@ def issuer_watch_toggle(request, cik: str):
     return redirect(f"/issuer/{issuer.url_slug}/")
 
 
+def person_detail(request, slug: str):
+    qs = RelatedPerson.objects.filter(name_slug=slug).select_related("filing", "filing__issuer")
+    if not qs.exists():
+        raise Http404
+    display_name = qs.first().name
+    filings = (
+        Filing.objects.filter(related_persons__name_slug=slug)
+        .select_related("issuer")
+        .distinct()
+        .order_by("-filing_date")
+    )
+    relationships = sorted(set(qs.values_list("relationship", flat=True)) - {""})
+    issuers = {}
+    for f in filings[:200]:
+        issuers.setdefault(f.issuer_id, f.issuer)
+    ctx = {
+        "display_name": display_name,
+        "slug": slug,
+        "filings": filings[:100],
+        "filings_total": filings.count(),
+        "relationships": relationships,
+        "issuers": list(issuers.values())[:20],
+        "page_title": f"{display_name} — SEC Form D Filings | Form D Explorer",
+        "meta_description": (
+            f"Every SEC Form D filing where {display_name} is listed as an executive "
+            f"officer, director, or promoter."
+        ),
+        "canonical_path": f"/person/{slug}/",
+    }
+    return render(request, "filings/person_detail.html", ctx)
+
+
 @login_required
 def watchlist(request):
     watches = request.user.watches.select_related("issuer").order_by("-created_at")
@@ -180,8 +227,20 @@ def filing_detail(request, accession_number: str):
         Filing.objects.select_related("issuer").prefetch_related("related_persons"),
         accession_number=accession_number,
     )
+    # Same issuer, near-in-date Form D / D/A chain.
+    window = timedelta(days=365 * 3)
+    lineage = (
+        Filing.objects.filter(issuer=filing.issuer)
+        .exclude(pk=filing.pk)
+        .filter(
+            filing_date__gte=filing.filing_date - window,
+            filing_date__lte=filing.filing_date + window,
+        )
+        .order_by("-filing_date")[:10]
+    )
     ctx = {
         "filing": filing,
+        "lineage": list(lineage),
         "page_title": (
             f"Form {filing.form_type} — {filing.issuer.name} ({filing.filing_date}) | Form D Explorer"
         ),
