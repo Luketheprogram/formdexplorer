@@ -22,7 +22,7 @@ def _stripe_api_key() -> str:
 
 def pricing(request):
     ctx = {
-        "plans": [p for p in PLANS.values()],
+        "plans": PLANS,
         "page_title": "Pricing — Form D Explorer",
         "meta_description": "Pro, one-time export, and API pricing for Form D Explorer.",
         "canonical_path": "/pricing/",

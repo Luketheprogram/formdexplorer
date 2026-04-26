@@ -52,8 +52,8 @@ PLANS: dict[str, Plan] = {
     "export": Plan(
         key="export",
         name="One-time Export",
-        price_display="$15",
-        description="Single CSV export, no subscription.",
+        price_display="$25",
+        description="For one-off needs without a subscription.",
         features=[
             "One CSV export of any search",
             "No recurring charges",
@@ -67,7 +67,7 @@ PLANS: dict[str, Plan] = {
     "api": Plan(
         key="api",
         name="API Access",
-        price_display="$49/mo",
+        price_display="$29/mo",
         description="Programmatic access (coming soon).",
         features=[
             "JSON API",
@@ -77,6 +77,22 @@ PLANS: dict[str, Plan] = {
         mode="subscription",
         tier="api",
         price_id_attr="STRIPE_PRICE_API_MONTHLY",
+        phase=3,
+    ),
+    "api_pro": Plan(
+        key="api_pro",
+        name="API Pro",
+        price_display="$99/mo",
+        description="Higher-volume programmatic access (coming soon).",
+        features=[
+            "JSON API",
+            "100,000 requests / month",
+            "API key auth",
+            "Priority support",
+        ],
+        mode="subscription",
+        tier="api",
+        price_id_attr="STRIPE_PRICE_API_PRO",
         phase=3,
     ),
 }

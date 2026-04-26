@@ -3,27 +3,168 @@
 <div class="max-w-3xl">
   <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Pricing</h1>
   <p class="mt-2 text-slate-600">Free search for everyone. Upgrade for unlimited results, exports, and alerts.</p>
+  <p class="mt-2 text-sm text-slate-500">Built by a placement-agent analyst who got tired of EDGAR's UI.</p>
 </div>
 
-<div class="mt-10 grid gap-6 md:grid-cols-3">
-  {% for plan in plans %}
+{# --- Tier helpers --- #}
+{% with pro=plans.pro pro_annual=plans.pro_annual export=plans.export api=plans.api api_pro=plans.api_pro %}
+
+<div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+
+  {# Free #}
   <div class="rounded-lg border border-slate-200 bg-white p-6 flex flex-col">
-    <h2 class="text-lg font-semibold text-slate-900">{{ plan.name }}</h2>
-    <div class="mt-2 text-3xl font-semibold text-slate-900">{{ plan.price_display }}</div>
-    <p class="mt-1 text-sm text-slate-500">{{ plan.description }}</p>
-    <ul class="mt-5 space-y-2 text-sm text-slate-700">
-      {% for f in plan.features %}<li>· {{ f }}</li>{% endfor %}
+    <h2 class="text-lg font-semibold text-slate-900">Free</h2>
+    <div class="mt-2 text-3xl font-semibold text-slate-900">$0</div>
+    <p class="mt-1 text-sm text-slate-500">For occasional lookups.</p>
+    <ul class="mt-5 space-y-2 text-sm text-slate-700 flex-1">
+      <li>· Unlimited search and browse</li>
+      <li>· 10 results per search</li>
+      <li>· View any individual filing</li>
+      <li>· View any individual issuer page</li>
     </ul>
     <div class="mt-6">
-      {% if plan.phase == 3 %}
-        <button disabled class="w-full rounded-md border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-500 cursor-not-allowed">Coming soon</button>
-      {% elif user.is_authenticated %}
-        <a href="{% url 'subscriptions:checkout' plan.key %}" class="block text-center w-full rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium hover:bg-slate-800">Get {{ plan.name }}</a>
+      {% if user.is_authenticated %}
+        <a href="/" class="block text-center w-full rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Start searching</a>
       {% else %}
-        <a href="{% url 'accounts:signup' %}?next={% url 'subscriptions:checkout' plan.key %}" class="block text-center w-full rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium hover:bg-slate-800">Sign up to purchase</a>
+        <a href="{% url 'accounts:signup' %}" class="block text-center w-full rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Get started</a>
       {% endif %}
     </div>
   </div>
-  {% endfor %}
+
+  {# Pro Monthly — highlighted #}
+  <div class="relative rounded-lg border-2 border-slate-900 bg-white p-6 flex flex-col shadow-sm">
+    <div class="absolute -top-3 left-6 rounded-full bg-slate-900 px-2 py-0.5 text-xs font-medium text-white">Most popular</div>
+    <h2 class="text-lg font-semibold text-slate-900">{{ pro.name }}</h2>
+    <div class="mt-2 text-3xl font-semibold text-slate-900">{{ pro.price_display }}</div>
+    <p class="mt-1 text-sm text-slate-500">{{ pro.description }}</p>
+    <ul class="mt-5 space-y-2 text-sm text-slate-700 flex-1">
+      {% for f in pro.features %}<li>· {{ f }}</li>{% endfor %}
+    </ul>
+    <div class="mt-6">
+      {% if user.is_authenticated %}
+        <a href="{% url 'subscriptions:checkout' pro.key %}" class="block text-center w-full rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium hover:bg-slate-800">Get {{ pro.name }}</a>
+      {% else %}
+        <a href="{% url 'accounts:signup' %}?next={% url 'subscriptions:checkout' pro.key %}" class="block text-center w-full rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium hover:bg-slate-800">Sign up to purchase</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Pro Annual #}
+  <div class="rounded-lg border border-slate-200 bg-white p-6 flex flex-col">
+    <h2 class="text-lg font-semibold text-slate-900">{{ pro_annual.name }}</h2>
+    <div class="mt-2 text-3xl font-semibold text-slate-900">{{ pro_annual.price_display }}</div>
+    <p class="mt-1 text-sm text-slate-500">{{ pro_annual.description }}</p>
+    <ul class="mt-5 space-y-2 text-sm text-slate-700 flex-1">
+      {% for f in pro_annual.features %}<li>· {{ f }}</li>{% endfor %}
+    </ul>
+    <div class="mt-6">
+      {% if user.is_authenticated %}
+        <a href="{% url 'subscriptions:checkout' pro_annual.key %}" class="block text-center w-full rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium hover:bg-slate-800">Get {{ pro_annual.name }}</a>
+      {% else %}
+        <a href="{% url 'accounts:signup' %}?next={% url 'subscriptions:checkout' pro_annual.key %}" class="block text-center w-full rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium hover:bg-slate-800">Sign up to purchase</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {# One-time Export #}
+  <div class="rounded-lg border border-slate-200 bg-white p-6 flex flex-col">
+    <h2 class="text-lg font-semibold text-slate-900">{{ export.name }}</h2>
+    <div class="mt-2 text-3xl font-semibold text-slate-900">{{ export.price_display }}</div>
+    <p class="mt-1 text-sm text-slate-500">{{ export.description }}</p>
+    <ul class="mt-5 space-y-2 text-sm text-slate-700 flex-1">
+      {% for f in export.features %}<li>· {{ f }}</li>{% endfor %}
+    </ul>
+    <div class="mt-6">
+      {% if user.is_authenticated %}
+        <a href="{% url 'subscriptions:checkout' export.key %}" class="block text-center w-full rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium hover:bg-slate-800">Get {{ export.name }}</a>
+      {% else %}
+        <a href="{% url 'accounts:signup' %}?next={% url 'subscriptions:checkout' export.key %}" class="block text-center w-full rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium hover:bg-slate-800">Sign up to purchase</a>
+      {% endif %}
+    </div>
+  </div>
 </div>
+
+<div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-2 lg:max-w-2xl">
+
+  {# API Access #}
+  <div class="rounded-lg border border-slate-200 bg-white p-6 flex flex-col">
+    <h2 class="text-lg font-semibold text-slate-900">{{ api.name }}</h2>
+    <div class="mt-2 text-3xl font-semibold text-slate-900">{{ api.price_display }}</div>
+    <p class="mt-1 text-sm text-slate-500">{{ api.description }}</p>
+    <ul class="mt-5 space-y-2 text-sm text-slate-700 flex-1">
+      {% for f in api.features %}<li>· {{ f }}</li>{% endfor %}
+    </ul>
+    <div class="mt-6">
+      <button disabled class="w-full rounded-md border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-500 cursor-not-allowed">Coming soon</button>
+    </div>
+  </div>
+
+  {# API Pro #}
+  <div class="rounded-lg border border-slate-200 bg-white p-6 flex flex-col">
+    <h2 class="text-lg font-semibold text-slate-900">{{ api_pro.name }}</h2>
+    <div class="mt-2 text-3xl font-semibold text-slate-900">{{ api_pro.price_display }}</div>
+    <p class="mt-1 text-sm text-slate-500">{{ api_pro.description }}</p>
+    <ul class="mt-5 space-y-2 text-sm text-slate-700 flex-1">
+      {% for f in api_pro.features %}<li>· {{ f }}</li>{% endfor %}
+    </ul>
+    <div class="mt-6">
+      <button disabled class="w-full rounded-md border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-500 cursor-not-allowed">Coming soon</button>
+    </div>
+  </div>
+</div>
+
+{% endwith %}
+
+<section class="mt-16 max-w-3xl">
+  <h2 class="text-xl font-semibold text-slate-900">Frequently asked questions</h2>
+  <div class="mt-6 space-y-3">
+    <details class="group rounded-md border border-slate-200 bg-white p-4 [&_summary::-webkit-details-marker]:hidden">
+      <summary class="flex cursor-pointer items-center justify-between font-medium text-slate-900">
+        Can I cancel anytime?
+        <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+      </summary>
+      <p class="mt-3 text-sm text-slate-700 leading-relaxed">Yes. Pro Monthly cancels immediately and you keep access through the end of the current billing period. Pro Annual is non-refundable after the first 7 days.</p>
+    </details>
+
+    <details class="group rounded-md border border-slate-200 bg-white p-4 [&_summary::-webkit-details-marker]:hidden">
+      <summary class="flex cursor-pointer items-center justify-between font-medium text-slate-900">
+        Do you offer refunds?
+        <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+      </summary>
+      <p class="mt-3 text-sm text-slate-700 leading-relaxed">Yes — within 7 days of your first charge, no questions asked. Email <a class="underline" href="mailto:luke@dawncrestconsulting.com">luke@dawncrestconsulting.com</a>.</p>
+    </details>
+
+    <details class="group rounded-md border border-slate-200 bg-white p-4 [&_summary::-webkit-details-marker]:hidden">
+      <summary class="flex cursor-pointer items-center justify-between font-medium text-slate-900">
+        How accurate is the data?
+        <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+      </summary>
+      <p class="mt-3 text-sm text-slate-700 leading-relaxed">Data is sourced directly from SEC EDGAR Form D filings. We parse the official primary_doc.xml for each filing and update continuously. If you spot an error, email me and I'll fix it.</p>
+    </details>
+
+    <details class="group rounded-md border border-slate-200 bg-white p-4 [&_summary::-webkit-details-marker]:hidden">
+      <summary class="flex cursor-pointer items-center justify-between font-medium text-slate-900">
+        How often is it updated?
+        <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+      </summary>
+      <p class="mt-3 text-sm text-slate-700 leading-relaxed">New filings typically appear within a few hours of being published on EDGAR.</p>
+    </details>
+
+    <details class="group rounded-md border border-slate-200 bg-white p-4 [&_summary::-webkit-details-marker]:hidden">
+      <summary class="flex cursor-pointer items-center justify-between font-medium text-slate-900">
+        Can I expense this?
+        <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+      </summary>
+      <p class="mt-3 text-sm text-slate-700 leading-relaxed">Yes — invoices are emailed automatically and include line items suitable for expense reports. For team or annual invoicing, email <a class="underline" href="mailto:luke@dawncrestconsulting.com">luke@dawncrestconsulting.com</a>.</p>
+    </details>
+
+    <details class="group rounded-md border border-slate-200 bg-white p-4 [&_summary::-webkit-details-marker]:hidden">
+      <summary class="flex cursor-pointer items-center justify-between font-medium text-slate-900">
+        Do you offer team plans?
+        <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+      </summary>
+      <p class="mt-3 text-sm text-slate-700 leading-relaxed">Not yet, but reach out if you need access for 3+ people and we'll work something out.</p>
+    </details>
+  </div>
+</section>
 {% endblock %}
