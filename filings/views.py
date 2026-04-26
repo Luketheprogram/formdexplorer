@@ -78,6 +78,7 @@ def _search_context(request):
     persons = search_persons(q_text, limit=6) if q_text else []
     selected_states = set(s.upper() for s in request.GET.getlist("state") if s.strip())
     selected_industries = set(i for i in request.GET.getlist("industry") if i.strip())
+    industry_mode = (request.GET.get("industry_mode") or "include").lower()
     return {
         "q": request.GET.get("q", ""),
         "results": visible,
@@ -93,6 +94,7 @@ def _search_context(request):
         "all_industries": INDUSTRY_GROUPS,
         "selected_states": selected_states,
         "selected_industries": selected_industries,
+        "industry_mode": industry_mode,
     }
 
 

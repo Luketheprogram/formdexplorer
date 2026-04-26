@@ -36,8 +36,12 @@ def build_filing_query(params) -> QuerySet:
 
     industries = [i.strip() for i in params.getlist("industry") if i.strip()] \
         if hasattr(params, "getlist") else [i.strip() for i in [params.get("industry", "")] if i.strip()]
+    industry_mode = (params.get("industry_mode") or "include").lower()
     if industries:
-        qs = qs.filter(industry_group__in=industries)
+        if industry_mode == "exclude":
+            qs = qs.exclude(industry_group__in=industries)
+        else:
+            qs = qs.filter(industry_group__in=industries)
 
     date_from = params.get("date_from")
     date_to = params.get("date_to")
@@ -109,7 +113,9 @@ def active_filters(params) -> list[dict]:
         if not val:
             continue
         chips.append({"label": f"{prefix}: {val}", "remove_key": key})
-    multi_mapping = [("state", "state"), ("industry", "industry")]
+    industry_mode = (params.get("industry_mode") or "include").lower()
+    industry_prefix = "exclude industry" if industry_mode == "exclude" else "industry"
+    multi_mapping = [("state", "state"), ("industry", industry_prefix)]
     for key, prefix in multi_mapping:
         if hasattr(params, "getlist"):
             vals = [v for v in params.getlist(key) if v.strip()]
