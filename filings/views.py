@@ -10,9 +10,10 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .industry import NAME_TO_SLUG, SLUG_TO_NAME
+from .industry import INDUSTRY_GROUPS, NAME_TO_SLUG, SLUG_TO_NAME
 from .models import Filing, Issuer, IssuerWatch, RelatedPerson, SavedSearch
 from .search import active_filters, build_filing_query, search_persons
+from .states import US_STATES
 
 
 def _aggregate_stats(qs):
@@ -75,6 +76,8 @@ def _search_context(request):
         peek = list(qs[FREE_RESULT_LIMIT : FREE_RESULT_LIMIT + PAYWALL_PEEK])
     q_text = (request.GET.get("q") or "").strip()
     persons = search_persons(q_text, limit=6) if q_text else []
+    selected_states = set(s.upper() for s in request.GET.getlist("state") if s.strip())
+    selected_industries = set(i for i in request.GET.getlist("industry") if i.strip())
     return {
         "q": request.GET.get("q", ""),
         "results": visible,
@@ -86,6 +89,10 @@ def _search_context(request):
         "active_filters": active_filters(request.GET),
         "sort": request.GET.get("sort") or ("relevance" if q_text else "newest"),
         "persons": persons,
+        "all_states": US_STATES,
+        "all_industries": INDUSTRY_GROUPS,
+        "selected_states": selected_states,
+        "selected_industries": selected_industries,
     }
 
 

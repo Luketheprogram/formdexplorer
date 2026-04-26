@@ -29,13 +29,15 @@ def build_filing_query(params) -> QuerySet:
         else:
             qs = qs.filter(issuer__name__icontains=q)
 
-    state = (params.get("state") or "").strip().upper()
-    if state:
-        qs = qs.filter(issuer__state=state)
+    states = [s.strip().upper() for s in params.getlist("state") if s.strip()] \
+        if hasattr(params, "getlist") else [s.strip().upper() for s in [params.get("state", "")] if s.strip()]
+    if states:
+        qs = qs.filter(issuer__state__in=states)
 
-    industry = (params.get("industry") or "").strip()
-    if industry:
-        qs = qs.filter(industry_group__iexact=industry)
+    industries = [i.strip() for i in params.getlist("industry") if i.strip()] \
+        if hasattr(params, "getlist") else [i.strip() for i in [params.get("industry", "")] if i.strip()]
+    if industries:
+        qs = qs.filter(industry_group__in=industries)
 
     date_from = params.get("date_from")
     date_to = params.get("date_to")
@@ -95,19 +97,25 @@ def search_persons(q: str, limit: int = 20) -> list[dict]:
 def active_filters(params) -> list[dict]:
     """Return a list of human-readable {label, remove_key} for filter chips."""
     chips: list[dict] = []
-    mapping = [
+    single_mapping = [
         ("q", "search"),
-        ("state", "state"),
-        ("industry", "industry"),
         ("date_from", "from"),
         ("date_to", "to"),
         ("min_amount", "min"),
         ("max_amount", "max"),
     ]
-    for key, prefix in mapping:
+    for key, prefix in single_mapping:
         val = (params.get(key) or "").strip()
         if not val:
             continue
-        label = f"{prefix}: {val}"
-        chips.append({"label": label, "remove_key": key})
+        chips.append({"label": f"{prefix}: {val}", "remove_key": key})
+    multi_mapping = [("state", "state"), ("industry", "industry")]
+    for key, prefix in multi_mapping:
+        if hasattr(params, "getlist"):
+            vals = [v for v in params.getlist(key) if v.strip()]
+        else:
+            v = (params.get(key) or "").strip()
+            vals = [v] if v else []
+        for v in vals:
+            chips.append({"label": f"{prefix}: {v}", "remove_key": key})
     return chips

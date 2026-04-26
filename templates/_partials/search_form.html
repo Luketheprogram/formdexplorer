@@ -1,7 +1,7 @@
 <form
   class="w-full"
   hx-get="{% url 'filings:search_partial' %}"
-  hx-trigger="keyup changed delay:250ms from:input[name=q], change from:select, change from:input[name=state], change from:input[name=industry], change from:input[name=min_amount], change from:input[name=max_amount], submit"
+  hx-trigger="keyup changed delay:250ms from:input[name=q], change from:select, change from:input[type=checkbox], change from:input[type=date], change from:input[type=number], submit"
   hx-target="#search-results"
   hx-push-url="false"
   hx-indicator="#search-spinner"
@@ -26,14 +26,51 @@
       Search
     </button>
   </div>
+
   <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-    <input name="state" placeholder="State (e.g. CA)" value="{{ request.GET.state|default:'' }}"
-      class="rounded-md border border-slate-300 px-3 py-2">
-    <input name="industry" placeholder="Industry" value="{{ request.GET.industry|default:'' }}"
-      class="rounded-md border border-slate-300 px-3 py-2">
+    {# Industries multi-select #}
+    <details class="relative rounded-md border border-slate-300 bg-white">
+      <summary class="cursor-pointer px-3 py-2 flex items-center justify-between [&::-webkit-details-marker]:hidden">
+        <span class="text-slate-700 truncate">
+          {% if selected_industries %}Industries ({{ selected_industries|length }}){% else %}Industry{% endif %}
+        </span>
+        <span class="text-slate-400 ml-2">▾</span>
+      </summary>
+      <div class="absolute z-20 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg p-2 text-sm space-y-1">
+        {% for name in all_industries %}
+        <label class="flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-50 cursor-pointer">
+          <input type="checkbox" name="industry" value="{{ name }}" {% if name in selected_industries %}checked{% endif %} class="rounded border-slate-300">
+          <span>{{ name }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </details>
+
+    {# States multi-select #}
+    <details class="relative rounded-md border border-slate-300 bg-white">
+      <summary class="cursor-pointer px-3 py-2 flex items-center justify-between [&::-webkit-details-marker]:hidden">
+        <span class="text-slate-700 truncate">
+          {% if selected_states %}States ({{ selected_states|length }}){% else %}State{% endif %}
+        </span>
+        <span class="text-slate-400 ml-2">▾</span>
+      </summary>
+      <div class="absolute z-20 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg p-2 text-sm space-y-1">
+        {% for code, name in all_states %}
+        <label class="flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-50 cursor-pointer">
+          <input type="checkbox" name="state" value="{{ code }}" {% if code in selected_states %}checked{% endif %} class="rounded border-slate-300">
+          <span>{{ code }} — {{ name }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </details>
+
     <input name="min_amount" type="number" placeholder="Min $" value="{{ request.GET.min_amount|default:'' }}"
       class="rounded-md border border-slate-300 px-3 py-2">
     <input name="max_amount" type="number" placeholder="Max $" value="{{ request.GET.max_amount|default:'' }}"
+      class="rounded-md border border-slate-300 px-3 py-2">
+    <input name="date_from" type="date" placeholder="From" value="{{ request.GET.date_from|default:'' }}"
+      class="rounded-md border border-slate-300 px-3 py-2">
+    <input name="date_to" type="date" placeholder="To" value="{{ request.GET.date_to|default:'' }}"
       class="rounded-md border border-slate-300 px-3 py-2">
   </div>
 </form>
