@@ -20,7 +20,7 @@
 
 {% if results %}
 <div class="text-sm text-slate-500 mb-3">
-  {% if total_capped %}500+{% else %}{{ total }}{% endif %} match{{ total|pluralize:"es" }}{% if limit_hit %} — showing {{ results|length }} (free tier){% endif %}
+  {{ total }} match{{ total|pluralize:"es" }}{% if limit_hit %} — showing {{ results|length }} (free tier){% endif %}
 </div>
 <ul class="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
   {% for f in results %}

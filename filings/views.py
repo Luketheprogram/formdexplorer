@@ -55,19 +55,10 @@ def home(request):
     return render(request, "filings/home.html", ctx)
 
 
-def _capped_count(qs, cap: int = 500) -> tuple[int, bool]:
-    """COUNT(*) capped at `cap` so keystroke-driven search stays fast.
-    Returns (count, is_capped). If is_capped is True, actual count >= cap."""
-    ids = list(qs.order_by().values_list("id", flat=True)[: cap + 1])
-    if len(ids) > cap:
-        return cap, True
-    return len(ids), False
-
-
 def _search_context(request):
     qs = build_filing_query(request.GET)
     paid = _is_paid(request)
-    total, capped = _capped_count(qs)
+    total = qs.count()
     if paid:
         visible = list(qs[:500])
         peek: list = []
@@ -84,7 +75,6 @@ def _search_context(request):
         "results": visible,
         "peek_results": peek,
         "total": total,
-        "total_capped": capped,
         "paid": paid,
         "limit_hit": (not paid) and total > FREE_RESULT_LIMIT,
         "active_filters": active_filters(request.GET),
