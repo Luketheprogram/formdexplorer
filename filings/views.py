@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .industry import INDUSTRY_GROUPS, NAME_TO_SLUG, SLUG_TO_NAME
-from .models import Filing, Issuer, IssuerWatch, RelatedPerson, SavedSearch
+from .models import Filing, Issuer, IssuerView, IssuerWatch, RelatedPerson, SavedSearch
 from .search import active_filters, build_filing_query, search_persons
 from .states import US_STATES
 
@@ -41,10 +41,11 @@ def _is_paid(request) -> bool:
 
 
 def home(request):
-    recent = Filing.objects.select_related("issuer").order_by("-filing_date", "-id")[:20]
+    recent = list(Filing.objects.select_related("issuer").order_by("-filing_date", "-id")[:20])
     industries = [(name, slug) for name, slug in NAME_TO_SLUG.items()]
     ctx = {
         "recent": recent,
+        "viewed_ids": _viewed_issuer_ids(request.user, recent),
         "industries": industries,
         "page_title": "Form D Explorer — Search SEC Form D Filings",
         "meta_description": (
@@ -53,6 +54,19 @@ def home(request):
         ),
     }
     return render(request, "filings/home.html", ctx)
+
+
+def _viewed_issuer_ids(user, filings) -> set[int]:
+    if not user or not user.is_authenticated:
+        return set()
+    issuer_ids = {f.issuer_id for f in filings}
+    if not issuer_ids:
+        return set()
+    return set(
+        IssuerView.objects.filter(user=user, issuer_id__in=issuer_ids).values_list(
+            "issuer_id", flat=True
+        )
+    )
 
 
 def _search_context(request):
@@ -70,6 +84,7 @@ def _search_context(request):
     selected_states = set(s.upper() for s in request.GET.getlist("state") if s.strip())
     selected_industries = set(i for i in request.GET.getlist("industry") if i.strip())
     industry_mode = (request.GET.get("industry_mode") or "include").lower()
+    viewed_ids = _viewed_issuer_ids(request.user, visible + peek)
     return {
         "q": request.GET.get("q", ""),
         "results": visible,
@@ -85,6 +100,7 @@ def _search_context(request):
         "selected_states": selected_states,
         "selected_industries": selected_industries,
         "industry_mode": industry_mode,
+        "viewed_ids": viewed_ids,
     }
 
 
@@ -139,6 +155,7 @@ def issuer_detail(request, slug_cik: str):
     is_watching = False
     if request.user.is_authenticated:
         is_watching = IssuerWatch.objects.filter(user=request.user, issuer=issuer).exists()
+        IssuerView.objects.update_or_create(user=request.user, issuer=issuer)
     ctx = {
         "issuer": issuer,
         "filings": filings,
@@ -320,9 +337,10 @@ def state_detail(request, state: str):
 
 
 def recent(request):
-    qs = Filing.objects.select_related("issuer").order_by("-filing_date", "-id")[:50]
+    qs = list(Filing.objects.select_related("issuer").order_by("-filing_date", "-id")[:50])
     ctx = {
         "filings": qs,
+        "viewed_ids": _viewed_issuer_ids(request.user, qs),
         "page_title": "Recent SEC Form D Filings | Form D Explorer",
         "meta_description": "The 50 most recent SEC Form D filings.",
         "canonical_path": "/recent/",

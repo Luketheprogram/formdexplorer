@@ -103,6 +103,24 @@ class Filing(models.Model):
         )
 
 
+class IssuerView(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="issuer_views"
+    )
+    issuer = models.ForeignKey(
+        "filings.Issuer", on_delete=models.CASCADE, related_name="viewers"
+    )
+    viewed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [("user", "issuer")]
+        indexes = [models.Index(fields=["user", "-viewed_at"])]
+        ordering = ["-viewed_at"]
+
+    def __str__(self) -> str:
+        return f"{self.user_id} viewed {self.issuer_id}"
+
+
 class IssuerWatch(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="watches"
