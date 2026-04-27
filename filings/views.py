@@ -177,6 +177,30 @@ def issuer_detail(request, slug_cik: str):
 
 
 @login_required
+def issuer_enrich(request, cik: str):
+    if request.method != "POST":
+        return redirect("filings:home")
+    if not request.user.is_paid:
+        messages.info(request, "Issuer contact lookup is a Pro feature.")
+        return redirect("subscriptions:pricing")
+    issuer = get_object_or_404(Issuer, cik=cik)
+    cooldown = timedelta(hours=12)
+    if issuer.enriched_at and (timezone.now() - issuer.enriched_at) < cooldown and (
+        issuer.contact_email or issuer.website
+    ):
+        return redirect(f"/issuer/{issuer.url_slug}/")
+    from .enrich import find_contact
+    data = find_contact(issuer.name)
+    issuer.website = data.get("website") or issuer.website
+    issuer.contact_email = data.get("email") or issuer.contact_email
+    issuer.enriched_at = timezone.now()
+    issuer.save(update_fields=["website", "contact_email", "enriched_at"])
+    if not (issuer.contact_email or issuer.website):
+        messages.info(request, "No public contact info found for this issuer.")
+    return redirect(f"/issuer/{issuer.url_slug}/")
+
+
+@login_required
 def issuer_watch_toggle(request, cik: str):
     if request.method != "POST":
         return redirect("filings:home")

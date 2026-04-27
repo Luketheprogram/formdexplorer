@@ -37,6 +37,9 @@ class Issuer(models.Model):
     state = models.CharField(max_length=8, blank=True, default="", db_index=True)
     zip_code = models.CharField(max_length=16, blank=True, default="")
     phone = models.CharField(max_length=32, blank=True, default="")
+    website = models.URLField(blank=True, default="", max_length=300)
+    contact_email = models.EmailField(blank=True, default="", max_length=200)
+    enriched_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

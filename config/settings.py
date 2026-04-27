@@ -14,6 +14,7 @@ def _bool(val: str | None, default: bool = False) -> bool:
     return val.strip().lower() in {"1", "true", "yes", "on"}
 
 
+HUNTER_API_KEY = os.environ.get("HUNTER_API_KEY", "")
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-insecure-key-change-me")
 DEBUG = _bool(os.environ.get("DEBUG"), default=True)
 

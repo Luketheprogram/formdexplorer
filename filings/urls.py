@@ -15,6 +15,7 @@ urlpatterns = [
     path("saved-searches/<int:pk>/delete/", views.saved_search_delete, name="saved_search_delete"),
     path("issuer/<slug:slug_cik>/", views.issuer_detail, name="issuer_detail"),
     path("issuer/<str:cik>/watch/", views.issuer_watch_toggle, name="issuer_watch_toggle"),
+    path("issuer/<str:cik>/enrich/", views.issuer_enrich, name="issuer_enrich"),
     path("watchlist/", views.watchlist, name="watchlist"),
     path("person/<slug:slug>/", views.person_detail, name="person_detail"),
     path("feed/recent/", feeds.RecentFeed(), name="feed_recent"),
