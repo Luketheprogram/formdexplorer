@@ -70,10 +70,23 @@
       </div>
     </details>
 
-    <input name="min_amount" type="number" placeholder="Min $" value="{{ request.GET.min_amount|default:'' }}"
+    <input name="min_amount" type="number" placeholder="Min offering $" value="{{ request.GET.min_amount|default:'' }}"
       class="rounded-md border border-slate-300 px-3 py-2">
-    <input name="max_amount" type="number" placeholder="Max $" value="{{ request.GET.max_amount|default:'' }}"
+    <input name="max_amount" type="number" placeholder="Max offering $" value="{{ request.GET.max_amount|default:'' }}"
       class="rounded-md border border-slate-300 px-3 py-2">
+    {% with cur=request.GET.min_sold|default:'' %}
+    <select name="min_sold" class="rounded-md border border-slate-300 px-3 py-2 bg-white">
+      <option value="" {% if not cur %}selected{% endif %}>Any amount sold</option>
+      <option value="1" {% if cur == "1" %}selected{% endif %}>$1+ sold (excludes $0)</option>
+      <option value="100000" {% if cur == "100000" %}selected{% endif %}>$100K+ sold</option>
+      <option value="1000000" {% if cur == "1000000" %}selected{% endif %}>$1M+ sold</option>
+      <option value="10000000" {% if cur == "10000000" %}selected{% endif %}>$10M+ sold</option>
+      <option value="50000000" {% if cur == "50000000" %}selected{% endif %}>$50M+ sold</option>
+      <option value="100000000" {% if cur == "100000000" %}selected{% endif %}>$100M+ sold</option>
+      <option value="500000000" {% if cur == "500000000" %}selected{% endif %}>$500M+ sold</option>
+      <option value="1000000000" {% if cur == "1000000000" %}selected{% endif %}>$1B+ sold</option>
+    </select>
+    {% endwith %}
     <input name="date_from" type="date" placeholder="From" value="{{ request.GET.date_from|default:'' }}"
       class="rounded-md border border-slate-300 px-3 py-2">
     <input name="date_to" type="date" placeholder="To" value="{{ request.GET.date_to|default:'' }}"

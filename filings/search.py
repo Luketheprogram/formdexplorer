@@ -57,6 +57,13 @@ def build_filing_query(params) -> QuerySet:
     if max_amt:
         qs = qs.filter(total_offering_amount__lte=max_amt)
 
+    min_sold = params.get("min_sold")
+    if min_sold:
+        try:
+            qs = qs.filter(total_amount_sold__gte=int(min_sold))
+        except ValueError:
+            pass
+
     sort = params.get("sort") or ("relevance" if has_text_search else "newest")
     if sort == "relevance" and has_text_search and _is_postgres():
         qs = qs.order_by("-sim", "-filing_date")
@@ -105,8 +112,9 @@ def active_filters(params) -> list[dict]:
         ("q", "search"),
         ("date_from", "from"),
         ("date_to", "to"),
-        ("min_amount", "min"),
-        ("max_amount", "max"),
+        ("min_amount", "min offering"),
+        ("max_amount", "max offering"),
+        ("min_sold", "min sold"),
     ]
     for key, prefix in single_mapping:
         val = (params.get(key) or "").strip()
