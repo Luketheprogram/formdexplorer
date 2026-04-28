@@ -64,6 +64,15 @@ def build_filing_query(params) -> QuerySet:
         except ValueError:
             pass
 
+    if params.get("no_banker"):
+        # Heuristic: no sales commission AND no finders fees disclosed ⇒
+        # the issuer didn't run the deal through a banker.
+        qs = qs.filter(
+            Q(sales_commission__isnull=True) | Q(sales_commission=0)
+        ).filter(
+            Q(finders_fees__isnull=True) | Q(finders_fees=0)
+        )
+
     sort = params.get("sort") or ("relevance" if has_text_search else "newest")
     if sort == "relevance" and has_text_search and _is_postgres():
         qs = qs.order_by("-sim", "-filing_date")
@@ -121,6 +130,8 @@ def active_filters(params) -> list[dict]:
         if not val:
             continue
         chips.append({"label": f"{prefix}: {val}", "remove_key": key})
+    if params.get("no_banker"):
+        chips.append({"label": "no disclosed banker", "remove_key": "no_banker"})
     industry_mode = (params.get("industry_mode") or "include").lower()
     industry_prefix = "exclude industry" if industry_mode == "exclude" else "industry"
     multi_mapping = [("state", "state"), ("industry", industry_prefix)]
