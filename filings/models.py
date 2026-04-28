@@ -83,6 +83,9 @@ class Filing(models.Model):
     finders_fees = models.BigIntegerField(null=True, blank=True)
     industry_group = models.CharField(max_length=128, blank=True, default="", db_index=True)
 
+    banker_count = models.IntegerField(null=True, blank=True, db_index=True)
+    banker_names = models.CharField(max_length=500, blank=True, null=True, default="")
+
     raw_xml = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

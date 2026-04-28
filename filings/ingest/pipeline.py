@@ -115,6 +115,8 @@ class IngestPipeline:
                 "sales_commission": pf.sales_commission,
                 "finders_fees": pf.finders_fees,
                 "industry_group": pf.industry_group,
+                "banker_count": pf.banker_count,
+                "banker_names": pf.banker_names,
                 "raw_xml": pf.raw_xml,
             },
         )

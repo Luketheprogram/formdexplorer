@@ -42,6 +42,8 @@ class ParsedFiling:
     sales_commission: int | None = None
     finders_fees: int | None = None
     industry_group: str = ""
+    banker_count: int | None = None
+    banker_names: str = ""
     issuer: ParsedIssuer = field(default_factory=ParsedIssuer)
     related_persons: list[ParsedRelatedPerson] = field(default_factory=list)
     raw_xml: str = ""
@@ -128,8 +130,32 @@ def parse_primary_doc(xml_bytes: bytes, accession_number: str) -> ParsedFiling:
         pf.total_amount_sold = _int(offering, ".//offeringSalesAmounts/totalAmountSold")
         pf.minimum_investment = _int(offering, ".//minimumInvestmentAccepted")
         pf.num_investors = _int(offering, ".//numberAlreadyInvested")
-        pf.sales_commission = _int(offering, ".//salesCommissionsAmount")
-        pf.finders_fees = _int(offering, ".//findersFeesAmount")
+        # Sales commission / finders fees: SEC moved the element names; both
+        # paths covered.
+        pf.sales_commission = (
+            _int(offering, ".//salesCommissionsFindersFees/salesCommissions")
+            or _int(offering, ".//salesCommissionsAmount")
+        )
+        pf.finders_fees = (
+            _int(offering, ".//salesCommissionsFindersFees/findersFees")
+            or _int(offering, ".//findersFeesAmount")
+        )
+
+        # Banker / placement-agent recipients: the real "did they use a banker"
+        # signal lives in salesCompensationList/recipientList. Empty list ⇒
+        # no banker disclosed.
+        recipients = (
+            offering.findall(".//recipientList/recipient")
+            or offering.findall(".//salesCompensationList/recipient")
+            or offering.findall(".//recipient")
+        )
+        pf.banker_count = len(recipients)
+        names = []
+        for r in recipients[:5]:
+            n = _text(r, "recipientName") or _text(r, ".//recipientName")
+            if n:
+                names.append(n.strip())
+        pf.banker_names = ", ".join(names)[:500]
 
     # Related persons
     rp_list = root.findall(".//relatedPersonsList/relatedPersonInfo")

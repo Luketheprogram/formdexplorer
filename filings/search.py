@@ -65,13 +65,9 @@ def build_filing_query(params) -> QuerySet:
             pass
 
     if params.get("no_banker"):
-        # Heuristic: no sales commission AND no finders fees disclosed ⇒
-        # the issuer didn't run the deal through a banker.
-        qs = qs.filter(
-            Q(sales_commission__isnull=True) | Q(sales_commission=0)
-        ).filter(
-            Q(finders_fees__isnull=True) | Q(finders_fees=0)
-        )
+        # Filings whose Form D recipientList is empty have no disclosed banker.
+        # Excludes filings where banker_count hasn't been parsed yet (NULL).
+        qs = qs.filter(banker_count=0)
 
     sort = params.get("sort") or ("relevance" if has_text_search else "newest")
     if sort == "relevance" and has_text_search and _is_postgres():
