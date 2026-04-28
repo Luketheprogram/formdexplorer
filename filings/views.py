@@ -147,11 +147,17 @@ def issuer_detail(request, slug_cik: str):
     max_year_total = max((row["total"] or 0 for row in by_year), default=0)
     industry_slug = NAME_TO_SLUG.get(filings.first().industry_group) if filings.exists() and filings.first().industry_group else None
     related = []
+    likely_advisers: list = []
     if issuer.normalized_name:
         related = list(
             Issuer.objects.filter(normalized_name=issuer.normalized_name)
             .exclude(pk=issuer.pk)[:6]
         )
+        try:
+            from advisers.matching import find_matching_advisers
+            likely_advisers = find_matching_advisers(issuer, limit=4)
+        except Exception:
+            likely_advisers = []
     is_watching = False
     if request.user.is_authenticated:
         is_watching = IssuerWatch.objects.filter(user=request.user, issuer=issuer).exists()
@@ -165,6 +171,7 @@ def issuer_detail(request, slug_cik: str):
         "max_year_total": max_year_total,
         "industry_slug": industry_slug,
         "related_issuers": related,
+        "likely_advisers": likely_advisers,
         "is_watching": is_watching,
         "page_title": f"{issuer.name} SEC Form D Filings | Form D Explorer",
         "meta_description": (
