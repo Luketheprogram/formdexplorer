@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load money %}
+{% block content %}
+<section class="max-w-3xl">
+  <h1 class="text-3xl font-semibold tracking-tight text-slate-900">Form 1-A Search</h1>
+  <p class="mt-2 text-slate-600">Search SEC Reg A+ filings — Form 1-A (offering statement), 1-K (annual report), 1-U (current report), 1-Z (termination). Cross-linked to Form D, Form C, and Form ADV.</p>
+  <form
+    class="mt-6"
+    hx-get="{% url 'rega:search_partial' %}"
+    hx-trigger="keyup changed delay:250ms from:input[name=q], change from:select, change from:input[name=state], change from:input[name=tier], change from:input[name=min_amount], submit"
+    hx-target="#rega-results"
+    hx-push-url="false"
+    hx-indicator="#rega-spinner"
+  >
+    <div class="flex flex-col md:flex-row gap-3">
+      <input type="search" name="q" value="{{ q|default:'' }}"
+             placeholder="Search by issuer name..."
+             autocomplete="off"
+             class="flex-1 rounded-md border border-slate-300 px-4 py-3 text-base focus:border-slate-500 focus:ring-1 focus:ring-slate-500 outline-none">
+      <button type="submit" class="rounded-md bg-slate-900 px-5 py-3 text-white text-sm font-medium hover:bg-slate-800">Search</button>
+    </div>
+    <div class="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+      <input name="state" placeholder="State (e.g. CA)" value="{{ request.GET.state|default:'' }}"
+        class="rounded-md border border-slate-300 px-3 py-2">
+      <input name="tier" placeholder="Tier (1 or 2)" value="{{ request.GET.tier|default:'' }}"
+        class="rounded-md border border-slate-300 px-3 py-2">
+      <input name="min_amount" type="number" placeholder="Min offering $" value="{{ request.GET.min_amount|default:'' }}"
+        class="rounded-md border border-slate-300 px-3 py-2">
+    </div>
+  </form>
+  <div id="rega-spinner" class="htmx-indicator mt-3 flex items-center gap-2 text-sm text-slate-500">
+    <span class="inline-block w-3 h-3 rounded-full bg-slate-400 animate-pulse"></span> Searching…
+  </div>
+</section>
+
+<div id="rega-results" class="mt-6">
+  {% include "rega/_partials/results.html" with results=page_obj.object_list total=total %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="mt-6 flex items-center justify-between text-sm">
+  {% if page_obj.has_previous %}<a class="text-slate-600 hover:text-slate-900" href="?q={{ q }}&page={{ page_obj.previous_page_number }}">← Prev</a>{% else %}<span></span>{% endif %}
+  <span class="text-slate-500">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="text-slate-600 hover:text-slate-900" href="?q={{ q }}&page={{ page_obj.next_page_number }}">Next →</a>{% else %}<span></span>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

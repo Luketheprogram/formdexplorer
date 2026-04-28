@@ -367,6 +367,174 @@ history — and Form C is often the only place real financials live for early-st
 """,
     },
     {
+        "slug": "what-is-form-1a",
+        "title": "What is Form 1-A? A guide to Reg A+ offerings",
+        "meta_description": (
+            "Form 1-A is the SEC offering statement for Regulation A+ raises — "
+            "private companies raising up to $75M with audited financials and "
+            "ongoing public reporting. What it covers, who uses it, and how it "
+            "fits between Form D and an IPO."
+        ),
+        "body": """\
+## The short version
+
+**Form 1-A** is the offering statement an issuer files with the SEC to qualify securities for
+sale under **Regulation A+** ("the mini-IPO exemption"). Reg A+ comes in two flavors:
+
+- **Tier 1**: up to **$20 million** per 12 months, state securities law (blue-sky) review
+  required, financials reviewed but not audited.
+- **Tier 2**: up to **$75 million** per 12 months, **federal preemption** (no state-by-state
+  blue-sky), **audited financials** required, ongoing periodic reporting.
+
+Reg A+ sits between Reg CF (max $5M, retail-friendly with light disclosure) and a full
+S-1 / IPO (no cap, full disclosure). It's where you find issuers raising real money from
+retail investors with real financials — Fundrise, MasterWorks, INX, etc.
+
+## What's on a Form 1-A
+
+A Form 1-A is much closer to an S-1 than to a Form D notice:
+
+- Issuer info: legal name, CIK, jurisdiction, business overview
+- Tier election (1 vs 2)
+- Securities offered: type (common, preferred, debt, warrants), price, max amount,
+  over-allotment
+- Use of proceeds, plan of distribution
+- Risk factors (mandatory narrative)
+- Management's Discussion and Analysis (MD&A)
+- Financial statements: **audited (Tier 2)** or reviewed (Tier 1), most recent 2 fiscal years
+- Officers, directors, principal shareholders
+- Selling securityholders (if any)
+
+## The form variants
+
+- **Form 1-A** — initial offering statement
+- **Form 1-A/A** — amendment to the offering statement
+- **Form 1-A POS** — post-qualification amendment (after the SEC has qualified the offering)
+- **Form 1-K** — annual report (Tier 2 only); audited financials, business description, MD&A
+- **Form 1-K/A** — annual report amendment
+- **Form 1-U** — current report (Tier 2 only); 8-K-lite for material events
+- **Form 1-Z** — termination report; ends ongoing reporting
+
+## Why Form 1-A matters
+
+For investors:
+- **Audited financials** that aren't in Form D or Form C
+- **Ongoing transparency** through 1-K and 1-U filings
+- Real entry point into private companies that are too big for crowdfunding portals but not
+  yet public
+
+For founders:
+- **Path to growth without an IPO**: up to $75M from retail + accredited with no state
+  blue-sky review under Tier 2
+- **Cost**: SEC qualification typically takes 3-6 months and $50k-$300k in legal/accounting
+  fees, plus ongoing audit cost
+- **Public-company-lite obligations**: 1-K every year, 1-U on material events
+
+For BD / competitive intel:
+- The Form 1-A dataset is small but valuable — only ~50-100 active Tier 2 issuers at any
+  given time
+- Industries that lean on Reg A+: real estate (Fundrise, RealtyMogul), alternative assets
+  (MasterWorks, Vinovest), web3 / blockchain, niche consumer brands
+
+## How it differs from Form D and Form C
+
+| | Form D (Reg D) | Form C (Reg CF) | Form 1-A (Reg A+) |
+|---|---|---|---|
+| Cap | None | $5M / 12 mo | $75M / 12 mo (Tier 2) |
+| Investor pool | Accredited mainly | Anyone | Anyone |
+| Disclosure | Notice only | Light financials | **Full audited financials** |
+| Marketing | Restricted (506b) | Portal-mediated | **Allowed publicly** |
+| Pre-clearance | None | Portal due diligence | **SEC qualification required** |
+| Ongoing reporting | Annual D/A only | C-AR annually | **1-K + 1-U + 1-Z** |
+| Filing on EDGAR | Yes | Yes | Yes |
+
+The headline difference: **Reg A+ is the only path that gives retail investors public-company-quality
+audited financials without going public**.
+
+## Looking them up
+
+Form D Explorer indexes Form 1-A / 1-K / 1-U / 1-Z filings the same way it does Form D — straight
+from EDGAR's daily indexes — and cross-links to any Form D, Form C, or Form ADV records by the
+same issuer. Search the [Form 1-A tab](/1a/) by issuer, state, or tier.
+""",
+    },
+    {
+        "slug": "form-d-vs-form-1a",
+        "title": "Form D vs. Form 1-A: when to use which",
+        "meta_description": (
+            "Form D and Form 1-A both register private offerings, but Form 1-A's Reg A+ "
+            "regime opens raises to retail with audited financials. When companies pick "
+            "each, and what you can read from the filing pattern."
+        ),
+        "body": """\
+Form D and Form 1-A both let companies raise money outside the IPO process, but they live on
+different exemption tracks with very different costs, caps, and audiences.
+
+## The decision tree
+
+A company picks the exemption first, the form follows:
+
+- **Reg D 506(b) / 506(c)** → unlimited capital from accredited investors; minimal disclosure;
+  filed via **Form D** within 15 days of first sale.
+- **Reg A+ Tier 2** → up to $75M per 12 months from anyone (retail + accredited); full audited
+  financials required; SEC must qualify the offering before sales; filed via **Form 1-A** plus
+  ongoing 1-K / 1-U.
+
+Form D is **cheap and fast** (file the notice and start raising). Form 1-A is **slow and
+expensive** (3-6 months and $50k-$300k to qualify, plus audit costs forever after). The
+trade-off is who you can sell to and how loudly you can market.
+
+## Profile of a typical Form D issuer
+
+- Established VC fund or operating company
+- Raising from a known network of accredited investors
+- Doesn't want public disclosure or ongoing reporting
+- $1M-$1B raise size
+- Industries: pooled investment funds, biotech, real estate, B2B tech
+
+## Profile of a typical Form 1-A issuer
+
+- Direct-to-consumer-investor positioning
+- Wants to raise from retail (the people who already use the product)
+- $5M-$75M raise size
+- Willing to pay the audit + qualification cost in exchange for public marketing
+- Industries: real estate platforms (Fundrise, RealtyMogul), alternative assets (MasterWorks,
+  Vinovest), consumer brands, web3 / blockchain
+
+## When you might see both for the same company
+
+A company can run multiple raises in parallel:
+
+- **Reg D** raise targeting institutions and accredited individuals
+- **Reg A+ Tier 2** offering targeting their existing user base
+
+These are independent legal vehicles — same company, different registration regimes. Form D
+Explorer surfaces both on the issuer page when the same CIK files both.
+
+## What to extract from each
+
+**From Form D**: deal sizing, related persons, exemption claimed (506(b) vs 506(c)),
+industry classification, accredited-investor count.
+
+**From Form 1-A**: tier (1 vs 2), audited financials (assets, revenues, net income), security
+type, jurisdictions where qualified, over-allotment provision.
+
+**From Form 1-K** (annual): audited year-over-year financials, MD&A narrative, material changes
+in the business — high-quality fundamental data on private companies you can't get elsewhere.
+
+## Practical workflow
+
+1. Search the company on the [Form D tab](/) → see all Reg D rounds.
+2. Search the same on the [Form 1-A tab](/1a/) → see if they ran a Reg A+ raise.
+3. Check the [Form C tab](/cf/) → were they on a crowdfunding portal first?
+4. Click through to the issuer page → consolidated view across all four regimes.
+
+The combination of Form D + Form C + Form 1-A + Form ADV gives you the complete public side of
+a company's capital-formation history. Each fills a different gap — Form 1-A's specific gap is
+**audited financials for non-public companies that took on retail capital**.
+""",
+    },
+    {
         "slug": "what-is-form-adv",
         "title": "What is Form ADV? The investment adviser disclosure form",
         "meta_description": (

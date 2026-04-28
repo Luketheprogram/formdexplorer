@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load money %}
+{% block content %}
+<nav class="text-sm text-slate-500 mb-4">
+  <a href="/" class="hover:text-slate-900">Home</a> /
+  <a href="/1a/" class="hover:text-slate-900">Form 1-A Search</a> / Filing
+</nav>
+<header>
+  <h1 class="text-2xl font-semibold text-slate-900">Form {{ filing.form_type }} — {{ filing.issuer.name }}</h1>
+  <div class="mt-1 text-sm text-slate-500">
+    {{ filing.accession_number }} &middot; filed {{ filing.filing_date|date:"Y-m-d" }}
+    {% if filing.tier %} &middot; {{ filing.tier }}{% endif %}
+  </div>
+</header>
+
+<section class="mt-8 grid gap-6 md:grid-cols-2">
+  <div class="rounded-md border border-slate-200 bg-white p-5">
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Offering</h2>
+    <dl class="mt-3 text-sm text-slate-800 space-y-2">
+      <div class="flex justify-between"><dt class="text-slate-500">Total offering</dt><dd>{{ filing.total_offering_amount|dollars_full }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Total sold</dt><dd>{{ filing.total_amount_sold|dollars_full }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Security type</dt><dd>{{ filing.security_type|default:"—" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Price per security</dt><dd>{% if filing.price_per_security %}${{ filing.price_per_security }}{% else %}—{% endif %}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Over-allotment</dt><dd>{{ filing.over_allotment|dollars_full }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Jurisdictions</dt><dd class="text-right">{{ filing.jurisdictions|default:"—" }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="rounded-md border border-slate-200 bg-white p-5">
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Issuer</h2>
+    <dl class="mt-3 text-sm text-slate-800 space-y-2">
+      <div class="flex justify-between"><dt class="text-slate-500">Name</dt><dd><a class="underline" href="/issuer/{{ filing.issuer.url_slug }}/">{{ filing.issuer.name }}</a></dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">CIK</dt><dd>{{ filing.issuer.cik }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Entity</dt><dd>{{ filing.issuer.entity_type|default:"—" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Jurisdiction</dt><dd>{{ filing.issuer.jurisdiction|default:"—" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500">Address</dt><dd class="text-right">{{ filing.issuer.street }}{% if filing.issuer.city %}<br>{{ filing.issuer.city }}, {{ filing.issuer.state }} {{ filing.issuer.zip_code }}{% endif %}</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="mt-8">
+  <div class="rounded-md border border-slate-200 bg-white p-5">
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Most recent fiscal year financials</h2>
+    <p class="mt-1 text-xs text-slate-500">Reg A+ Tier 2 financials are audited (1-A, 1-K). Tier 1 are reviewed.</p>
+    <div class="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+      <div><dt class="text-slate-500">Total assets</dt><dd class="font-medium">{{ filing.total_assets|dollars_full }}</dd></div>
+      <div><dt class="text-slate-500">Total liabilities</dt><dd class="font-medium">{{ filing.total_liabilities|dollars_full }}</dd></div>
+      <div><dt class="text-slate-500">Cash</dt><dd class="font-medium">{{ filing.cash_equivalents|dollars_full }}</dd></div>
+      <div><dt class="text-slate-500">Total revenues</dt><dd class="font-medium">{{ filing.total_revenues|dollars_full }}</dd></div>
+      <div><dt class="text-slate-500">Net income</dt><dd class="font-medium">{{ filing.net_income|dollars_full }}</dd></div>
+    </div>
+  </div>
+</section>
+
+{% if form_d_filings %}
+<section class="mt-8">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Same issuer's Form D filings</h2>
+  <ul class="mt-3 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+    {% for f in form_d_filings %}
+    <li class="p-3 text-sm flex items-center justify-between">
+      <div>
+        <a href="/filing/{{ f.accession_number }}/" class="font-medium text-slate-900 hover:underline">{{ f.form_type }}</a>
+        <span class="text-slate-500"> &middot; {{ f.filing_date|date:"Y-m-d" }}</span>
+      </div>
+      <div class="text-right text-slate-700">{% if f.total_offering_amount %}{{ f.total_offering_amount|dollars }}{% endif %}</div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if crowdfunding_filings %}
+<section class="mt-8">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Same issuer's Reg CF (Form C) raises</h2>
+  <ul class="mt-3 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+    {% for f in crowdfunding_filings %}
+    <li class="p-3 text-sm flex items-center justify-between">
+      <a href="/cf/{{ f.accession_number }}/" class="font-medium text-slate-900 hover:underline">Form {{ f.form_type }} · {{ f.filing_date|date:"Y-m-d" }}{% if f.intermediary_name %} · via {{ f.intermediary_name }}{% endif %}</a>
+      <span class="text-slate-700 shrink-0">{% if f.maximum_offering_amount %}{{ f.maximum_offering_amount|dollars }}{% endif %}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if likely_advisers %}
+<section class="mt-8">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Likely investment adviser</h2>
+  <ul class="mt-3 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+    {% for m in likely_advisers %}
+    <li class="p-3 text-sm flex items-center justify-between gap-3">
+      <a href="/adv/{{ m.adviser.crd }}/" class="text-slate-900 hover:underline truncate">{{ m.adviser.name }}</a>
+      <div class="flex items-center gap-3 shrink-0">
+        <span class="text-xs rounded-full px-2 py-0.5
+          {% if m.confidence == 'high' %}bg-emerald-100 text-emerald-800
+          {% elif m.confidence == 'medium' %}bg-amber-100 text-amber-800
+          {% else %}bg-slate-100 text-slate-600{% endif %}">{{ m.confidence }}</span>
+        <span class="text-slate-500">CRD {{ m.adviser.crd }}</span>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<p class="mt-8 text-sm text-slate-500">
+  View original on <a href="{{ filing.edgar_url }}" class="underline hover:text-slate-900" rel="nofollow noopener">SEC EDGAR</a>.
+</p>
+{% endblock %}
