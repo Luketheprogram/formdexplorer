@@ -35,16 +35,20 @@ from filings.models import Issuer, normalize_issuer_name
 # Common SEC ADV CSV column aliases. Header names vary across SEC publications;
 # the parser scans for the first column whose lowercased name matches any alias.
 COL_ALIASES = {
-    "crd": ("organization crd#", "organization crd #", "organization_crd", "filing id", "1b1", "crd"),
-    "sec_file": ("sec#", "sec #", "sec_number", "1d", "sec_file_number"),
-    "name": ("primary business name", "primary_business_name", "1b", "1a", "firm name", "legal name", "name"),
-    "street": ("main office street address 1", "main_office_address_1", "1f1", "address1"),
-    "city": ("main office city", "main_office_city", "1f3", "city"),
-    "state": ("main office state", "main_office_state", "1f4", "state"),
-    "zip": ("main office postal code", "main_office_postal_code", "1f5", "zip", "postal_code"),
+    # SEC's IA_ADV_Base_A has no CRD column — Form ADV filings reference the
+    # firm via SEC# (column "1D"), which we use as a fallback unique key when
+    # CRDNumber is absent.
+    "crd": ("crdnumber", "crd number", "organization crd#", "organization_crd", "firm crd"),
+    "sec_file": ("1d", "sec#", "sec #", "sec_number", "sec_file_number"),
+    "name": ("1a", "1b1", "primary business name", "primary_business_name", "firm name", "legal name", "name"),
+    "street": ("1f1-street 1", "main office street address 1", "main_office_address_1", "address1"),
+    "city": ("1f1-city", "1f3", "main office city", "main_office_city", "city"),
+    "state": ("1f1-state", "1f4", "main office state", "main_office_state", "state"),
+    "zip": ("1f1-postal", "1f5", "main office postal code", "main_office_postal_code", "zip", "postal_code"),
     "phone": ("main office telephone number", "main_office_phone", "1f7", "phone"),
     "website": ("website address", "website", "websiteaddress"),
     "raum": (
+        "5f2c",
         "5f(2)(c) regulatory assets under management",
         "5f2c regulatory aum",
         "regulatory aum",
@@ -53,6 +57,7 @@ COL_ALIASES = {
         "totalrAum",
     ),
     "discretionary_aum": (
+        "5f2a",
         "5f(2)(a) discretionary",
         "discretionary aum",
         "discretionary_aum",
@@ -123,6 +128,8 @@ class Command(BaseCommand):
                             help="When the bulk source is a zip, the CSV filename inside it (else first .csv).")
         parser.add_argument("--since-days", type=int, default=730,
                             help="Skip rows whose latest filing date is older than this (default 2 years)")
+        parser.add_argument("--since-date", type=str, default="",
+                            help="Skip rows older than this YYYY-MM-DD date; overrides --since-days")
         parser.add_argument("--limit", type=int, default=200,
                             help="Max issuers to scan in --from-form-d mode")
         parser.add_argument("--throttle-ms", type=int, default=200,
@@ -139,17 +146,26 @@ class Command(BaseCommand):
             self._search_and_upsert(opts["query"], throttle)
             return
         if opts.get("bulk_csv"):
+            since_date = None
+            if opts.get("since_date"):
+                since_date = datetime.strptime(opts["since_date"], "%Y-%m-%d").date()
             self._bulk_csv(
                 opts["bulk_csv"],
                 csv_name=opts.get("csv_name") or "",
                 since_days=opts.get("since_days") or 730,
+                since_date=since_date,
                 max_rows=opts.get("max_rows") or 0,
             )
             return
         self._from_form_d(opts["limit"], throttle)
 
-    def _bulk_csv(self, src: str, csv_name: str, since_days: int, max_rows: int):
-        cutoff = date.today() - timedelta(days=since_days) if since_days > 0 else None
+    def _bulk_csv(self, src: str, csv_name: str, since_days: int, since_date=None, max_rows: int = 0):
+        if since_date is not None:
+            cutoff = since_date
+        else:
+            cutoff = date.today() - timedelta(days=since_days) if since_days > 0 else None
+        if cutoff:
+            self.stdout.write(f"Cutoff: {cutoff} (skipping older filings)")
 
         if src.lower().startswith(("http://", "https://")):
             self.stdout.write(f"Downloading {src}")
@@ -179,10 +195,14 @@ class Command(BaseCommand):
         except StopIteration:
             raise CommandError("Empty CSV.")
         cols = _resolve_columns(headers)
-        missing = [k for k in ("crd", "name") if cols.get(k) is None]
-        if missing:
+        if cols.get("name") is None:
             self.stdout.write(self.style.WARNING(
-                f"Headers don't include {missing}. First few headers: {headers[:8]}"
+                f"Headers don't include a name column. First few headers: {headers[:8]}"
+            ))
+            return
+        if cols.get("crd") is None and cols.get("sec_file") is None:
+            self.stdout.write(self.style.WARNING(
+                "Headers don't include CRD or SEC# columns; can't key advisers."
             ))
             return
 
@@ -201,6 +221,11 @@ class Command(BaseCommand):
                 return (row[idx] or "").strip()
 
             crd = cell("crd")
+            sec_file = cell("sec_file")
+            # When the CSV doesn't carry a CRD column (typical for SEC's
+            # IA_ADV_Base_A bulk feed), use the SEC# as the unique key.
+            if not crd:
+                crd = sec_file
             if not crd:
                 stats["skipped_no_crd"] += 1
                 continue
@@ -216,7 +241,7 @@ class Command(BaseCommand):
                 continue
             latest_per_crd[crd] = {
                 "crd": crd,
-                "sec_file_number": cell("sec_file"),
+                "sec_file_number": sec_file,
                 "name": name,
                 "street": cell("street"),
                 "city": cell("city"),

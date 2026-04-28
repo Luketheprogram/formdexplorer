@@ -158,6 +158,13 @@ def issuer_detail(request, slug_cik: str):
             likely_advisers = find_matching_advisers(issuer, limit=4)
         except Exception:
             likely_advisers = []
+    crowdfunding_filings: list = []
+    try:
+        crowdfunding_filings = list(
+            issuer.crowdfunding_filings.order_by("-filing_date")[:10]
+        )
+    except Exception:
+        crowdfunding_filings = []
     is_watching = False
     if request.user.is_authenticated:
         is_watching = IssuerWatch.objects.filter(user=request.user, issuer=issuer).exists()
@@ -172,6 +179,7 @@ def issuer_detail(request, slug_cik: str):
         "industry_slug": industry_slug,
         "related_issuers": related,
         "likely_advisers": likely_advisers,
+        "crowdfunding_filings": crowdfunding_filings,
         "is_watching": is_watching,
         "page_title": f"{issuer.name} SEC Form D Filings | Form D Explorer",
         "meta_description": (

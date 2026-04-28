@@ -102,6 +102,23 @@
   </div>
 </section>
 
+{% if crowdfunding_filings %}
+<section class="mt-8">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Reg CF (Form C) raises by this issuer</h2>
+  <ul class="mt-3 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+    {% for f in crowdfunding_filings %}
+    <li class="p-3 text-sm flex items-center justify-between gap-3">
+      <a href="/cf/{{ f.accession_number }}/" class="text-slate-900 hover:underline truncate">
+        Form {{ f.form_type }} &middot; {{ f.filing_date|date:"Y-m-d" }}
+        {% if f.intermediary_name %}&middot; via {{ f.intermediary_name }}{% endif %}
+      </a>
+      <span class="text-slate-700 shrink-0">{% if f.maximum_offering_amount %}{{ f.maximum_offering_amount|dollars }}{% endif %}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
 {% if likely_advisers %}
 <section class="mt-8">
   <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Likely investment adviser</h2>

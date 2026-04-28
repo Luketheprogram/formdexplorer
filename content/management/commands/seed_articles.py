@@ -207,6 +207,166 @@ to the original SEC EDGAR record.
 """,
     },
     {
+        "slug": "what-is-form-c",
+        "title": "What is Form C? A guide to Reg CF crowdfunding filings",
+        "meta_description": (
+            "Form C is the SEC disclosure for Regulation Crowdfunding offerings — "
+            "the legal vehicle behind Republic, WeFunder, StartEngine and similar "
+            "platforms. What it says, why it matters, and how it relates to Form D."
+        ),
+        "body": """\
+## The short version
+
+**Form C** is the disclosure document an issuer files with the SEC to raise capital under
+**Regulation Crowdfunding (Reg CF)**. Reg CF is the JOBS Act exemption that lets companies sell
+unregistered securities to **anyone — including non-accredited retail investors** — through a
+SEC-registered funding portal. The cap is **$5 million per 12-month period**.
+
+If you've ever clicked "Invest" on Republic, WeFunder, StartEngine, or NetCapital, you triggered
+the funding portal to file (or update) a Form C on the issuer's behalf.
+
+## How it differs from Form D
+
+[Form D](/learn/what-is-form-d/) and Form C are both private offering disclosures, but they live
+on different legal tracks:
+
+| | Form D (Reg D) | Form C (Reg CF) |
+|---|---|---|
+| Investor pool | Accredited (and limited non-accredited under 506(b)) | Anyone, retail included |
+| Cap | None | $5M / 12 months |
+| Marketing | Restricted under 506(b); allowed under 506(c) | Allowed via the funding portal only |
+| Filing | Notice within 15 days of first sale | Required *before* the offering opens |
+| Financials disclosed | None | Yes — depends on raise size |
+| Ongoing reporting | Annual D/A only if still raising | **Form C-AR every year** until offering terminates |
+| Investor verification | Self-cert (506(b)) or third-party (506(c)) | Income/net-worth caps enforced by portal |
+
+The headline difference: **Form C requires real financials**. Form D doesn't disclose any.
+
+## What's on a Form C
+
+- **Issuer info**: legal name, jurisdiction, CIK, year of incorporation, address.
+- **Funding portal (intermediary)**: which platform is hosting the raise — its name and CIK.
+- **Offering terms**: target amount, maximum amount, security type (common, preferred, SAFE,
+  convertible note, revenue share), price per security, deadline, oversubscription policy.
+- **Most recent fiscal year financials**: total assets, cash, short/long-term debt, revenues,
+  cost of goods sold, taxes paid, net income. Depth of disclosure scales with raise size:
+  - Up to $124,000 → unaudited principal/CFO-certified
+  - $124k–$618k → CPA-reviewed financials
+  - $618k–$5M (first-time issuers) → CPA-reviewed; (repeat issuers) → audited
+- **Risk factors** narrative
+- **Use of proceeds**
+- **Officer/director list** with biographical info
+
+## The form variants
+
+- **Form C** — initial offering statement, filed before the raise launches.
+- **Form C/A** — amendment to the initial filing (terms change, financials update).
+- **Form C-U** — progress update during the raise (sales-to-date snapshot).
+- **Form C-AR** — annual report after the raise; required every year until termination.
+- **Form C-AR/A** — amendment to the annual report.
+- **Form C-TR** — termination report when the issuer ends ongoing reporting.
+- **Form C-W** — withdrawal of the offering.
+
+## Why Form C matters
+
+For investors and BD teams: it's the **earliest stage of public-disclosure private capital**.
+Companies on a Form C path are typically pre-Series A, pre-revenue or barely revenue-positive,
+and disclosing more (financials!) than they would in a Reg D round. If you're tracking
+emerging companies, the Form C dataset is where they appear *years* before any Form D.
+
+For founders and counsel: Reg CF has lighter accreditation requirements, but heavier ongoing
+reporting (Form C-AR every year is real work).
+
+For competitive intel: the **intermediary field** tells you which funding portal is doing
+volume in any given segment. Aggregate Form C filings by intermediary → you have the platform
+league table.
+
+## Looking them up
+
+Form D Explorer indexes the public Form C filings the same way it indexes Form D — straight
+from EDGAR's daily indexes — and cross-links to any Form D or Form ADV records by the same
+issuer. Search the [Form C tab](/cf/) by issuer name, intermediary platform, state, or
+offering size.
+""",
+    },
+    {
+        "slug": "form-d-vs-form-c",
+        "title": "Form D vs. Form C: when companies use which",
+        "meta_description": (
+            "Form D and Form C are both private-placement notices, but they cover different "
+            "investor pools, raise sizes, and reporting requirements. When to read which."
+        ),
+        "body": """\
+Both Form D and Form C are SEC private-offering disclosures, but issuers don't pick between
+them like menu items — each form pairs with a specific exemption that imposes a specific
+investor-pool and cap rule.
+
+## The decision tree
+
+A company raising money picks an exemption first; the form is a downstream consequence:
+
+- **Reg D 506(b)** → unlimited accredited investors + up to 35 non-accredited; no general
+  solicitation; **Form D** filed.
+- **Reg D 506(c)** → unlimited accredited only; verified accreditation required; general
+  solicitation OK; **Form D** filed.
+- **Reg CF (Reg Crowdfunding)** → anyone (with per-investor caps based on income/net worth);
+  $5M / 12 months; must use a registered funding portal; **Form C** filed.
+- **Reg A+ Tier 2** → anyone, $75M cap, audited financials; **Form 1-A** filed.
+
+So Form D vs Form C really tells you *which exemption regime the issuer chose*, which itself
+tells you a lot about the raise.
+
+## Profile of a typical Form D issuer
+
+- Established company or fund
+- Raising $1M+ from accredited investors
+- Net worth and income-qualifying clients only
+- No financial disclosure required
+- Often a fund/LP/SPV vehicle
+- Industries: pooled investment funds, biotech, real estate, technology
+
+## Profile of a typical Form C issuer
+
+- Earlier-stage company, often pre-Series A
+- Raising $50K – $5M from retail
+- SAFE notes, convertible debt, or simple-agreement-style securities
+- **Financials disclosed** (total assets, revenues, net income)
+- Listed on a funding portal (Republic / WeFunder / StartEngine)
+- Industries: consumer products, climate tech, food/beverage, indie hardware
+
+## When you might see both for the same company
+
+A company can run a Reg CF round (Form C) at $5M, then a Reg D round (Form D) for additional
+capital from accredited investors. Form D Explorer cross-links them on the issuer page when
+the same CIK has both. Read together they tell you:
+
+1. Form C: how the company started (financials, founder bios, security type)
+2. Form D: where they are now (round size, valuation signal via offering amount, accredited
+   investor count)
+
+## What to extract from each
+
+From Form D: **deal sizing and timing.** Total offered, total sold, related persons, exemption
+claimed, industry group.
+
+From Form C: **company fundamentals.** Revenue, assets, debt, security type, intermediary
+(which portal vetted them), financial-statement review tier (audited / reviewed / certified).
+
+## Practical workflow
+
+For BD or investor-relations teams tracking a company:
+
+1. Search the company name on the [Form D tab](/) → see all Reg D rounds.
+2. Search the same on the [Form C tab](/cf/) → see if they ever did a crowdfunding raise.
+3. Click through to the issuer page → consolidated view of every filing under that CIK.
+4. Read the funding portal's offering page (linked from the Form C SEC EDGAR record) for the
+   marketing narrative.
+
+Together, Forms D and C give you the public side of a company's private capital-raising
+history — and Form C is often the only place real financials live for early-stage companies.
+""",
+    },
+    {
         "slug": "what-is-form-adv",
         "title": "What is Form ADV? The investment adviser disclosure form",
         "meta_description": (

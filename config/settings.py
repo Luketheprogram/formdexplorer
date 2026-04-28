@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "subscriptions",
     "api",
     "advisers",
+    "crowdfunding",
 ]
 
 MIDDLEWARE = [

@@ -28,6 +28,7 @@ urlpatterns = [
     path("learn/", include("content.urls")),
     path("api/", include("api.urls")),
     path("adv/", include("advisers.urls")),
+    path("cf/", include("crowdfunding.urls")),
     path("", include("accounts.urls")),
     path("", include("subscriptions.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
