@@ -38,8 +38,11 @@ def iter_business_days(start: date, end: date):
         cur += timedelta(days=1)
 
 
-def parse_form_idx(text: str) -> list[IndexEntry]:
-    """Parse a form.idx file. Regex-based because EDGAR's column widths drift."""
+def parse_form_idx(text: str, form_types: tuple[str, ...] = ("D", "D/A")) -> list[IndexEntry]:
+    """Parse a form.idx file. Regex-based because EDGAR's column widths drift.
+
+    Pass `form_types` to filter to a specific form family — Form D uses
+    ('D','D/A'); Form C uses ('C','C/A','C-U','C-AR','C-AR/A','C-TR')."""
     lines = text.splitlines()
     data_start = 0
     for i, line in enumerate(lines):
@@ -47,6 +50,7 @@ def parse_form_idx(text: str) -> list[IndexEntry]:
             data_start = i + 1
             break
     entries: list[IndexEntry] = []
+    accepted = set(form_types)
     for line in lines[data_start:]:
         if not line.strip():
             continue
@@ -54,7 +58,7 @@ def parse_form_idx(text: str) -> list[IndexEntry]:
         if not m:
             continue
         form_type = m.group("form")
-        if form_type not in ("D", "D/A"):
+        if form_type not in accepted:
             continue
         entries.append(
             IndexEntry(
