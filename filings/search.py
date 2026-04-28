@@ -1,6 +1,6 @@
 from django.contrib.postgres.search import TrigramSimilarity
 from django.db import connection
-from django.db.models import Q, QuerySet
+from django.db.models import F, Q, QuerySet
 
 from .models import Filing, RelatedPerson
 
@@ -69,6 +69,21 @@ def build_filing_query(params) -> QuerySet:
         # Excludes filings where banker_count hasn't been parsed yet (NULL).
         qs = qs.filter(banker_count=0)
 
+    min_remaining = params.get("min_remaining")
+    if min_remaining:
+        # remaining = total_offering_amount - total_amount_sold; only filter
+        # when both are populated and the gap is at least the threshold.
+        try:
+            threshold = int(min_remaining)
+            qs = qs.filter(
+                total_offering_amount__isnull=False,
+                total_amount_sold__isnull=False,
+            ).annotate(
+                remaining_amt=F("total_offering_amount") - F("total_amount_sold")
+            ).filter(remaining_amt__gte=threshold)
+        except (TypeError, ValueError):
+            pass
+
     sort = params.get("sort") or ("relevance" if has_text_search else "newest")
     if sort == "relevance" and has_text_search and _is_postgres():
         qs = qs.order_by("-sim", "-filing_date")
@@ -120,6 +135,7 @@ def active_filters(params) -> list[dict]:
         ("min_amount", "min offering"),
         ("max_amount", "max offering"),
         ("min_sold", "min sold"),
+        ("min_remaining", "min remaining"),
     ]
     for key, prefix in single_mapping:
         val = (params.get(key) or "").strip()

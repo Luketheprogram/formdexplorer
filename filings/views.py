@@ -441,7 +441,7 @@ def saved_search_list(request):
 
 
 _SEARCH_PARAM_KEYS = {
-    "q", "min_amount", "max_amount", "min_sold",
+    "q", "min_amount", "max_amount", "min_sold", "min_remaining",
     "date_from", "date_to", "no_banker", "industry_mode", "sort",
 }
 _SEARCH_MULTI_KEYS = {"state", "industry"}

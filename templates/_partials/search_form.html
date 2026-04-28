@@ -87,6 +87,18 @@
       <option value="1000000000" {% if cur == "1000000000" %}selected{% endif %}>$1B+ sold</option>
     </select>
     {% endwith %}
+    {% with cur=request.GET.min_remaining|default:'' %}
+    <select name="min_remaining" class="rounded-md border border-slate-300 px-3 py-2 bg-white">
+      <option value="" {% if not cur %}selected{% endif %}>Any amount remaining</option>
+      <option value="100000" {% if cur == "100000" %}selected{% endif %}>$100K+ remaining</option>
+      <option value="500000" {% if cur == "500000" %}selected{% endif %}>$500K+ remaining</option>
+      <option value="1000000" {% if cur == "1000000" %}selected{% endif %}>$1M+ remaining</option>
+      <option value="5000000" {% if cur == "5000000" %}selected{% endif %}>$5M+ remaining</option>
+      <option value="10000000" {% if cur == "10000000" %}selected{% endif %}>$10M+ remaining</option>
+      <option value="25000000" {% if cur == "25000000" %}selected{% endif %}>$25M+ remaining</option>
+      <option value="50000000" {% if cur == "50000000" %}selected{% endif %}>$50M+ remaining</option>
+    </select>
+    {% endwith %}
     <input name="date_from" type="date" placeholder="From" value="{{ request.GET.date_from|default:'' }}"
       class="rounded-md border border-slate-300 px-3 py-2">
     <input name="date_to" type="date" placeholder="To" value="{{ request.GET.date_to|default:'' }}"
