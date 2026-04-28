@@ -16,9 +16,12 @@
       </div>
       <div class="text-xs text-slate-400 mt-1">Created {{ s.created_at|date:"Y-m-d" }} &middot; last checked {{ s.last_checked_at|default:"never" }}</div>
     </div>
-    <form method="post" action="{% url 'filings:saved_search_delete' s.pk %}">{% csrf_token %}
-      <button type="submit" class="rounded-md border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50">Delete</button>
-    </form>
+    <div class="flex items-center gap-2 shrink-0">
+      <a href="{% url 'filings:saved_search_run' s.pk %}" class="rounded-md bg-slate-900 px-3 py-1 text-sm text-white font-medium hover:bg-slate-800">Run</a>
+      <form method="post" action="{% url 'filings:saved_search_delete' s.pk %}">{% csrf_token %}
+        <button type="submit" class="rounded-md border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50">Delete</button>
+      </form>
+    </div>
   </li>
   {% empty %}
   <li class="p-6 text-sm text-slate-500">No saved searches yet.</li>

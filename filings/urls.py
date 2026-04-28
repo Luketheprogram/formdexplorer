@@ -13,6 +13,7 @@ urlpatterns = [
     path("saved-searches/", views.saved_search_list, name="saved_search_list"),
     path("saved-searches/new/", views.saved_search_create, name="saved_search_create"),
     path("saved-searches/<int:pk>/delete/", views.saved_search_delete, name="saved_search_delete"),
+    path("saved-searches/<int:pk>/run/", views.saved_search_run, name="saved_search_run"),
     path("issuer/<slug:slug_cik>/", views.issuer_detail, name="issuer_detail"),
     path("issuer/<str:cik>/watch/", views.issuer_watch_toggle, name="issuer_watch_toggle"),
     path("issuer/<str:cik>/enrich/", views.issuer_enrich, name="issuer_enrich"),

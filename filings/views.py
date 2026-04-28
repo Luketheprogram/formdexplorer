@@ -440,32 +440,86 @@ def saved_search_list(request):
     )
 
 
+_SEARCH_PARAM_KEYS = {
+    "q", "min_amount", "max_amount", "min_sold",
+    "date_from", "date_to", "no_banker", "industry_mode", "sort",
+}
+_SEARCH_MULTI_KEYS = {"state", "industry"}
+
+
+def _capture_search_params(querydict) -> dict:
+    """Pull only the search-related keys out of a QueryDict-like object."""
+    params: dict = {}
+    for key in _SEARCH_PARAM_KEYS:
+        v = (querydict.get(key) or "").strip()
+        if v:
+            params[key] = v
+    for key in _SEARCH_MULTI_KEYS:
+        if hasattr(querydict, "getlist"):
+            vals = [v for v in querydict.getlist(key) if v]
+        else:
+            v = (querydict.get(key) or "").strip()
+            vals = [v] if v else []
+        if vals:
+            params[key] = vals
+    return params
+
+
+def _params_to_querystring(params: dict) -> str:
+    """Encode a SavedSearch.params dict back into a /search/ querystring."""
+    from urllib.parse import urlencode
+
+    pairs: list[tuple[str, str]] = []
+    for k, v in params.items():
+        if isinstance(v, list):
+            for item in v:
+                pairs.append((k, str(item)))
+        else:
+            pairs.append((k, str(v)))
+    return urlencode(pairs)
+
+
 @login_required
 def saved_search_create(request):
     if not request.user.is_paid:
-        messages.info(request, "Saved search alerts are a Pro feature.")
+        messages.info(request, "Saved searches are a Pro feature.")
         return redirect("subscriptions:pricing")
     if request.user.saved_searches.count() >= 10:
-        messages.error(request, "You've hit the 10 saved search limit.")
+        messages.error(request, "You've hit the 10 saved-search limit.")
         return redirect("filings:saved_search_list")
+
+    # Params come in via the URL on both GET and POST so the page is
+    # bookmarkable / shareable: /saved-searches/new/?q=fund&state=CA
+    params = _capture_search_params(request.GET)
 
     if request.method == "POST":
         name = (request.POST.get("name") or "").strip()[:120]
-        params = {
-            k: v
-            for k, v in request.POST.items()
-            if k in {"q", "state", "industry", "min_amount", "max_amount", "date_from", "date_to"} and v
-        }
         if not name:
-            messages.error(request, "Name is required.")
+            messages.error(request, "Give it a name first.")
+        elif not params:
+            messages.error(request, "Add at least one filter on the search page before saving.")
         else:
             SavedSearch.objects.create(user=request.user, name=name, params=params)
+            messages.success(request, f"Saved '{name}'.")
             return redirect("filings:saved_search_list")
     return render(
         request,
         "filings/saved_search_form.html",
-        {"page_title": "New saved search", "robots": "noindex"},
+        {
+            "page_title": "Save this search",
+            "robots": "noindex",
+            "params_preview": params,
+            "search_query": request.GET.urlencode(),
+        },
     )
+
+
+@login_required
+def saved_search_run(request, pk: int):
+    """Re-run a saved search by redirecting to /search/ with its params."""
+    search = get_object_or_404(SavedSearch, pk=pk, user=request.user)
+    qs = _params_to_querystring(search.params or {})
+    return redirect(f"/search/?{qs}" if qs else "/search/")
 
 
 @login_required

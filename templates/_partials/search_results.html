@@ -1,9 +1,19 @@
 {% load money %}
 {% if active_filters %}
-<div class="mb-3 flex flex-wrap gap-2 text-xs">
-  {% for chip in active_filters %}
-  <span class="rounded-full bg-slate-100 text-slate-700 px-3 py-1">{{ chip.label }}</span>
-  {% endfor %}
+<div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+  <div class="flex flex-wrap gap-2">
+    {% for chip in active_filters %}
+    <span class="rounded-full bg-slate-100 text-slate-700 px-3 py-1">{{ chip.label }}</span>
+    {% endfor %}
+  </div>
+  {% if user.is_authenticated and user.is_paid %}
+    <a href="{% url 'filings:saved_search_create' %}?{{ request.GET.urlencode }}"
+       class="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-50">
+      ★ Save this search
+    </a>
+  {% elif user.is_authenticated %}
+    <a href="{% url 'subscriptions:pricing' %}" class="text-xs text-slate-500 underline">Upgrade to save searches</a>
+  {% endif %}
 </div>
 {% endif %}
 
