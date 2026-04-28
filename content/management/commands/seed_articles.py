@@ -207,6 +207,162 @@ to the original SEC EDGAR record.
 """,
     },
     {
+        "slug": "what-is-form-adv",
+        "title": "What is Form ADV? The investment adviser disclosure form",
+        "meta_description": (
+            "Form ADV is the SEC's required disclosure for registered investment "
+            "advisers. What it says, why it matters, and how it complements Form D."
+        ),
+        "body": """\
+## The short version
+
+**Form ADV** is the disclosure document every SEC- or state-registered investment adviser must
+file. It tells regulators (and the public) who runs the firm, how much money they manage, what
+they charge, what conflicts they have, and whether they've ever been disciplined. If a fund
+manager is registered, they have an ADV on file at the [SEC's Investment Adviser Public
+Disclosure system (IAPD)](https://adviserinfo.sec.gov/).
+
+## What's on a Form ADV
+
+Form ADV has two main parts:
+
+- **Part 1**: structured data — firm legal name, CRD number, SEC# (`801-XXXXX`), address,
+  Regulatory Assets Under Management (RAUM), number of employees, number of clients, types of
+  clients, custody arrangements, control persons, fee structure, and any disciplinary
+  disclosures (DRPs).
+- **Part 2** ("the brochure"): a plain-English narrative — investment strategy, fees, conflicts
+  of interest, code of ethics, disciplinary history. Required to be delivered to clients.
+
+There's also a **Part 3 (Form CRS)** for advisers serving retail investors — a 2-page
+plain-English summary.
+
+## How it differs from Form D
+
+[Form D](/learn/what-is-form-d/) is filed by the **issuer** (the fund vehicle, e.g.
+"Acme Ventures Fund III LP") to disclose a private offering. Form ADV is filed by the
+**adviser** (the GP entity, e.g. "Acme Capital Management LLC") to register itself as a
+fiduciary.
+
+A typical fund stack:
+
+| | Form D | Form ADV |
+|---|---|---|
+| Filer | The fund LP | The GP / management company |
+| What it discloses | This specific raise | The firm itself |
+| Investor info | Count + min check size | Count by client type |
+| Money | Offering size, amount sold | Total firm AUM |
+| Frequency | Each new offering + annual D/A | Annual amendment + material updates |
+
+Reading them together gives you the full picture: Form D shows *what they're raising*, Form ADV
+shows *who's running the show* and *how much they manage in aggregate*.
+
+## What signal Form ADV carries
+
+A few fields that matter more than you'd think:
+
+- **Regulatory AUM vs. Discretionary AUM.** RAUM includes all client assets (even those the
+  firm only sub-advises); discretionary AUM is what they actually trade. Big gap = lots of
+  sub-advisory or non-discretionary mandates.
+- **Number of employees vs. AUM.** Tells you firm structure. $5B AUM with 8 employees =
+  systematic shop. $5B AUM with 80 employees = active management with research and ops.
+- **Disciplinary disclosures (DRPs).** Each one represents a regulatory action, customer
+  complaint, criminal proceeding, or financial event. Click into IAPD for the actual narrative.
+- **Custody.** "Yes — we have custody" is a major risk signal for clients; it means the
+  adviser can directly access client assets. Most modern advisers use independent qualified
+  custodians.
+- **Other Business Activities.** Discloses if the firm or its principals have outside business
+  activities (broker-dealer, insurance agent, etc.) that could conflict.
+
+## When does an adviser have to register?
+
+Federal SEC registration kicks in at **$110M+ in regulatory AUM**, with carve-outs for private
+fund advisers (which can register at lower thresholds via the "exempt reporting adviser" / ERA
+route). Smaller advisers register at the state level.
+
+## How to look one up
+
+Form D Explorer indexes the public ADV data so you can search advisers by name and link
+straight to the relevant Form D filings. For the full Part 2 brochure, the disciplinary
+narrative, and complete filing history, the canonical source is
+[adviserinfo.sec.gov](https://adviserinfo.sec.gov/).
+""",
+    },
+    {
+        "slug": "form-d-vs-form-adv",
+        "title": "Form D vs. Form ADV: how to read them together",
+        "meta_description": (
+            "Form D discloses a single private placement; Form ADV discloses the adviser "
+            "that runs it. Reading both side by side is how you size up a fund manager."
+        ),
+        "body": """\
+Form D and Form ADV are two halves of the same picture in private capital. Reading one without
+the other is like reading a book with every other chapter missing.
+
+## The split
+
+- **Form D** is filed by the **fund vehicle** every time it raises money under
+  [Regulation D](/learn/reg-d-506b-vs-506c/). It's a deal notice. Each fund's series gets its
+  own Form D.
+- **Form ADV** is filed by the **investment adviser** (the management company / GP) once a
+  year, with material amendments in between. It's a firm-level disclosure.
+
+The two filings live in different SEC systems — Form D on EDGAR, Form ADV on
+[IAPD](https://adviserinfo.sec.gov/) — but they describe the same business.
+
+## A worked example
+
+Say you see this on Form D Explorer:
+
+> **Acme Ventures Fund III LP** — Form D filed 2026-04-15
+> $100M offered, $42M sold, 18 investors, $250K minimum
+> Pooled Investment Fund · Delaware LP · 506(b) · 3(c)(1)
+> Executive Officer: Jane Smith (San Francisco, CA)
+
+Form D tells you: someone named Jane Smith is raising a $100M venture fund and is 42% of the
+way there.
+
+Now look up the adviser side. Search "Acme Ventures" or "Acme Capital" on the ADV tab and
+you find:
+
+> **Acme Capital Management LLC** — CRD 123456 · SEC# 801-78901
+> $1.2B regulatory AUM · 14 employees · 22 clients
+> Registered with SEC since 2018
+> No disciplinary disclosures
+
+Now you know: Acme is a real shop with $1.2B across multiple funds and an 8-year track record.
+Fund III is their fourth raise. Jane Smith is one of three managing partners. They have no DRPs.
+
+## What to look for in the cross-reference
+
+- **Adviser AUM ÷ Form D offering** = roughly how much of the firm's total business this fund
+  represents. A $10M Form D from a $5B firm is a side-pocket. A $100M Form D from a $150M firm
+  is the firm.
+- **Form D filing date vs. adviser registration date.** A first-time Form D from a brand-new
+  adviser deserves more diligence than a Fund III from a 15-year shop.
+- **Related persons on Form D vs. control persons on ADV.** They should overlap. If they
+  don't, ask why.
+- **Disciplinary disclosures on ADV.** Does anyone running this Form D entity show up on
+  someone else's DRP record? Cross-reference is how investigative diligence happens.
+
+## Where the two disagree
+
+- Form D lists Jane Smith as Executive Officer, but ADV doesn't show her as a control person →
+  she might be at the fund level only, not at the adviser. Worth confirming.
+- Form D says $100M offering, ADV says $50M total firm AUM → either ADV is stale, or this is a
+  first-fund raise that will dwarf existing AUM. Either way, dig.
+
+## Practical workflow
+
+1. Find Form D for the deal (Form D Search).
+2. Click through to the issuer page → see the GP name on the related persons list.
+3. Switch to ADV Search → look up that GP.
+4. Cross-check AUM, employee count, registration date, DRPs.
+5. Pull the full Part 2 brochure from IAPD for the strategy narrative.
+
+Form D Explorer wires this together so the cross-reference is one click instead of three tabs.
+""",
+    },
+    {
         "slug": "how-to-read-a-form-d",
         "title": "How to read a Form D: a field-by-field walkthrough",
         "meta_description": (

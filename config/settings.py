@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "content",
     "subscriptions",
     "api",
+    "advisers",
 ]
 
 MIDDLEWARE = [

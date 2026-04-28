@@ -44,7 +44,8 @@
     <a href="/" class="font-semibold tracking-tight text-slate-900">Form D Explorer</a>
     <nav class="text-sm text-slate-600 flex gap-5 items-center">
       <a href="{% url 'filings:recent' %}" class="hover:text-slate-900">Recent</a>
-      <a href="{% url 'filings:search' %}" class="hover:text-slate-900">Search</a>
+      <a href="{% url 'filings:search' %}" class="hover:text-slate-900">Form D Search</a>
+      <a href="{% url 'advisers:search' %}" class="hover:text-slate-900">ADV Search</a>
       <a href="{% url 'content:article_list' %}" class="hover:text-slate-900">About</a>
       <a href="{% url 'subscriptions:pricing' %}" class="hover:text-slate-900">Pricing</a>
       {% if user.is_authenticated %}
