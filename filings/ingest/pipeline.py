@@ -1,7 +1,7 @@
 import logging
 from datetime import date, datetime
 
-from django.db import transaction
+from django.db import OperationalError, connection, transaction
 from django.utils.text import slugify
 
 from ..models import Filing, Issuer, RelatedPerson
@@ -45,7 +45,12 @@ class IngestPipeline:
                     if parsed is None:
                         continue
                     stats["parsed"] += 1
-                    self._upsert(parsed)
+                    try:
+                        self._upsert(parsed)
+                    except OperationalError as db_exc:
+                        log.warning("DB connection dropped: %s; reconnecting", db_exc)
+                        connection.close()
+                        self._upsert(parsed)
                     stats["upserted"] += 1
                 except Exception as exc:  # noqa: BLE001
                     stats["errors"] += 1
