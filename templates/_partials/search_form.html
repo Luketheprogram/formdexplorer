@@ -4,6 +4,7 @@
   hx-trigger="keyup changed delay:250ms from:input[name=q], change from:select, change from:input[type=checkbox], change from:input[type=date], change from:input[type=number], submit"
   hx-target="#search-results"
   hx-push-url="false"
+  hx-sync="this:replace"
   hx-indicator="#search-spinner"
 >
   <div class="flex flex-col md:flex-row gap-3">

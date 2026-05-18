@@ -1,5 +1,8 @@
 import csv
+import logging
 from datetime import date, datetime, timedelta
+
+logger = logging.getLogger(__name__)
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -115,7 +118,10 @@ def search(request):
 
 
 def search_partial(request):
-    return render(request, "_partials/search_results.html", _search_context(request))
+    response = render(request, "_partials/search_results.html", _search_context(request))
+    qs = request.GET.urlencode()
+    response["HX-Push-Url"] = f"/search/?{qs}" if qs else "/search/"
+    return response
 
 
 def issuer_detail(request, slug_cik: str):
@@ -417,32 +423,36 @@ def _enforce_export_gate(request):
 @login_required
 def export_xlsx(request):
     """Form D xlsx export — same filters as /search/."""
-    from .exports import _related_person_names, xlsx_response
+    try:
+        from .exports import _related_person_names, xlsx_response
 
-    ok, token, resp = _enforce_export_gate(request)
-    if not ok:
-        return resp
+        ok, token, resp = _enforce_export_gate(request)
+        if not ok:
+            return resp
 
-    qs = build_filing_query(request.GET).prefetch_related("related_persons")[:EXPORT_ROW_LIMIT]
-    headers = [
-        "Issuer", "Filing date", "Amount sold ($)", "Total offering ($)",
-        "Industry", "Related persons",
-    ]
-    rows = []
-    for f in qs:
-        rows.append([
-            f.issuer.name,
-            f.filing_date.isoformat() if f.filing_date else "",
-            f.total_amount_sold,
-            f.total_offering_amount,
-            f.industry_group,
-            _related_person_names(f),
-        ])
-    filename = f"form-d-filings-{timezone.now().date().isoformat()}.xlsx"
-    response = xlsx_response(filename, rows, headers)
-    if token is not None:
-        token.consume()
-    return response
+        qs = build_filing_query(request.GET).prefetch_related("related_persons")[:EXPORT_ROW_LIMIT]
+        headers = [
+            "Issuer", "Filing date", "Amount sold ($)", "Total offering ($)",
+            "Industry", "Related persons",
+        ]
+        rows = []
+        for f in qs:
+            rows.append([
+                f.issuer.name,
+                f.filing_date.isoformat() if f.filing_date else "",
+                f.total_amount_sold,
+                f.total_offering_amount,
+                f.industry_group,
+                _related_person_names(f),
+            ])
+        filename = f"form-d-filings-{timezone.now().date().isoformat()}.xlsx"
+        response = xlsx_response(filename, rows, headers)
+        if token is not None:
+            token.consume()
+        return response
+    except Exception:
+        logger.exception("export_xlsx failed for user=%s GET=%s", request.user, request.GET.urlencode())
+        raise
 
 
 @login_required

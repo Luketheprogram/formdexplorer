@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.paginator import Paginator
@@ -13,6 +15,8 @@ from filings.views import _enforce_export_gate
 
 from .matching import find_matching_issuers
 from .models import Adviser
+
+logger = logging.getLogger(__name__)
 
 EXPORT_ROW_LIMIT = 5000
 
@@ -94,28 +98,32 @@ def adviser_detail(request, crd: str):
 @login_required
 def export_xlsx(request):
     """Adviser xlsx export — same query as /adv/?q=..."""
-    ok, token, resp = _enforce_export_gate(request)
-    if not ok:
-        return resp
+    try:
+        ok, token, resp = _enforce_export_gate(request)
+        if not ok:
+            return resp
 
-    q = (request.GET.get("q") or "").strip()
-    qs = _build_queryset(q)[:EXPORT_ROW_LIMIT]
-    headers = [
-        "Firm name", "Last filed", "Discretionary AUM ($)", "Regulatory AUM ($)",
-        "State", "CRD",
-    ]
-    rows = []
-    for a in qs:
-        rows.append([
-            a.name,
-            a.last_filed_at.isoformat() if a.last_filed_at else "",
-            a.discretionary_aum,
-            a.regulatory_aum,
-            a.state or "",
-            a.crd,
-        ])
-    filename = f"form-adv-firms-{timezone.now().date().isoformat()}.xlsx"
-    response = xlsx_response(filename, rows, headers)
-    if token is not None:
-        token.consume()
-    return response
+        q = (request.GET.get("q") or "").strip()
+        qs = _build_queryset(q)[:EXPORT_ROW_LIMIT]
+        headers = [
+            "Firm name", "Last filed", "Discretionary AUM ($)", "Regulatory AUM ($)",
+            "State", "CRD",
+        ]
+        rows = []
+        for a in qs:
+            rows.append([
+                a.name,
+                a.last_filed_at.isoformat() if a.last_filed_at else "",
+                a.discretionary_aum,
+                a.regulatory_aum,
+                a.state or "",
+                a.crd,
+            ])
+        filename = f"form-adv-firms-{timezone.now().date().isoformat()}.xlsx"
+        response = xlsx_response(filename, rows, headers)
+        if token is not None:
+            token.consume()
+        return response
+    except Exception:
+        logger.exception("advisers.export_xlsx failed for user=%s GET=%s", request.user, request.GET.urlencode())
+        raise

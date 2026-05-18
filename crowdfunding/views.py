@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.paginator import Paginator
@@ -11,6 +13,8 @@ from filings.exports import xlsx_response
 from filings.views import _enforce_export_gate
 
 from .models import CrowdfundingFiling
+
+logger = logging.getLogger(__name__)
 
 EXPORT_ROW_LIMIT = 5000
 
@@ -113,27 +117,31 @@ def detail(request, accession_number: str):
 @login_required
 def export_xlsx(request):
     """Form C xlsx export — same filters as /cf/ search."""
-    ok, token, resp = _enforce_export_gate(request)
-    if not ok:
-        return resp
+    try:
+        ok, token, resp = _enforce_export_gate(request)
+        if not ok:
+            return resp
 
-    qs = _build_qs(request.GET)[:EXPORT_ROW_LIMIT]
-    headers = [
-        "Issuer", "Filing date", "Target offering ($)", "Maximum offering ($)",
-        "Security type", "Intermediary (funding portal)",
-    ]
-    rows = []
-    for f in qs:
-        rows.append([
-            f.issuer.name,
-            f.filing_date.isoformat() if f.filing_date else "",
-            f.target_offering_amount,
-            f.maximum_offering_amount,
-            f.security_type or "",
-            f.intermediary_name or "",
-        ])
-    filename = f"form-c-filings-{timezone.now().date().isoformat()}.xlsx"
-    response = xlsx_response(filename, rows, headers)
-    if token is not None:
-        token.consume()
-    return response
+        qs = _build_qs(request.GET)[:EXPORT_ROW_LIMIT]
+        headers = [
+            "Issuer", "Filing date", "Target offering ($)", "Maximum offering ($)",
+            "Security type", "Intermediary (funding portal)",
+        ]
+        rows = []
+        for f in qs:
+            rows.append([
+                f.issuer.name,
+                f.filing_date.isoformat() if f.filing_date else "",
+                f.target_offering_amount,
+                f.maximum_offering_amount,
+                f.security_type or "",
+                f.intermediary_name or "",
+            ])
+        filename = f"form-c-filings-{timezone.now().date().isoformat()}.xlsx"
+        response = xlsx_response(filename, rows, headers)
+        if token is not None:
+            token.consume()
+        return response
+    except Exception:
+        logger.exception("crowdfunding.export_xlsx failed for user=%s GET=%s", request.user, request.GET.urlencode())
+        raise
