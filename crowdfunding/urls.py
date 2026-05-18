@@ -7,5 +7,6 @@ app_name = "crowdfunding"
 urlpatterns = [
     path("", views.search, name="search"),
     path("search/partial/", views.search_partial, name="search_partial"),
+    path("export/xlsx/", views.export_xlsx, name="export_xlsx"),
     path("<str:accession_number>/", views.detail, name="detail"),
 ]

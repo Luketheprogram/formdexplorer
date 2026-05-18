@@ -10,6 +10,7 @@ urlpatterns = [
     path("search/partial/", views.search_partial, name="search_partial"),
     path("recent/", views.recent, name="recent"),
     path("export/csv/", views.export_csv, name="export_csv"),
+    path("export/xlsx/", views.export_xlsx, name="export_xlsx"),
     path("saved-searches/", views.saved_search_list, name="saved_search_list"),
     path("saved-searches/new/", views.saved_search_create, name="saved_search_create"),
     path("saved-searches/<int:pk>/delete/", views.saved_search_delete, name="saved_search_delete"),

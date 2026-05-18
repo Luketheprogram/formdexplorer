@@ -1,14 +1,20 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.paginator import Paginator
 from django.db import connection
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 
+from filings.exports import xlsx_response
 from filings.models import Filing, Issuer
+from filings.views import _enforce_export_gate
 
 from .matching import find_matching_issuers
 from .models import Adviser
+
+EXPORT_ROW_LIMIT = 5000
 
 
 def _is_postgres() -> bool:
@@ -83,3 +89,33 @@ def adviser_detail(request, crd: str):
         "canonical_path": f"/adv/{adviser.crd}/",
     }
     return render(request, "advisers/detail.html", ctx)
+
+
+@login_required
+def export_xlsx(request):
+    """Adviser xlsx export — same query as /adv/?q=..."""
+    ok, token, resp = _enforce_export_gate(request)
+    if not ok:
+        return resp
+
+    q = (request.GET.get("q") or "").strip()
+    qs = _build_queryset(q)[:EXPORT_ROW_LIMIT]
+    headers = [
+        "Firm name", "Last filed", "Discretionary AUM ($)", "Regulatory AUM ($)",
+        "State", "CRD",
+    ]
+    rows = []
+    for a in qs:
+        rows.append([
+            a.name,
+            a.last_filed_at.isoformat() if a.last_filed_at else "",
+            a.discretionary_aum,
+            a.regulatory_aum,
+            a.state or "",
+            a.crd,
+        ])
+    filename = f"form-adv-firms-{timezone.now().date().isoformat()}.xlsx"
+    response = xlsx_response(filename, rows, headers)
+    if token is not None:
+        token.consume()
+    return response

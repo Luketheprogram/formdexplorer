@@ -1,11 +1,18 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.paginator import Paginator
 from django.db import connection
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
+
+from filings.exports import xlsx_response
+from filings.views import _enforce_export_gate
 
 from .models import Form1AFiling
+
+EXPORT_ROW_LIMIT = 5000
 
 
 def _is_postgres() -> bool:
@@ -104,3 +111,32 @@ def detail(request, accession_number: str):
         "canonical_path": f"/1a/{filing.accession_number}/",
     }
     return render(request, "rega/detail.html", ctx)
+
+
+@login_required
+def export_xlsx(request):
+    """Form 1-A xlsx export — same filters as /1a/ search."""
+    ok, token, resp = _enforce_export_gate(request)
+    if not ok:
+        return resp
+
+    qs = _build_qs(request.GET)[:EXPORT_ROW_LIMIT]
+    headers = [
+        "Issuer", "Filing date", "Amount sold ($)", "Total offering ($)",
+        "Tier", "Security type",
+    ]
+    rows = []
+    for f in qs:
+        rows.append([
+            f.issuer.name,
+            f.filing_date.isoformat() if f.filing_date else "",
+            f.total_amount_sold,
+            f.total_offering_amount,
+            f.tier or "",
+            f.security_type or "",
+        ])
+    filename = f"form-1a-filings-{timezone.now().date().isoformat()}.xlsx"
+    response = xlsx_response(filename, rows, headers)
+    if token is not None:
+        token.consume()
+    return response

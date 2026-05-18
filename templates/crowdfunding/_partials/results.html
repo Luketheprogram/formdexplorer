@@ -1,6 +1,14 @@
 {% load money %}
 {% if results %}
-<div class="text-sm text-slate-500 mb-3">{{ total }} filing{{ total|pluralize }}</div>
+<div class="text-sm text-slate-500 mb-3 flex items-center justify-between gap-2">
+  <span>{{ total }} filing{{ total|pluralize }}</span>
+  {% if user.is_authenticated and user.is_paid %}
+    <a href="{% url 'crowdfunding:export_xlsx' %}?{{ request.GET.urlencode }}"
+       class="rounded-md bg-emerald-600 px-3 py-1 text-xs text-white font-medium hover:bg-emerald-700">↓ Export Excel</a>
+  {% elif user.is_authenticated %}
+    <a href="{% url 'subscriptions:pricing' %}" class="text-xs underline">Upgrade to export</a>
+  {% endif %}
+</div>
 <ul class="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
   {% for f in results %}
   <li class="p-4 hover:bg-slate-50">

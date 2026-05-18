@@ -395,6 +395,56 @@ def recent(request):
     return render(request, "filings/recent.html", ctx)
 
 
+def _enforce_export_gate(request):
+    """Returns (ok, token, redirect_response). Caller pattern:
+        ok, token, resp = _enforce_export_gate(request)
+        if not ok: return resp
+        ... write export ...
+        if token: token.consume()
+    """
+    user = request.user
+    if not user.is_authenticated:
+        return False, None, redirect("accounts:login")
+    if user.is_paid:
+        return True, None, None
+    token = user.export_tokens.filter(used_at__isnull=True).first()
+    if token is None:
+        messages.info(request, "Exports require Pro or a one-time export purchase.")
+        return False, None, redirect("subscriptions:pricing")
+    return True, token, None
+
+
+@login_required
+def export_xlsx(request):
+    """Form D xlsx export — same filters as /search/."""
+    from .exports import _related_person_names, xlsx_response
+
+    ok, token, resp = _enforce_export_gate(request)
+    if not ok:
+        return resp
+
+    qs = build_filing_query(request.GET).prefetch_related("related_persons")[:EXPORT_ROW_LIMIT]
+    headers = [
+        "Issuer", "Filing date", "Amount sold ($)", "Total offering ($)",
+        "Industry", "Related persons",
+    ]
+    rows = []
+    for f in qs:
+        rows.append([
+            f.issuer.name,
+            f.filing_date.isoformat() if f.filing_date else "",
+            f.total_amount_sold,
+            f.total_offering_amount,
+            f.industry_group,
+            _related_person_names(f),
+        ])
+    filename = f"form-d-filings-{timezone.now().date().isoformat()}.xlsx"
+    response = xlsx_response(filename, rows, headers)
+    if token is not None:
+        token.consume()
+    return response
+
+
 @login_required
 def export_csv(request):
     user = request.user
