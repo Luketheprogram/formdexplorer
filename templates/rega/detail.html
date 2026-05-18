@@ -11,6 +11,20 @@
     {{ filing.accession_number }} &middot; filed {{ filing.filing_date|date:"Y-m-d" }}
     {% if filing.tier %} &middot; {{ filing.tier }}{% endif %}
   </div>
+  <div class="mt-2 text-sm">
+    {% if filing.issuer.website %}
+      <a href="{{ filing.issuer.website }}" target="_blank" rel="noopener nofollow"
+         class="inline-flex items-center gap-1 text-slate-900 underline hover:text-slate-700">
+        🌐 {{ filing.issuer.website }}
+      </a>
+    {% else %}
+      <a href="https://www.google.com/search?q={{ filing.issuer.name|add:' website'|urlencode }}"
+         target="_blank" rel="noopener nofollow"
+         class="inline-flex items-center gap-1 text-slate-600 underline hover:text-slate-900">
+        🔍 Find website on Google
+      </a>
+    {% endif %}
+  </div>
 </header>
 
 <section class="mt-8 grid gap-6 md:grid-cols-2">

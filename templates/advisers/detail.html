@@ -10,6 +10,21 @@
     {% if adviser.state %}<span>&middot; {{ adviser.city }}, {{ adviser.state }}</span>{% endif %}
     {% if adviser.registration_status %}<span>&middot; {{ adviser.registration_status }}</span>{% endif %}
   </div>
+  <div class="mt-2 text-sm">
+    {% if adviser.website %}
+      <a href="{{ adviser.website }}" target="_blank" rel="noopener nofollow"
+         class="inline-flex items-center gap-1 text-slate-900 underline hover:text-slate-700">
+        🌐 {{ adviser.website }}
+      </a>
+      <span class="ml-1 text-xs text-amber-700">(name-match guess, not verified)</span>
+    {% else %}
+      <a href="https://www.google.com/search?q={{ adviser.name|add:' website'|urlencode }}"
+         target="_blank" rel="noopener nofollow"
+         class="inline-flex items-center gap-1 text-slate-600 underline hover:text-slate-900">
+        🔍 Find website on Google
+      </a>
+    {% endif %}
+  </div>
 </header>
 
 <section class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">

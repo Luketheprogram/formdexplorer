@@ -12,6 +12,20 @@
       {% if issuer.state %}<span>&middot; <a href="/state/{{ issuer.state }}/" class="underline hover:text-slate-900">{{ issuer.city }}, {{ issuer.state }}</a></span>{% endif %}
       {% if industry_slug %}<span>&middot; <a href="/industry/{{ industry_slug }}/" class="underline hover:text-slate-900">{{ filings.first.industry_group }}</a></span>{% endif %}
     </div>
+    <div class="mt-2 text-sm">
+      {% if issuer.website %}
+        <a href="{{ issuer.website }}" target="_blank" rel="noopener nofollow"
+           class="inline-flex items-center gap-1 text-slate-900 underline hover:text-slate-700">
+          🌐 {{ issuer.website }}
+        </a>
+      {% else %}
+        <a href="https://www.google.com/search?q={{ issuer.name|add:' website'|urlencode }}"
+           target="_blank" rel="noopener nofollow"
+           class="inline-flex items-center gap-1 text-slate-600 underline hover:text-slate-900">
+          🔍 Find website on Google
+        </a>
+      {% endif %}
+    </div>
   </div>
   {% if user.is_authenticated %}
   <form method="post" action="{% url 'filings:issuer_watch_toggle' issuer.cik %}" class="shrink-0">
