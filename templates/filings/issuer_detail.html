@@ -12,18 +12,16 @@
       {% if issuer.state %}<span>&middot; <a href="/state/{{ issuer.state }}/" class="underline hover:text-slate-900">{{ issuer.city }}, {{ issuer.state }}</a></span>{% endif %}
       {% if industry_slug %}<span>&middot; <a href="/industry/{{ industry_slug }}/" class="underline hover:text-slate-900">{{ filings.first.industry_group }}</a></span>{% endif %}
     </div>
-    <div class="mt-2 text-sm">
+    <div class="mt-2 text-sm"
+         {% if not issuer.website and not issuer.inferred_at %}
+         hx-get="{% url 'filings:issuer_infer_website' issuer.cik %}"
+         hx-trigger="load"
+         hx-swap="innerHTML"
+         {% endif %}>
       {% if issuer.website %}
-        <a href="{{ issuer.website }}" target="_blank" rel="noopener nofollow"
-           class="inline-flex items-center gap-1 text-slate-900 underline hover:text-slate-700">
-          🌐 {{ issuer.website }}
-        </a>
+        {% include "_partials/inferred_website.html" with verified=True %}
       {% else %}
-        <a href="https://www.google.com/search?q={{ issuer.name|add:' website'|urlencode }}"
-           target="_blank" rel="noopener nofollow"
-           class="inline-flex items-center gap-1 text-slate-600 underline hover:text-slate-900">
-          🔍 Find website on Google
-        </a>
+        {% include "_partials/inferred_website.html" with verified=False %}
       {% endif %}
     </div>
   </div>

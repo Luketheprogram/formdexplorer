@@ -205,6 +205,35 @@ def issuer_detail(request, slug_cik: str):
     return render(request, "filings/issuer_detail.html", ctx)
 
 
+INFER_TTL_HIT = timedelta(days=30)
+INFER_TTL_MISS = timedelta(days=7)
+
+
+def issuer_infer_website(request, cik: str):
+    """HTMX endpoint: best-effort website inference via Clearbit autocomplete.
+
+    Renders a tiny fragment to swap into the detail page. Results are cached on
+    the Issuer (30d for hits, 7d for misses) so we never re-hit Clearbit on a
+    cache hit. If the issuer already has a verified website, never overwrite it.
+    """
+    issuer = get_object_or_404(Issuer, cik=cik)
+    if issuer.website:
+        return render(request, "_partials/inferred_website.html", {"issuer": issuer, "verified": True})
+
+    fresh = issuer.inferred_at and (
+        timezone.now() - issuer.inferred_at
+        < (INFER_TTL_HIT if issuer.inferred_website else INFER_TTL_MISS)
+    )
+    if not fresh:
+        from .enrich import find_company_domain
+        domain = find_company_domain(issuer.name)
+        issuer.inferred_website = f"https://{domain}" if domain else ""
+        issuer.inferred_at = timezone.now()
+        issuer.save(update_fields=["inferred_website", "inferred_at"])
+
+    return render(request, "_partials/inferred_website.html", {"issuer": issuer, "verified": False})
+
+
 @login_required
 def issuer_enrich(request, cik: str):
     if request.method != "POST":

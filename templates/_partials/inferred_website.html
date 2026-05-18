@@ -1,0 +1,18 @@
+{% if verified %}
+  <a href="{{ issuer.website }}" target="_blank" rel="noopener nofollow"
+     class="inline-flex items-center gap-1 text-slate-900 underline hover:text-slate-700">
+    🌐 {{ issuer.website }}
+  </a>
+{% elif issuer.inferred_website %}
+  <a href="{{ issuer.inferred_website }}" target="_blank" rel="noopener nofollow"
+     class="inline-flex items-center gap-1 text-slate-700 underline hover:text-slate-900">
+    🌐 {{ issuer.inferred_website }}
+  </a>
+  <span class="ml-1 text-xs text-amber-700">(possible website — auto-inferred, not verified)</span>
+{% else %}
+  <a href="https://www.google.com/search?q={{ issuer.name|add:' website'|urlencode }}"
+     target="_blank" rel="noopener nofollow"
+     class="inline-flex items-center gap-1 text-slate-600 underline hover:text-slate-900">
+    🔍 Find website on Google
+  </a>
+{% endif %}
