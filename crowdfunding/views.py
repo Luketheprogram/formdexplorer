@@ -124,13 +124,14 @@ def export_xlsx(request):
 
         qs = _build_qs(request.GET)[:EXPORT_ROW_LIMIT]
         headers = [
-            "Issuer", "Filing date", "Target offering ($)", "Maximum offering ($)",
+            "Issuer", "Website", "Filing date", "Target offering ($)", "Maximum offering ($)",
             "Security type", "Intermediary (funding portal)",
         ]
         rows = []
         for f in qs:
             rows.append([
                 f.issuer.name,
+                f.issuer.website or "",
                 f.filing_date.isoformat() if f.filing_date else "",
                 f.target_offering_amount,
                 f.maximum_offering_amount,

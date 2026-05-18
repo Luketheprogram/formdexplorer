@@ -106,13 +106,14 @@ def export_xlsx(request):
         q = (request.GET.get("q") or "").strip()
         qs = _build_queryset(q)[:EXPORT_ROW_LIMIT]
         headers = [
-            "Firm name", "Last filed", "Discretionary AUM ($)", "Regulatory AUM ($)",
+            "Firm name", "Website", "Last filed", "Discretionary AUM ($)", "Regulatory AUM ($)",
             "State", "CRD",
         ]
         rows = []
         for a in qs:
             rows.append([
                 a.name,
+                a.website or "",
                 a.last_filed_at.isoformat() if a.last_filed_at else "",
                 a.discretionary_aum,
                 a.regulatory_aum,

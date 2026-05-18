@@ -28,7 +28,7 @@ def xlsx_response(filename: str, rows: list[list], headers: list[str]) -> HttpRe
         ws.append(row)
 
     # Reasonable column widths; xlsx auto-fit is expensive, set generous defaults.
-    widths = {1: 42, 2: 13, 3: 18, 4: 18, 5: 24, 6: 60}
+    widths = {1: 42, 2: 36, 3: 13, 4: 18, 5: 18, 6: 24, 7: 60}
     for col_idx, width in widths.items():
         ws.column_dimensions[chr(64 + col_idx)].width = width
 

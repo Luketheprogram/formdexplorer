@@ -432,13 +432,14 @@ def export_xlsx(request):
 
         qs = build_filing_query(request.GET).prefetch_related("related_persons")[:EXPORT_ROW_LIMIT]
         headers = [
-            "Issuer", "Filing date", "Amount sold ($)", "Total offering ($)",
+            "Issuer", "Website", "Filing date", "Amount sold ($)", "Total offering ($)",
             "Industry", "Related persons",
         ]
         rows = []
         for f in qs:
             rows.append([
                 f.issuer.name,
+                f.issuer.website or "",
                 f.filing_date.isoformat() if f.filing_date else "",
                 f.total_amount_sold,
                 f.total_offering_amount,
