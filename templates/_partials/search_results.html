@@ -8,6 +8,10 @@
   </div>
   {% if user.is_authenticated and user.is_paid %}
     <div class="flex flex-wrap items-center gap-2">
+      <a href="{% url 'filings:saved_search_list' %}"
+         class="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-50">
+        ☰ My saved searches
+      </a>
       <a href="{% url 'filings:saved_search_create' %}?{{ request.GET.urlencode }}"
          class="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-50">
         ★ Save this search

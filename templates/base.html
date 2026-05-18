@@ -51,6 +51,7 @@
       <a href="{% url 'content:article_list' %}" class="hover:text-slate-900">About</a>
       <a href="{% url 'subscriptions:pricing' %}" class="hover:text-slate-900">Pricing</a>
       {% if user.is_authenticated %}
+        {% if user.is_paid %}<a href="{% url 'filings:saved_search_list' %}" class="hover:text-slate-900">☰ Saved</a>{% endif %}
         <a href="{% url 'accounts:account' %}" class="hover:text-slate-900">Account</a>
       {% else %}
         <a href="{% url 'accounts:login' %}" class="hover:text-slate-900">Log in</a>
