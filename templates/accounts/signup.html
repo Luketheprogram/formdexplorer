@@ -1,22 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="mx-auto max-w-sm">
-  <h1 class="text-2xl font-semibold text-slate-900">Create an account</h1>
-  <p class="mt-2 text-sm text-slate-500">Free. Email and password only.</p>
-  <form method="post" class="mt-6 space-y-4">
-    {% csrf_token %}
-    <div>
-      <label class="block text-sm font-medium text-slate-700">Email</label>
-      <input type="email" name="email" required autofocus class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2">
-      {% if form.email.errors %}<p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>{% endif %}
-    </div>
-    <div>
-      <label class="block text-sm font-medium text-slate-700">Password</label>
-      <input type="password" name="password" required class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2">
-      {% if form.password.errors %}<p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>{% endif %}
-    </div>
-    <button type="submit" class="w-full rounded-md bg-slate-900 px-4 py-2 text-white font-medium hover:bg-slate-800">Create account</button>
-  </form>
-  <p class="mt-4 text-sm text-slate-500">Already have an account? <a href="{% url 'accounts:login' %}" class="underline">Log in</a>.</p>
+<div class="mx-auto mt-8 max-w-md">
+  <div class="card p-6 md:p-8">
+    <h1 class="text-xl font-bold tracking-tight text-slate-900">Create an account</h1>
+    <p class="mt-1 text-sm text-slate-500">Free. Email and password only.</p>
+    <form method="post" class="mt-6 space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="field-label" for="id_email">Email</label>
+        <input type="email" name="email" id="id_email" required autofocus class="input">
+        {% if form.email.errors %}<div class="mt-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ form.email.errors.0 }}</div>{% endif %}
+      </div>
+      <div>
+        <label class="field-label" for="id_password">Password</label>
+        <input type="password" name="password" id="id_password" required class="input">
+        {% if form.password.errors %}<div class="mt-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ form.password.errors.0 }}</div>{% endif %}
+      </div>
+      <button type="submit" class="btn-primary w-full py-2.5">Create account</button>
+    </form>
+    <p class="mt-6 border-t border-slate-100 pt-4 text-center text-sm text-slate-500">Already have an account? <a href="{% url 'accounts:login' %}" class="link">Log in</a></p>
+  </div>
 </div>
 {% endblock %}

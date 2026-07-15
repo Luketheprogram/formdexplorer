@@ -1,30 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="flex items-center justify-between">
-  <h1 class="text-2xl font-semibold text-slate-900">Saved searches</h1>
-  <a href="{% url 'filings:saved_search_create' %}" class="rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium">New</a>
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <h1 class="text-2xl font-bold tracking-tight text-slate-900">Saved searches</h1>
+  <a href="{% url 'filings:saved_search_create' %}" class="btn-primary btn-sm">New search</a>
 </div>
-<p class="mt-2 text-sm text-slate-500">Up to {{ max_searches }}. Emails sent daily when new filings match.</p>
+<p class="mt-1 text-sm text-slate-500">Up to {{ max_searches }}. Emails sent daily when new filings match.</p>
 
-<ul class="mt-6 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+<ul class="card-list mt-6">
   {% for s in searches %}
-  <li class="p-4 flex items-start justify-between gap-4">
-    <div>
+  <li class="row-hover flex flex-wrap items-start justify-between gap-4 p-4">
+    <div class="min-w-0">
       <div class="font-medium text-slate-900">{{ s.name }}</div>
-      <div class="text-sm text-slate-500 mt-1">
-        {% for k, v in s.params.items %}<span class="mr-3">{{ k }}: <code class="rounded bg-slate-100 px-1">{{ v }}</code></span>{% endfor %}
+      <div class="mt-1.5 flex flex-wrap gap-1.5">
+        {% for k, v in s.params.items %}<span class="badge-muted">{{ k }}: {{ v }}</span>{% endfor %}
       </div>
-      <div class="text-xs text-slate-400 mt-1">Created {{ s.created_at|date:"Y-m-d" }} &middot; last checked {{ s.last_checked_at|default:"never" }}</div>
+      <div class="mt-1.5 text-xs text-slate-400">Created {{ s.created_at|date:"M j, Y" }} &middot; last checked {{ s.last_checked_at|date:"M j, Y"|default:"never" }}</div>
     </div>
-    <div class="flex items-center gap-2 shrink-0">
-      <a href="{% url 'filings:saved_search_run' s.pk %}" class="rounded-md bg-slate-900 px-3 py-1 text-sm text-white font-medium hover:bg-slate-800">Run</a>
+    <div class="flex shrink-0 items-center gap-2">
+      <a href="{% url 'filings:saved_search_run' s.pk %}" class="btn-primary btn-sm">Run</a>
       <form method="post" action="{% url 'filings:saved_search_delete' s.pk %}">{% csrf_token %}
-        <button type="submit" class="rounded-md border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-50">Delete</button>
+        <button type="submit" class="btn btn-sm border border-red-200 bg-white text-red-600 shadow-sm hover:border-red-300 hover:bg-red-50">Delete</button>
       </form>
     </div>
   </li>
   {% empty %}
-  <li class="p-6 text-sm text-slate-500">No saved searches yet.</li>
+  <li class="p-10 text-center">
+    <div class="text-sm font-medium text-slate-700">No saved searches yet</div>
+    <p class="mt-1 text-sm text-slate-500">Set up filters on <a href="{% url 'filings:search' %}" class="link">Form D Search</a>, then click "Save this search".</p>
+  </li>
   {% endfor %}
 </ul>
 {% endblock %}

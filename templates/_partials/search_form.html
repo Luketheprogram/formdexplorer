@@ -7,112 +7,140 @@
   hx-sync="this:replace"
   hx-indicator="#search-spinner"
 >
-  <div class="flex flex-col md:flex-row gap-3">
-    <input
-      type="search"
-      name="q"
-      value="{{ q|default:'' }}"
-      placeholder="Search issuers by name..."
-      class="flex-1 rounded-md border border-slate-300 px-4 py-3 text-base focus:border-slate-500 focus:ring-1 focus:ring-slate-500 outline-none"
-      autocomplete="off"
-    >
-    <select name="sort" class="rounded-md border border-slate-300 px-3 py-3 text-sm bg-white">
+  <div class="flex flex-col gap-3 md:flex-row">
+    <div class="relative flex-1">
+      <svg class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+        <circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5L17 17"/>
+      </svg>
+      <input
+        type="search"
+        name="q"
+        value="{{ q|default:'' }}"
+        placeholder="Search issuers by name…"
+        class="input py-3 pl-10 pr-4 text-base"
+        autocomplete="off"
+      >
+    </div>
+    <select name="sort" class="input w-auto py-3 text-sm" aria-label="Sort results">
       <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest first</option>
       <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Oldest first</option>
       <option value="largest" {% if sort == "largest" %}selected{% endif %}>Largest offering</option>
       <option value="smallest" {% if sort == "smallest" %}selected{% endif %}>Smallest offering</option>
       <option value="relevance" {% if sort == "relevance" %}selected{% endif %}>Relevance</option>
     </select>
-    <button type="submit" class="rounded-md bg-slate-900 px-5 py-3 text-white text-sm font-medium hover:bg-slate-800">
-      Search
-    </button>
+    <button type="submit" class="btn-primary px-6 py-3">Search</button>
   </div>
 
-  <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+  <div class="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 text-sm md:grid-cols-4">
     {# Industries multi-select with include/exclude toggle #}
-    <details class="relative rounded-md border border-slate-300 bg-white">
-      <summary class="cursor-pointer px-3 py-2 flex items-center justify-between [&::-webkit-details-marker]:hidden">
-        <span class="text-slate-700 truncate">
-          {% if selected_industries %}{% if industry_mode == "exclude" %}Excl. {% endif %}Industries ({{ selected_industries|length }}){% else %}Industry{% endif %}
-        </span>
-        <span class="text-slate-400 ml-2">▾</span>
-      </summary>
-      <div class="absolute z-20 left-0 right-0 mt-1 max-h-72 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg text-sm">
-        <label class="flex items-center gap-2 px-3 py-2 border-b border-slate-200 bg-slate-50 cursor-pointer">
-          <input type="checkbox" name="industry_mode" value="exclude" {% if industry_mode == "exclude" %}checked{% endif %} class="rounded border-slate-300">
-          <span class="font-medium text-slate-700">Exclude selected from search</span>
-        </label>
-        <div class="p-2 space-y-1">
-          {% for name in all_industries %}
-          <label class="flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-50 cursor-pointer">
-            <input type="checkbox" name="industry" value="{{ name }}" {% if name in selected_industries %}checked{% endif %} class="rounded border-slate-300">
-            <span>{{ name }}</span>
+    <div>
+      <span class="field-label">Industry</span>
+      <details class="relative" data-dropdown>
+        <summary class="dropdown-summary">
+          <span class="truncate {% if selected_industries %}font-medium text-indigo-700{% else %}text-slate-600{% endif %}">
+            {% if selected_industries %}{% if industry_mode == "exclude" %}Excl. {% endif %}{{ selected_industries|length }} selected{% else %}Any industry{% endif %}
+          </span>
+          <svg class="ml-2 shrink-0 text-slate-400" width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg>
+        </summary>
+        <div class="dropdown-panel max-h-72">
+          <label class="flex cursor-pointer items-center gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2">
+            <input type="checkbox" name="industry_mode" value="exclude" {% if industry_mode == "exclude" %}checked{% endif %} class="checkbox">
+            <span class="font-medium text-slate-700">Exclude selected from search</span>
+          </label>
+          <div class="space-y-0.5 p-2">
+            {% for name in all_industries %}
+            <label class="dropdown-option">
+              <input type="checkbox" name="industry" value="{{ name }}" {% if name in selected_industries %}checked{% endif %} class="checkbox">
+              <span>{{ name }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+      </details>
+    </div>
+
+    {# States multi-select #}
+    <div>
+      <span class="field-label">State</span>
+      <details class="relative" data-dropdown>
+        <summary class="dropdown-summary">
+          <span class="truncate {% if selected_states %}font-medium text-indigo-700{% else %}text-slate-600{% endif %}">
+            {% if selected_states %}{{ selected_states|join:", " }}{% else %}Any state{% endif %}
+          </span>
+          <svg class="ml-2 shrink-0 text-slate-400" width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg>
+        </summary>
+        <div class="dropdown-panel max-h-64 space-y-0.5 p-2">
+          {% for code, name in all_states %}
+          <label class="dropdown-option">
+            <input type="checkbox" name="state" value="{{ code }}" {% if code in selected_states %}checked{% endif %} class="checkbox">
+            <span>{{ code }} — {{ name }}</span>
           </label>
           {% endfor %}
         </div>
-      </div>
-    </details>
+      </details>
+    </div>
 
-    {# States multi-select #}
-    <details class="relative rounded-md border border-slate-300 bg-white">
-      <summary class="cursor-pointer px-3 py-2 flex items-center justify-between [&::-webkit-details-marker]:hidden">
-        <span class="text-slate-700 truncate">
-          {% if selected_states %}States ({{ selected_states|length }}){% else %}State{% endif %}
-        </span>
-        <span class="text-slate-400 ml-2">▾</span>
-      </summary>
-      <div class="absolute z-20 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg p-2 text-sm space-y-1">
-        {% for code, name in all_states %}
-        <label class="flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-50 cursor-pointer">
-          <input type="checkbox" name="state" value="{{ code }}" {% if code in selected_states %}checked{% endif %} class="rounded border-slate-300">
-          <span>{{ code }} — {{ name }}</span>
-        </label>
-        {% endfor %}
-      </div>
-    </details>
+    <div>
+      <label class="field-label" for="f-min-amount">Min offering ($)</label>
+      <input id="f-min-amount" name="min_amount" type="number" min="0" placeholder="e.g. 1,000,000" value="{{ request.GET.min_amount|default:'' }}" class="input">
+    </div>
+    <div>
+      <label class="field-label" for="f-max-amount">Max offering ($)</label>
+      <input id="f-max-amount" name="max_amount" type="number" min="0" placeholder="No limit" value="{{ request.GET.max_amount|default:'' }}" class="input">
+    </div>
 
-    <input name="min_amount" type="number" placeholder="Min offering $" value="{{ request.GET.min_amount|default:'' }}"
-      class="rounded-md border border-slate-300 px-3 py-2">
-    <input name="max_amount" type="number" placeholder="Max offering $" value="{{ request.GET.max_amount|default:'' }}"
-      class="rounded-md border border-slate-300 px-3 py-2">
-    {% with cur=request.GET.min_sold|default:'' %}
-    <select name="min_sold" class="rounded-md border border-slate-300 px-3 py-2 bg-white">
-      <option value="" {% if not cur %}selected{% endif %}>Any amount sold</option>
-      <option value="1" {% if cur == "1" %}selected{% endif %}>$1+ sold (excludes $0)</option>
-      <option value="100000" {% if cur == "100000" %}selected{% endif %}>$100K+ sold</option>
-      <option value="1000000" {% if cur == "1000000" %}selected{% endif %}>$1M+ sold</option>
-      <option value="10000000" {% if cur == "10000000" %}selected{% endif %}>$10M+ sold</option>
-      <option value="50000000" {% if cur == "50000000" %}selected{% endif %}>$50M+ sold</option>
-      <option value="100000000" {% if cur == "100000000" %}selected{% endif %}>$100M+ sold</option>
-      <option value="500000000" {% if cur == "500000000" %}selected{% endif %}>$500M+ sold</option>
-      <option value="1000000000" {% if cur == "1000000000" %}selected{% endif %}>$1B+ sold</option>
-    </select>
-    {% endwith %}
-    {% with cur=request.GET.min_remaining|default:'' %}
-    <select name="min_remaining" class="rounded-md border border-slate-300 px-3 py-2 bg-white">
-      <option value="" {% if not cur %}selected{% endif %}>Any amount remaining</option>
-      <option value="100000" {% if cur == "100000" %}selected{% endif %}>$100K+ remaining</option>
-      <option value="500000" {% if cur == "500000" %}selected{% endif %}>$500K+ remaining</option>
-      <option value="1000000" {% if cur == "1000000" %}selected{% endif %}>$1M+ remaining</option>
-      <option value="5000000" {% if cur == "5000000" %}selected{% endif %}>$5M+ remaining</option>
-      <option value="10000000" {% if cur == "10000000" %}selected{% endif %}>$10M+ remaining</option>
-      <option value="25000000" {% if cur == "25000000" %}selected{% endif %}>$25M+ remaining</option>
-      <option value="50000000" {% if cur == "50000000" %}selected{% endif %}>$50M+ remaining</option>
-    </select>
-    {% endwith %}
-    <input name="date_from" type="date" placeholder="From" value="{{ request.GET.date_from|default:'' }}"
-      class="rounded-md border border-slate-300 px-3 py-2">
-    <input name="date_to" type="date" placeholder="To" value="{{ request.GET.date_to|default:'' }}"
-      class="rounded-md border border-slate-300 px-3 py-2">
+    <div>
+      <label class="field-label" for="f-min-sold">Amount sold</label>
+      {% with cur=request.GET.min_sold|default:'' %}
+      <select id="f-min-sold" name="min_sold" class="input">
+        <option value="" {% if not cur %}selected{% endif %}>Any</option>
+        <option value="1" {% if cur == "1" %}selected{% endif %}>$1+ (excludes $0)</option>
+        <option value="100000" {% if cur == "100000" %}selected{% endif %}>$100K+</option>
+        <option value="1000000" {% if cur == "1000000" %}selected{% endif %}>$1M+</option>
+        <option value="10000000" {% if cur == "10000000" %}selected{% endif %}>$10M+</option>
+        <option value="50000000" {% if cur == "50000000" %}selected{% endif %}>$50M+</option>
+        <option value="100000000" {% if cur == "100000000" %}selected{% endif %}>$100M+</option>
+        <option value="500000000" {% if cur == "500000000" %}selected{% endif %}>$500M+</option>
+        <option value="1000000000" {% if cur == "1000000000" %}selected{% endif %}>$1B+</option>
+      </select>
+      {% endwith %}
+    </div>
+    <div>
+      <label class="field-label" for="f-min-remaining">Amount remaining</label>
+      {% with cur=request.GET.min_remaining|default:'' %}
+      <select id="f-min-remaining" name="min_remaining" class="input">
+        <option value="" {% if not cur %}selected{% endif %}>Any</option>
+        <option value="100000" {% if cur == "100000" %}selected{% endif %}>$100K+</option>
+        <option value="500000" {% if cur == "500000" %}selected{% endif %}>$500K+</option>
+        <option value="1000000" {% if cur == "1000000" %}selected{% endif %}>$1M+</option>
+        <option value="5000000" {% if cur == "5000000" %}selected{% endif %}>$5M+</option>
+        <option value="10000000" {% if cur == "10000000" %}selected{% endif %}>$10M+</option>
+        <option value="25000000" {% if cur == "25000000" %}selected{% endif %}>$25M+</option>
+        <option value="50000000" {% if cur == "50000000" %}selected{% endif %}>$50M+</option>
+      </select>
+      {% endwith %}
+    </div>
+
+    <div>
+      <label class="field-label" for="f-date-from">Filed after</label>
+      <input id="f-date-from" name="date_from" type="date" value="{{ request.GET.date_from|default:'' }}" class="input">
+    </div>
+    <div>
+      <label class="field-label" for="f-date-to">Filed before</label>
+      <input id="f-date-to" name="date_to" type="date" value="{{ request.GET.date_to|default:'' }}" class="input">
+    </div>
   </div>
 
-  <div class="mt-3 text-sm">
-    <label class="inline-flex items-center gap-2 cursor-pointer">
+  <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+    <label class="inline-flex cursor-pointer items-center gap-2">
       <input type="checkbox" name="no_banker" value="1"
         {% if request.GET.no_banker %}checked{% endif %}
-        class="rounded border-slate-300">
+        class="checkbox">
       <span class="text-slate-700">Only filings with no disclosed banker</span>
-      <span class="text-xs text-slate-400" title="Heuristic: no sales commission and no finders fees reported. Doesn't cover bankers paid in equity instead of cash.">(?)</span>
+      <span class="cursor-help text-xs text-slate-400" title="Heuristic: no sales commission and no finders fees reported. Doesn't cover bankers paid in equity instead of cash.">(?)</span>
     </label>
+    {% if request.GET %}
+    <a href="{{ request.path }}" class="text-xs text-slate-500 transition-colors hover:text-indigo-600">Reset all filters</a>
+    {% endif %}
   </div>
 </form>

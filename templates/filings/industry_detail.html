@@ -1,20 +1,24 @@
 {% extends "base.html" %}
 {% load money %}
 {% block content %}
-<nav class="text-sm text-slate-500 mb-4"><a href="/" class="hover:text-slate-900">Home</a> / Industry</nav>
-<h1 class="text-2xl font-semibold text-slate-900">{{ industry }} — Form D filings</h1>
+<nav class="mb-4 text-sm text-slate-500" aria-label="Breadcrumb">
+  <a href="/" class="transition-colors hover:text-indigo-600">Home</a>
+  <span class="mx-1 text-slate-300">/</span>
+  <span class="text-slate-700">Industry</span>
+</nav>
+<h1 class="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">{{ industry }} — Form D filings</h1>
 
 {% include "_partials/stats.html" %}
 
 {% if top_issuers %}
 <section class="mt-8">
-  <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Top issuers by capital offered</h2>
-  <ul class="mt-3 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+  <h2 class="eyebrow">Top issuers by capital offered</h2>
+  <ul class="card-list mt-3">
     {% for i in top_issuers %}
-    <li class="p-3 flex items-center justify-between text-sm">
-      <a href="/issuer/{{ i.issuer__name_slug }}-{{ i.issuer__cik }}/" class="text-slate-900 hover:underline truncate">{{ i.issuer__name }}</a>
-      <div class="text-right shrink-0">
-        <div class="text-slate-900">{{ i.total_raised|dollars }}</div>
+    <li class="row-hover flex items-center justify-between p-3.5 text-sm">
+      <a href="/issuer/{{ i.issuer__name_slug }}-{{ i.issuer__cik }}/" class="truncate text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">{{ i.issuer__name }}</a>
+      <div class="shrink-0 text-right">
+        <div class="amount font-medium text-slate-900">{{ i.total_raised|dollars }}</div>
         <div class="text-xs text-slate-500">{{ i.filing_count }} filing{{ i.filing_count|pluralize }}</div>
       </div>
     </li>
@@ -24,35 +28,35 @@
 {% endif %}
 
 <section class="mt-8">
-  <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">All filings</h2>
-  <ul class="mt-3 divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+  <h2 class="eyebrow">All filings</h2>
+  <ul class="card-list mt-3">
     {% for f in page_obj.object_list %}
-    <li class="p-4 hover:bg-slate-50">
+    <li class="row-hover p-4">
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
-          <a href="/issuer/{{ f.issuer.url_slug }}/" class="font-medium text-slate-900 hover:underline">{{ f.issuer.name }}</a>
-          <div class="text-sm text-slate-500 mt-1">
-            {{ f.form_type }} &middot; {{ f.filing_date|date:"Y-m-d" }}
-            {% if f.issuer.state %}&middot; <a href="/state/{{ f.issuer.state }}/" class="hover:underline">{{ f.issuer.state }}</a>{% endif %}
+          <a href="/issuer/{{ f.issuer.url_slug }}/" class="font-medium text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">{{ f.issuer.name }}</a>
+          <div class="mt-1 text-sm text-slate-500">
+            {{ f.form_type }} &middot; {{ f.filing_date|date:"M j, Y" }}
+            {% if f.issuer.state %}&middot; <a href="/state/{{ f.issuer.state }}/" class="underline-offset-2 hover:text-indigo-600 hover:underline">{{ f.issuer.state }}</a>{% endif %}
           </div>
         </div>
-        <div class="text-right text-sm shrink-0">
-          {% if f.total_offering_amount %}<div class="text-slate-900">{{ f.total_offering_amount|dollars }}</div>{% endif %}
-          <a href="/filing/{{ f.accession_number }}/" class="text-xs text-slate-500 hover:text-slate-900">view →</a>
+        <div class="shrink-0 text-right text-sm">
+          {% if f.total_offering_amount %}<div class="amount font-medium text-slate-900">{{ f.total_offering_amount|dollars }}</div>{% endif %}
+          <a href="/filing/{{ f.accession_number }}/" class="mt-0.5 inline-block text-xs font-medium text-indigo-600 hover:text-indigo-800">View filing →</a>
         </div>
       </div>
     </li>
     {% empty %}
-    <li class="p-6 text-sm text-slate-500">No filings yet.</li>
+    <li class="p-8 text-center text-sm text-slate-500">No filings yet.</li>
     {% endfor %}
   </ul>
 </section>
 
 {% if page_obj.has_other_pages %}
 <div class="mt-6 flex items-center justify-between text-sm">
-  {% if page_obj.has_previous %}<a class="text-slate-600 hover:text-slate-900" href="?page={{ page_obj.previous_page_number }}">← Prev</a>{% else %}<span></span>{% endif %}
-  <span class="text-slate-500">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-  {% if page_obj.has_next %}<a class="text-slate-600 hover:text-slate-900" href="?page={{ page_obj.next_page_number }}">Next →</a>{% else %}<span></span>{% endif %}
+  {% if page_obj.has_previous %}<a class="btn-secondary btn-sm" href="?page={{ page_obj.previous_page_number }}">← Prev</a>{% else %}<span></span>{% endif %}
+  <span class="text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn-secondary btn-sm" href="?page={{ page_obj.next_page_number }}">Next →</a>{% else %}<span></span>{% endif %}
 </div>
 {% endif %}
 {% endblock %}

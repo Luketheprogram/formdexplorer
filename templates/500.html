@@ -7,15 +7,29 @@
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
-<body class="min-h-screen bg-white text-slate-900 antialiased">
-<header class="border-b border-slate-200">
-  <div class="mx-auto max-w-6xl px-4 py-3"><a href="/" class="font-semibold">Form D Explorer</a></div>
+<body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased">
+<header class="border-b border-slate-200/80 bg-white">
+  <div class="mx-auto flex h-14 max-w-6xl items-center px-4">
+    <a href="/" class="flex items-center gap-2" aria-label="Form D Explorer home">
+      <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-white">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <rect x="2" y="9" width="3" height="5" rx="0.75"/>
+          <rect x="6.5" y="5.5" width="3" height="8.5" rx="0.75"/>
+          <rect x="11" y="2" width="3" height="12" rx="0.75"/>
+        </svg>
+      </span>
+      <span class="font-semibold tracking-tight text-slate-900">Form D Explorer</span>
+    </a>
+  </div>
 </header>
-<main class="mx-auto max-w-lg text-center py-20 px-4">
-  <div class="text-6xl font-semibold text-slate-300">500</div>
-  <h1 class="mt-4 text-2xl font-semibold text-slate-900">Something went wrong.</h1>
-  <p class="mt-3 text-slate-600">The error has been logged. Try again in a moment, or email <a class="underline" href="mailto:luke@dawncrestconsulting.com">luke@dawncrestconsulting.com</a> if it keeps happening.</p>
-  <a href="/" class="mt-6 inline-block rounded-md bg-slate-900 px-5 py-2 text-white text-sm font-medium">Back to home</a>
+<main class="mx-auto mt-16 w-full max-w-md flex-1 px-4 text-center">
+  <div class="text-7xl font-bold tracking-tight text-slate-200">500</div>
+  <h1 class="mt-4 text-xl font-semibold text-slate-900">Something went wrong.</h1>
+  <p class="mt-2 text-sm text-slate-600">This is usually temporary — the error has been logged. Try again in a moment, or email <a class="link" href="mailto:luke@dawncrestconsulting.com">luke@dawncrestconsulting.com</a> if it keeps happening.</p>
+  <div class="mt-6 flex items-center justify-center gap-3">
+    <a href="/" class="btn-primary">Go home</a>
+    <a href="/search/" class="btn-secondary">Search filings</a>
+  </div>
 </main>
 </body>
 </html>

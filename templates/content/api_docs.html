@@ -1,48 +1,72 @@
 {% extends "base.html" %}
 {% block content %}
-<article class="max-w-3xl space-y-4 text-slate-800 leading-relaxed [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-8 [&_h3]:font-semibold [&_h3]:mt-6 [&_pre]:bg-slate-100 [&_pre]:rounded [&_pre]:p-3 [&_pre]:text-sm [&_pre]:overflow-x-auto [&_code]:text-sm [&_ul]:list-disc [&_ul]:pl-6 [&_a]:underline [&_a]:text-slate-900">
-<h1>Form D Explorer API</h1>
-<p>REST API over the same dataset that powers this site. JSON responses, Bearer-token auth, 10,000 requests / month on the API Access plan.</p>
+<div class="mx-auto max-w-3xl">
+  <header>
+    <h1 class="text-3xl font-bold tracking-tight text-slate-900">Form D Explorer API</h1>
+    <p class="mt-2 text-slate-500">REST API over the same dataset that powers this site. JSON responses, Bearer-token auth, 10,000 requests / month on the API Access plan.</p>
+  </header>
 
-<h2>Base URL</h2>
-<pre><code>{{ SITE_URL }}/api/v1</code></pre>
+  <section class="card mt-8 p-5 md:p-6">
+    <h2 class="eyebrow">Base URL</h2>
+    <pre class="mt-3 overflow-x-auto rounded-xl bg-slate-900 p-4 text-[13px] leading-relaxed text-slate-100"><code>{{ SITE_URL }}/api/v1</code></pre>
+  </section>
 
-<h2>Authentication</h2>
-<p>Pass your API key as a Bearer token:</p>
-<pre><code>Authorization: Bearer fde_your_api_key_here</code></pre>
-<p>Generate and revoke keys at <a href="/account/api-keys/">/account/api-keys/</a>. Get a key by subscribing to <a href="/pricing/">API Access</a>.</p>
+  <section class="card mt-4 p-5 md:p-6">
+    <h2 class="eyebrow">Authentication</h2>
+    <p class="mt-3 text-sm leading-relaxed text-slate-700">Pass your API key as a Bearer token:</p>
+    <pre class="mt-3 overflow-x-auto rounded-xl bg-slate-900 p-4 text-[13px] leading-relaxed text-slate-100"><code>Authorization: Bearer fde_your_api_key_here</code></pre>
+    <p class="mt-3 text-sm leading-relaxed text-slate-700">Generate and revoke keys at <a href="/account/api-keys/" class="link">/account/api-keys/</a>. Get a key by subscribing to <a href="/pricing/" class="link">API Access</a>.</p>
+  </section>
 
-<h2>Rate limits</h2>
-<p>10,000 requests per rolling 30-day window per key. Every response includes:</p>
-<pre><code>X-RateLimit-Limit: 10000
+  <section class="card mt-4 p-5 md:p-6">
+    <h2 class="eyebrow">Rate limits</h2>
+    <p class="mt-3 text-sm leading-relaxed text-slate-700">10,000 requests per rolling 30-day window per key. Every response includes:</p>
+    <pre class="mt-3 overflow-x-auto rounded-xl bg-slate-900 p-4 text-[13px] leading-relaxed text-slate-100"><code>X-RateLimit-Limit: 10000
 X-RateLimit-Remaining: 9993</code></pre>
-<p>Over limit returns <code>429</code>.</p>
+    <p class="mt-3 text-sm leading-relaxed text-slate-700">Over limit returns <code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">429</code>.</p>
+  </section>
 
-<h2>Endpoints</h2>
+  <h2 class="eyebrow mt-10">Endpoints</h2>
 
-<h3>GET /v1/filings/</h3>
-<p>Search / list filings. Query parameters:</p>
-<ul>
-<li><code>q</code> — issuer name (trigram + icontains)</li>
-<li><code>state</code> — 2-letter state</li>
-<li><code>industry</code> — industry group name</li>
-<li><code>min_amount</code>, <code>max_amount</code> — total offering amount (USD)</li>
-<li><code>date_from</code>, <code>date_to</code> — YYYY-MM-DD</li>
-<li><code>limit</code> (default 50, max 200), <code>offset</code></li>
-</ul>
-<pre><code>curl -H "Authorization: Bearer $FDE_KEY" \
+  <section class="card mt-3 p-5 md:p-6">
+    <h3 class="flex flex-wrap items-center gap-2 text-sm">
+      <span class="badge-muted font-medium">GET</span>
+      <code class="font-semibold text-slate-900">/v1/filings/</code>
+    </h3>
+    <p class="mt-3 text-sm leading-relaxed text-slate-700">Search / list filings. Query parameters:</p>
+    <ul class="mt-3 list-disc space-y-1.5 pl-5 text-sm text-slate-700">
+      <li><code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">q</code> — issuer name (trigram + icontains)</li>
+      <li><code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">state</code> — 2-letter state</li>
+      <li><code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">industry</code> — industry group name</li>
+      <li><code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">min_amount</code>, <code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">max_amount</code> — total offering amount (USD)</li>
+      <li><code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">date_from</code>, <code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">date_to</code> — YYYY-MM-DD</li>
+      <li><code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">limit</code> (default 50, max 200), <code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">offset</code></li>
+    </ul>
+    <pre class="mt-3 overflow-x-auto rounded-xl bg-slate-900 p-4 text-[13px] leading-relaxed text-slate-100"><code>curl -H "Authorization: Bearer $FDE_KEY" \
   "{{ SITE_URL }}/api/v1/filings/?state=CA&limit=10"</code></pre>
+  </section>
 
-<h3>GET /v1/filings/&lt;accession_number&gt;/</h3>
-<p>Single filing with issuer + related persons.</p>
-<pre><code>curl -H "Authorization: Bearer $FDE_KEY" \
+  <section class="card mt-4 p-5 md:p-6">
+    <h3 class="flex flex-wrap items-center gap-2 text-sm">
+      <span class="badge-muted font-medium">GET</span>
+      <code class="font-semibold text-slate-900">/v1/filings/&lt;accession_number&gt;/</code>
+    </h3>
+    <p class="mt-3 text-sm leading-relaxed text-slate-700">Single filing with issuer + related persons.</p>
+    <pre class="mt-3 overflow-x-auto rounded-xl bg-slate-900 p-4 text-[13px] leading-relaxed text-slate-100"><code>curl -H "Authorization: Bearer $FDE_KEY" \
   "{{ SITE_URL }}/api/v1/filings/0001234567-26-000001/"</code></pre>
+  </section>
 
-<h3>GET /v1/issuers/&lt;cik&gt;/</h3>
-<p>Issuer profile with recent filings (last 25).</p>
+  <section class="card mt-4 p-5 md:p-6">
+    <h3 class="flex flex-wrap items-center gap-2 text-sm">
+      <span class="badge-muted font-medium">GET</span>
+      <code class="font-semibold text-slate-900">/v1/issuers/&lt;cik&gt;/</code>
+    </h3>
+    <p class="mt-3 text-sm leading-relaxed text-slate-700">Issuer profile with recent filings (last 25).</p>
+  </section>
 
-<h2>Response shape</h2>
-<pre><code>{
+  <section class="card mt-10 p-5 md:p-6">
+    <h2 class="eyebrow">Response shape</h2>
+    <pre class="mt-3 overflow-x-auto rounded-xl bg-slate-900 p-4 text-[13px] leading-relaxed text-slate-100"><code>{
   "count": 1234,
   "limit": 50,
   "offset": 0,
@@ -57,13 +81,16 @@ X-RateLimit-Remaining: 9993</code></pre>
     }
   ]
 }</code></pre>
+  </section>
 
-<h2>Errors</h2>
-<ul>
-<li><code>401</code> invalid_api_key</li>
-<li><code>403</code> inactive_subscription</li>
-<li><code>404</code> not_found</li>
-<li><code>429</code> rate_limited</li>
-</ul>
-</article>
+  <section class="card mt-4 p-5 md:p-6">
+    <h2 class="eyebrow">Errors</h2>
+    <ul class="mt-3 space-y-1.5 text-sm text-slate-700">
+      <li><code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">401</code> invalid_api_key</li>
+      <li><code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">403</code> inactive_subscription</li>
+      <li><code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">404</code> not_found</li>
+      <li><code class="rounded bg-slate-100 px-1 py-0.5 text-[13px]">429</code> rate_limited</li>
+    </ul>
+  </section>
+</div>
 {% endblock %}

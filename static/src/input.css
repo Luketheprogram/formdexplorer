@@ -1,3 +1,103 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+  ::selection {
+    @apply bg-indigo-100 text-indigo-900;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+@layer components {
+  /* Surfaces */
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white shadow-card;
+  }
+  .card-list {
+    @apply card divide-y divide-slate-100 overflow-hidden;
+  }
+  .row-hover {
+    @apply transition-colors hover:bg-slate-50/80;
+  }
+
+  /* Typography helpers */
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-wider text-slate-400;
+  }
+  .link {
+    @apply font-medium text-indigo-600 underline-offset-2 hover:text-indigo-800 hover:underline;
+  }
+  .amount {
+    @apply tabular-nums;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 active:scale-[0.98];
+  }
+  .btn-primary {
+    @apply btn bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-500;
+  }
+  .btn-secondary {
+    @apply btn border border-slate-300 bg-white px-4 py-2 text-slate-700 shadow-sm hover:border-slate-400 hover:bg-slate-50;
+  }
+  .btn-ghost {
+    @apply btn px-3 py-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+
+  /* Form controls */
+  .input {
+    @apply w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20;
+  }
+  .field-label {
+    @apply mb-1 block text-xs font-medium text-slate-500;
+  }
+  .checkbox {
+    @apply h-4 w-4 rounded border-slate-300 text-indigo-600 accent-indigo-600 focus:ring-indigo-500;
+  }
+
+  /* Chips & badges */
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium;
+  }
+  .chip-filter {
+    @apply chip bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100;
+  }
+  .chip-link {
+    @apply chip border border-slate-200 bg-white text-sm font-normal text-slate-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-800;
+  }
+  .badge-muted {
+    @apply inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500;
+  }
+
+  /* Navigation */
+  .nav-link {
+    @apply rounded-lg px-2.5 py-1.5 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900;
+  }
+  .nav-link-active {
+    @apply bg-slate-100 font-medium text-slate-900;
+  }
+
+  /* Filter dropdowns (details/summary) */
+  .dropdown-summary {
+    @apply flex cursor-pointer select-none items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2 shadow-sm transition hover:border-slate-400;
+  }
+  .dropdown-panel {
+    @apply absolute left-0 right-0 z-20 mt-1.5 overflow-y-auto rounded-xl border border-slate-200 bg-white text-sm shadow-lg;
+  }
+  .dropdown-option {
+    @apply flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-indigo-50;
+  }
+}

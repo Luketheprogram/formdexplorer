@@ -1,22 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="text-2xl font-semibold text-slate-900">Account</h1>
+<h1 class="text-2xl font-bold tracking-tight text-slate-900">Account</h1>
+<p class="mt-1 text-sm text-slate-500">Your plan, alerts, and billing in one place.</p>
 
-<section class="mt-6 rounded-md border border-slate-200 bg-white p-5">
-  <dl class="text-sm text-slate-800 space-y-2">
-    <div class="flex justify-between"><dt class="text-slate-500">Email</dt><dd>{{ user.email }}</dd></div>
-    <div class="flex justify-between"><dt class="text-slate-500">Plan</dt><dd>{{ user.get_subscription_tier_display }}</dd></div>
-    <div class="flex justify-between"><dt class="text-slate-500">Status</dt><dd>{{ user.subscription_status|default:"—" }}</dd></div>
-    <div class="flex justify-between"><dt class="text-slate-500">One-time exports available</dt><dd>{{ export_tokens_unused }}</dd></div>
+<section class="card mt-6 max-w-2xl p-5 md:p-6">
+  <h2 class="eyebrow">Plan &amp; usage</h2>
+  <dl class="mt-4 divide-y divide-slate-100 text-sm text-slate-800">
+    <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Email</dt><dd class="text-right font-medium">{{ user.email }}</dd></div>
+    <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Plan</dt><dd class="text-right font-medium">{{ user.get_subscription_tier_display }}</dd></div>
+    <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Status</dt><dd class="text-right font-medium">{{ user.subscription_status|default:"—" }}</dd></div>
+    <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">One-time exports available</dt><dd class="amount text-right font-medium">{{ export_tokens_unused }}</dd></div>
   </dl>
-  <div class="mt-4 flex gap-3">
-    {% if not user.is_paid %}<a href="{% url 'subscriptions:pricing' %}" class="rounded-md bg-slate-900 px-4 py-2 text-white text-sm font-medium">Upgrade to Pro</a>{% endif %}
-    <a href="{% url 'filings:saved_search_list' %}" class="rounded-md border border-slate-300 px-4 py-2 text-sm">Saved searches</a>
-    <a href="{% url 'filings:watchlist' %}" class="rounded-md border border-slate-300 px-4 py-2 text-sm">Watchlist</a>
-    <a href="{% url 'accounts:api_keys' %}" class="rounded-md border border-slate-300 px-4 py-2 text-sm">API keys</a>
-    {% if user.stripe_customer_id %}<a href="{% url 'subscriptions:billing_portal' %}" class="rounded-md border border-slate-300 px-4 py-2 text-sm">Manage billing</a>{% endif %}
+  <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5">
+    {% if not user.is_paid %}<a href="{% url 'subscriptions:pricing' %}" class="btn-primary">Upgrade to Pro</a>{% endif %}
+    <a href="{% url 'filings:saved_search_list' %}" class="btn-secondary">Saved searches</a>
+    <a href="{% url 'filings:watchlist' %}" class="btn-secondary">Watchlist</a>
+    <a href="{% url 'accounts:api_keys' %}" class="btn-secondary">API keys</a>
+    {% if user.stripe_customer_id %}<a href="{% url 'subscriptions:billing_portal' %}" class="btn-secondary">Manage billing</a>{% endif %}
     <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
-      <button type="submit" class="rounded-md border border-slate-300 px-4 py-2 text-sm">Log out</button>
+      <button type="submit" class="btn-ghost">Log out</button>
     </form>
   </div>
 </section>
