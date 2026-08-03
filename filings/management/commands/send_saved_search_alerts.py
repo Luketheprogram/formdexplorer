@@ -23,8 +23,6 @@ class Command(BaseCommand):
 
         sent = 0
         for ss in SavedSearch.objects.select_related("user").all():
-            if not ss.user.is_paid:
-                continue
             since = (ss.last_checked_at or fallback_since).date()
             qs = build_filing_query(ss.params).filter(filing_date__gte=since)[:100]
             results = list(qs)

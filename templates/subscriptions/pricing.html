@@ -2,12 +2,12 @@
 {% block content %}
 <div class="mx-auto max-w-2xl text-center">
   <h1 class="text-3xl font-bold tracking-tight text-slate-900">Pricing</h1>
-  <p class="mt-3 text-slate-600">Free search for everyone. Upgrade for unlimited results, exports, and alerts.</p>
+  <p class="mt-3 text-slate-600">Everything is free — search, alerts, watchlists, contact lookups. You only pay to export.</p>
   <p class="mt-2 text-sm text-slate-500">Built by a placement-agent analyst who got tired of EDGAR's UI.</p>
 </div>
 
 {# --- Tier helpers --- #}
-{% with pro=plans.pro pro_annual=plans.pro_annual export=plans.export api=plans.api api_pro=plans.api_pro %}
+{% with pro=plans.pro pro_annual=plans.pro_annual export=plans.export %}
 
 <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 
@@ -15,12 +15,12 @@
   <div class="card flex flex-col p-6">
     <h2 class="font-semibold text-slate-900">Free</h2>
     <div class="mt-2 text-4xl font-bold tracking-tight text-slate-900">$0</div>
-    <p class="mt-1 text-sm text-slate-500">For occasional lookups.</p>
+    <p class="mt-1 text-sm text-slate-500">Everything except exports.</p>
     <ul class="mt-5 flex-1 space-y-2.5 text-sm text-slate-700">
-      <li class="flex gap-2"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600 shrink-0 mt-0.5" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Unlimited search and browse</span></li>
-      <li class="flex gap-2"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600 shrink-0 mt-0.5" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>10 results per search</span></li>
-      <li class="flex gap-2"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600 shrink-0 mt-0.5" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>View any individual filing</span></li>
-      <li class="flex gap-2"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600 shrink-0 mt-0.5" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>View any individual issuer page</span></li>
+      <li class="flex gap-2"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600 shrink-0 mt-0.5" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Unlimited search results</span></li>
+      <li class="flex gap-2"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600 shrink-0 mt-0.5" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Saved searches with email alerts</span></li>
+      <li class="flex gap-2"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600 shrink-0 mt-0.5" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Issuer watchlists</span></li>
+      <li class="flex gap-2"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600 shrink-0 mt-0.5" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>Issuer contact lookups</span></li>
     </ul>
     <div class="mt-6">
       {% if user.is_authenticated %}
@@ -80,35 +80,6 @@
       {% else %}
         <a href="{% url 'accounts:signup' %}?next={% url 'subscriptions:checkout' export.key %}" class="btn-secondary w-full">Sign up to purchase</a>
       {% endif %}
-    </div>
-  </div>
-</div>
-
-<div class="mx-auto mt-6 grid gap-6 sm:grid-cols-2 lg:max-w-2xl">
-
-  {# API Access #}
-  <div class="card flex flex-col p-6">
-    <h2 class="font-semibold text-slate-900">{{ api.name }}</h2>
-    <div class="mt-2 text-4xl font-bold tracking-tight text-slate-900">{{ api.price_display }}</div>
-    <p class="mt-1 text-sm text-slate-500">{{ api.description }}</p>
-    <ul class="mt-5 flex-1 space-y-2.5 text-sm text-slate-700">
-      {% for f in api.features %}<li class="flex gap-2"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600 shrink-0 mt-0.5" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>{{ f }}</span></li>{% endfor %}
-    </ul>
-    <div class="mt-6">
-      <button disabled class="btn-secondary w-full cursor-not-allowed opacity-60">Coming soon</button>
-    </div>
-  </div>
-
-  {# API Pro #}
-  <div class="card flex flex-col p-6">
-    <h2 class="font-semibold text-slate-900">{{ api_pro.name }}</h2>
-    <div class="mt-2 text-4xl font-bold tracking-tight text-slate-900">{{ api_pro.price_display }}</div>
-    <p class="mt-1 text-sm text-slate-500">{{ api_pro.description }}</p>
-    <ul class="mt-5 flex-1 space-y-2.5 text-sm text-slate-700">
-      {% for f in api_pro.features %}<li class="flex gap-2"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600 shrink-0 mt-0.5" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg><span>{{ f }}</span></li>{% endfor %}
-    </ul>
-    <div class="mt-6">
-      <button disabled class="btn-secondary w-full cursor-not-allowed opacity-60">Coming soon</button>
     </div>
   </div>
 </div>

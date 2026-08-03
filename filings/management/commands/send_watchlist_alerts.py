@@ -20,8 +20,6 @@ class Command(BaseCommand):
         fallback = timezone.now() - timedelta(days=2)
         sent = 0
         for w in IssuerWatch.objects.select_related("user", "issuer").all():
-            if not w.user.is_paid:
-                continue
             since = w.last_notified_at or fallback
             new = list(
                 w.issuer.filings.filter(created_at__gte=since).order_by("-filing_date")

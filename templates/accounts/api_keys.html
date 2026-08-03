@@ -12,7 +12,7 @@
 
 {% if user.subscription_tier != 'api' %}
 <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-  API keys require the API Access subscription. <a href="{% url 'subscriptions:pricing' %}" class="font-medium text-amber-900 underline underline-offset-2 hover:text-amber-700">View pricing</a>.
+  The API is coming soon. Email <a href="mailto:luke@dawncrestconsulting.com" class="font-medium text-amber-900 underline underline-offset-2 hover:text-amber-700">luke@dawncrestconsulting.com</a> if you'd like early access.
 </div>
 {% else %}
 <form method="post" action="{% url 'accounts:api_key_create' %}" class="mt-6 flex items-end gap-2">

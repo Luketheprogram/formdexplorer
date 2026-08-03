@@ -72,7 +72,7 @@
       <a href="{{ url_pricing }}" class="nav-link {% if request.path == url_pricing %}nav-link-active{% endif %}">Pricing</a>
       <span class="mx-2 h-5 w-px bg-slate-200" aria-hidden="true"></span>
       {% if user.is_authenticated %}
-        {% if user.is_paid %}<a href="{% url 'filings:saved_search_list' %}" class="nav-link">Saved</a>{% endif %}
+        <a href="{% url 'filings:saved_search_list' %}" class="nav-link">Saved</a>
         <a href="{% url 'accounts:account' %}" class="nav-link">Account</a>
       {% else %}
         <a href="{% url 'accounts:login' %}" class="nav-link">Log in</a>
@@ -101,7 +101,7 @@
       <a href="{% url 'subscriptions:pricing' %}" class="nav-link py-2.5">Pricing</a>
       <div class="my-2 h-px bg-slate-200" aria-hidden="true"></div>
       {% if user.is_authenticated %}
-        {% if user.is_paid %}<a href="{% url 'filings:saved_search_list' %}" class="nav-link py-2.5">Saved searches</a>{% endif %}
+        <a href="{% url 'filings:saved_search_list' %}" class="nav-link py-2.5">Saved searches</a>
         <a href="{% url 'accounts:account' %}" class="nav-link py-2.5">Account</a>
       {% else %}
         <a href="{% url 'accounts:login' %}" class="nav-link py-2.5">Log in</a>

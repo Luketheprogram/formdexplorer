@@ -24,7 +24,7 @@ def pricing(request):
     ctx = {
         "plans": PLANS,
         "page_title": "Pricing — Form D Explorer",
-        "meta_description": "Pro, one-time export, and API pricing for Form D Explorer.",
+        "meta_description": "Search, alerts, and watchlists are free. Pay only for Excel and CSV exports.",
         "canonical_path": "/pricing/",
     }
     return render(request, "subscriptions/pricing.html", ctx)

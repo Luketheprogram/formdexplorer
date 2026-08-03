@@ -32,15 +32,9 @@ def _aggregate_stats(qs):
     agg["filings_last_year"] = last_year.count()
     return agg
 
-FREE_RESULT_LIMIT = 10
-PAYWALL_PEEK = 10
+SEARCH_RESULT_LIMIT = 500
 EXPORT_ROW_LIMIT = 5000
 OUTLIER_CAP = 10_000_000_000  # $10B — above this is almost always bad data
-
-
-def _is_paid(request) -> bool:
-    user = getattr(request, "user", None)
-    return bool(user and user.is_authenticated and getattr(user, "is_paid", False))
 
 
 def home(request):
@@ -74,27 +68,18 @@ def _viewed_issuer_ids(user, filings) -> set[int]:
 
 def _search_context(request):
     qs = build_filing_query(request.GET)
-    paid = _is_paid(request)
     total = qs.count()
-    if paid:
-        visible = list(qs[:500])
-        peek: list = []
-    else:
-        visible = list(qs[:FREE_RESULT_LIMIT])
-        peek = list(qs[FREE_RESULT_LIMIT : FREE_RESULT_LIMIT + PAYWALL_PEEK])
+    visible = list(qs[:SEARCH_RESULT_LIMIT])
     q_text = (request.GET.get("q") or "").strip()
     persons = search_persons(q_text, limit=6) if q_text else []
     selected_states = set(s.upper() for s in request.GET.getlist("state") if s.strip())
     selected_industries = set(i for i in request.GET.getlist("industry") if i.strip())
     industry_mode = (request.GET.get("industry_mode") or "include").lower()
-    viewed_ids = _viewed_issuer_ids(request.user, visible + peek)
+    viewed_ids = _viewed_issuer_ids(request.user, visible)
     return {
         "q": request.GET.get("q", ""),
         "results": visible,
-        "peek_results": peek,
         "total": total,
-        "paid": paid,
-        "limit_hit": (not paid) and total > FREE_RESULT_LIMIT,
         "active_filters": active_filters(request.GET),
         "sort": request.GET.get("sort") or ("relevance" if q_text else "newest"),
         "persons": persons,
@@ -238,9 +223,6 @@ def issuer_infer_website(request, cik: str):
 def issuer_enrich(request, cik: str):
     if request.method != "POST":
         return redirect("filings:home")
-    if not request.user.is_paid:
-        messages.info(request, "Issuer contact lookup is a Pro feature.")
-        return redirect("subscriptions:pricing")
     issuer = get_object_or_404(Issuer, cik=cik)
     cooldown = timedelta(hours=12)
     if issuer.enriched_at and (timezone.now() - issuer.enriched_at) < cooldown and (
@@ -262,9 +244,6 @@ def issuer_enrich(request, cik: str):
 def issuer_watch_toggle(request, cik: str):
     if request.method != "POST":
         return redirect("filings:home")
-    if not request.user.is_paid:
-        messages.info(request, "Watchlists are a Pro feature.")
-        return redirect("subscriptions:pricing")
     issuer = get_object_or_404(Issuer, cik=cik)
     watch = IssuerWatch.objects.filter(user=request.user, issuer=issuer).first()
     if watch:
@@ -571,9 +550,6 @@ def _params_to_querystring(params: dict) -> str:
 
 @login_required
 def saved_search_create(request):
-    if not request.user.is_paid:
-        messages.info(request, "Saved searches are a Pro feature.")
-        return redirect("subscriptions:pricing")
     if request.user.saved_searches.count() >= 10:
         messages.error(request, "You've hit the 10 saved-search limit.")
         return redirect("filings:saved_search_list")

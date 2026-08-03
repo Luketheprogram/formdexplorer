@@ -2,14 +2,14 @@
 {% if results %}
 <div class="mb-3 flex items-center justify-between gap-2 text-sm text-slate-500">
   <span><span class="font-medium text-slate-700">{{ total }}</span> filing{{ total|pluralize }}</span>
-  {% if user.is_authenticated and user.is_paid %}
+  {% if user.is_authenticated %}
     <a href="{% url 'crowdfunding:export_xlsx' %}?{{ request.GET.urlencode }}"
        class="btn btn-sm bg-emerald-600 text-white shadow-sm hover:bg-emerald-500">
       <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v10m0 0l-4-4m4 4l4-4M4 17h12"/></svg>
       Export Excel
     </a>
-  {% elif user.is_authenticated %}
-    <a href="{% url 'subscriptions:pricing' %}" class="link text-xs">Upgrade to export</a>
+  {% else %}
+    <a href="{% url 'accounts:login' %}" class="link text-xs">Log in to export</a>
   {% endif %}
 </div>
 <ul class="card-list">

@@ -12,7 +12,7 @@
     <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">One-time exports available</dt><dd class="amount text-right font-medium">{{ export_tokens_unused }}</dd></div>
   </dl>
   <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5">
-    {% if not user.is_paid %}<a href="{% url 'subscriptions:pricing' %}" class="btn-primary">Upgrade to Pro</a>{% endif %}
+    {% if not user.is_paid %}<a href="{% url 'subscriptions:pricing' %}" class="btn-primary">Get export access</a>{% endif %}
     <a href="{% url 'filings:saved_search_list' %}" class="btn-secondary">Saved searches</a>
     <a href="{% url 'filings:watchlist' %}" class="btn-secondary">Watchlist</a>
     <a href="{% url 'accounts:api_keys' %}" class="btn-secondary">API keys</a>

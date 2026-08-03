@@ -77,20 +77,15 @@
 </section>
 {% endif %}
 
-{# Pro-gated contact info #}
 <section class="mt-8">
   <div class="card p-5 md:p-6">
     <div class="flex items-baseline justify-between gap-3">
       <h2 class="eyebrow">Contact info</h2>
-      <span class="chip bg-indigo-600 text-white">Pro</span>
     </div>
     {% if not user.is_authenticated %}
       <p class="mt-3 text-sm text-slate-600">
-        <a class="link" href="{% url 'accounts:login' %}">Log in</a> with a Pro subscription to look up an email or website for this issuer.
+        <a class="link" href="{% url 'accounts:login' %}">Log in</a> to look up an email or website for this issuer.
       </p>
-    {% elif not user.is_paid %}
-      <p class="mt-3 text-sm text-slate-600">Upgrade to Pro for issuer-contact lookups.</p>
-      <a href="{% url 'subscriptions:pricing' %}" class="btn-primary mt-4">See Pro plans</a>
     {% else %}
       {% if issuer.contact_email %}
         <div class="mt-3 text-sm">

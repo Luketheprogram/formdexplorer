@@ -6,7 +6,7 @@
     <span class="chip-filter">{{ chip.label }}</span>
     {% endfor %}
   </div>
-  {% if user.is_authenticated and user.is_paid %}
+  {% if user.is_authenticated %}
     <div class="flex flex-wrap items-center gap-2">
       <a href="{% url 'filings:saved_search_list' %}" class="btn-secondary btn-sm">My saved searches</a>
       <a href="{% url 'filings:saved_search_create' %}?{{ request.GET.urlencode }}" class="btn-secondary btn-sm">
@@ -19,8 +19,8 @@
         Export Excel
       </a>
     </div>
-  {% elif user.is_authenticated %}
-    <a href="{% url 'subscriptions:pricing' %}" class="link text-xs">Upgrade to save &amp; export</a>
+  {% else %}
+    <a href="{% url 'accounts:login' %}" class="link text-xs">Log in to save &amp; export</a>
   {% endif %}
 </div>
 {% endif %}
@@ -38,7 +38,7 @@
 
 {% if results %}
 <div class="mb-3 text-sm text-slate-500">
-  <span class="font-medium text-slate-700">{{ total }}</span> match{{ total|pluralize:"es" }}{% if limit_hit %} — showing {{ results|length }} on the free tier{% endif %}
+  <span class="font-medium text-slate-700">{{ total }}</span> match{{ total|pluralize:"es" }}{% if total > results|length %} — showing the first {{ results|length }}{% endif %}
 </div>
 <ul class="card-list">
   {% for f in results %}
@@ -64,31 +64,6 @@
   </li>
   {% endfor %}
 </ul>
-
-{% if limit_hit and peek_results %}
-<div class="relative mt-0">
-  <ul class="pointer-events-none select-none divide-y divide-slate-100 rounded-b-xl border-x border-b border-slate-200 bg-white" aria-hidden="true" style="filter: blur(4px);">
-    {% for f in peek_results %}
-    <li class="p-4">
-      <div class="flex items-start justify-between gap-4">
-        <div class="min-w-0">
-          <div class="truncate font-medium text-slate-900">{{ f.issuer.name }}</div>
-          <div class="mt-1 text-sm text-slate-500">{{ f.form_type }} &middot; {{ f.filing_date|date:"M j, Y" }}{% if f.issuer.state %} &middot; {{ f.issuer.state }}{% endif %}</div>
-        </div>
-        <div class="shrink-0 text-right text-sm">{% if f.total_offering_amount %}<div class="amount font-medium text-slate-900">{{ f.total_offering_amount|dollars }}</div>{% endif %}</div>
-      </div>
-    </li>
-    {% endfor %}
-  </ul>
-  <div class="absolute inset-0 flex items-center justify-center">
-    <div class="card max-w-sm px-6 py-5 text-center shadow-lg">
-      <div class="text-sm font-semibold text-slate-900">{{ total|add:"-10" }} more matches hidden</div>
-      <p class="mt-1 text-xs text-slate-500">Upgrade to Pro for unlimited results and Excel export.</p>
-      <a href="/pricing/" class="btn-primary btn-sm mt-3">See Pro plans</a>
-    </div>
-  </div>
-</div>
-{% endif %}
 
 {% else %}
 <div class="card border-dashed p-10 text-center">

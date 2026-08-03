@@ -16,7 +16,7 @@ def article_list(request):
         "page_title": "About — Form D Explorer",
         "meta_description": (
             "Form D Explorer is a clean, fast search interface over SEC Form D filings. "
-            "Free issuer lookup; paid plans for CSV export, alerts, and API access."
+            "Free search, alerts, and watchlists; pay only for Excel and CSV exports."
         ),
         "canonical_path": "/learn/",
     }
