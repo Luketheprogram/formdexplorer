@@ -4,16 +4,18 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 
 from filings.sitemaps import SITEMAPS
+from .advertising import ads_txt
 
 _UPDATED = "2026-04-24"
 
 urlpatterns = [
+    path("ads.txt", ads_txt, name="ads_txt"),
     path("admin/", admin.site.urls),
     path(
         "privacy/",
         TemplateView.as_view(
             template_name="legal/privacy.html",
-            extra_context={"page_title": "Privacy — Form D Explorer", "canonical_path": "/privacy/", "updated": _UPDATED},
+            extra_context={"page_title": "Privacy — Form D Explorer", "canonical_path": "/privacy/", "updated": "2026-10-21"},
         ),
         name="privacy",
     ),

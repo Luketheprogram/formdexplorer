@@ -7,6 +7,7 @@ from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 
 from .models import Article, NewsletterSubscriber
+from config.advertising import placement
 
 
 def article_list(request):
@@ -20,6 +21,7 @@ def article_list(request):
         ),
         "canonical_path": "/learn/",
     }
+    ctx.update(placement(request, "guides"))
     return render(request, "content/article_list.html", ctx)
 
 
@@ -35,6 +37,8 @@ def article_detail(request, slug: str):
         "meta_description": article.meta_description or article.title,
         "canonical_path": f"/learn/{article.slug}/",
     }
+    if article.body.strip():
+        ctx.update(placement(request, "article"))
     return render(request, "content/article_detail.html", ctx)
 
 

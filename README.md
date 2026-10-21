@@ -92,7 +92,7 @@ Docs: `/learn/api/`. Keys managed at `/account/api-keys/`.
 
 ## AdSense (Phase 3)
 
-Placeholder `<!-- ADSENSE SLOT -->` comments sit in `templates/content/article_list.html` and `templates/content/article_detail.html`. Drop the AdSense `<script>` + `<ins>` in at those locations after Google approves the site. Never add AdSense to utility pages (home, search, issuer, filing, industry, state, recent).
+Optional, consent-gated AdSense placements sit below the content on `/learn/` and published guide pages. Ads are disabled by default, excluded for paid users and staff, and never inserted in utility pages or HTMX results. Publisher verification and `/ads.txt` work independently of ad serving. Follow [the account, consent, Railway, and launch guide](docs/advertising.md) before enabling anything.
 
 ## Tests
 
@@ -112,5 +112,5 @@ python manage.py test
 
 - Webapp NEVER hits EDGAR at request time. Reads Postgres only.
 - Ingestion rate-limited to ~8 req/sec with a compliant User-Agent.
-- No AdSense code in templates — placeholder `<!-- ADSENSE SLOT -->` comments only.
+- AdSense stays disabled until the real account is approved and the CMP is configured and verified. Never commit live credentials or use test publisher IDs in production.
 - AdSense never goes on utility pages (home, search, issuer, filing, industry, state, recent).

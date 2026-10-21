@@ -1,0 +1,12 @@
+{% if ad_slot %}
+{{ ad_config|json_script:"advertising-config" }}
+<div class="ad-preference-note" data-ad-note hidden>
+  Optional advertising supports our guides.
+  <button type="button" data-ad-choices class="link">Advertising choices</button>
+</div>
+<aside class="editorial-ad" aria-label="Advertisement" data-ad-container hidden>
+  <div class="editorial-ad-label">Advertisement</div>
+  <ins class="adsbygoogle" style="display:block" data-ad-client="{{ adsense_client }}"
+       data-ad-slot="{{ ad_slot }}" data-ad-format="horizontal" data-full-width-responsive="false"></ins>
+</aside>
+{% endif %}

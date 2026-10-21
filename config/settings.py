@@ -25,6 +25,14 @@ if not DEBUG and SECRET_KEY == "dev-insecure-key-change-me":
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "*").split(",") if h.strip()]
 
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")
+# Verification is independent of serving ads. Enable only after account approval
+# and testing the published Google CMP messages; see docs/advertising.md.
+ADSENSE_ENABLED = _bool(os.environ.get("ADSENSE_ENABLED"))
+ADSENSE_CLIENT_ID = os.environ.get("ADSENSE_CLIENT_ID", "").strip()
+ADSENSE_ARTICLE_SLOT_ID = os.environ.get("ADSENSE_ARTICLE_SLOT_ID", "").strip()
+ADSENSE_GUIDES_SLOT_ID = os.environ.get("ADSENSE_GUIDES_SLOT_ID", "").strip()
+ADSENSE_CMP_SCRIPT_URL = os.environ.get("ADSENSE_CMP_SCRIPT_URL", "").strip()
+ADSENSE_CMP_READY = _bool(os.environ.get("ADSENSE_CMP_READY"))
 EDGAR_USER_AGENT = os.environ.get(
     "EDGAR_USER_AGENT", "Form D Explorer luke@dawncrestconsulting.com"
 )
@@ -74,6 +82,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "config.context.site_meta",
+                "config.advertising.context",
             ],
         },
     },

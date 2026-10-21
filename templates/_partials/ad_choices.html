@@ -1,0 +1,12 @@
+<dialog id="advertising-choices" aria-labelledby="advertising-title" aria-describedby="advertising-description">
+  <h2 id="advertising-title">Advertising choices</h2>
+  <p id="advertising-description">Optional Google ads help support our guides. If you allow advertising, Google and its advertising partners may receive your IP address, device information and the page URL, and use cookies for advertising and measurement. Google will also ask for any required regional consent. You can use the site without allowing ads.</p>
+  <p><a class="link" href="{% url 'privacy' %}#advertising">Read our advertising privacy notice</a> and <a class="link" href="https://business.safety.google/privacy/">how Google uses data</a>.</p>
+  <p data-ad-status role="status"></p>
+  <div class="ad-choice-actions">
+    <button type="button" class="btn-secondary" data-ad-deny autofocus>Keep ads off / Do not sell or share</button>
+    <button type="button" class="btn-secondary" data-ad-allow>Allow advertising</button>
+    <button type="button" class="btn-secondary" data-ad-partners hidden>Google consent settings</button>
+    <button type="button" class="btn-ghost" data-ad-close>Close</button>
+  </div>
+</dialog>

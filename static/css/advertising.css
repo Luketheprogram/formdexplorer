@@ -1,0 +1,12 @@
+.editorial-ad { margin: 3rem auto; width: 100%; max-width: 48rem; min-height: 130px; border-top: 1px solid #e2e8f0; padding-top: 1rem; }
+.editorial-ad-label { margin-bottom: .75rem; color: #64748b; text-align: center; font-size: .6875rem; letter-spacing: .1em; text-transform: uppercase; }
+.editorial-ad ins { width: 100%; min-height: 90px; }
+.ad-preference-note { margin-top: 3rem; font-size: .8125rem; color: #64748b; }
+#advertising-choices { width: min(36rem, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); overflow: auto; padding: 1.5rem; border: 1px solid #e2e8f0; border-radius: .75rem; color: #334155; }
+#advertising-choices::backdrop { background: rgb(15 23 42 / .4); }
+#advertising-choices h2 { font-size: 1.25rem; font-weight: 600; color: #0f172a; }
+#advertising-choices p { margin-top: 1rem; line-height: 1.6; }
+.ad-choice-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem; }
+.ad-choice-actions button { white-space: normal; }
+[data-ad-container][hidden], [data-ad-note][hidden], [data-ad-choices][hidden], [data-ad-partners][hidden] { display: none !important; }
+@media (max-width: 639px) { .editorial-ad { min-height: 140px; } .editorial-ad ins { min-height: 100px; } }

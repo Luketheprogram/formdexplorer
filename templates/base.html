@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+{% if adsense_client %}<meta name="google-adsense-account" content="{{ adsense_client }}">{% endif %}
 <title>{% block title %}{{ page_title|default:SITE_NAME }}{% endblock %}</title>
 <meta name="description" content="{% block meta_description %}{{ meta_description|default:DEFAULT_META_DESCRIPTION }}{% endblock %}">
 {% block robots %}{% if robots %}<meta name="robots" content="{{ robots }}">{% endif %}{% endblock %}
@@ -34,6 +35,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="{% static 'css/app.css' %}">
+{% if advertising_ready %}
+<link rel="stylesheet" href="{% static 'css/advertising.css' %}">
+<script src="{% static 'js/advertising.js' %}" defer></script>
+{% endif %}
 <style>
   .htmx-indicator { display: none; }
   .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: flex; }
@@ -151,6 +156,7 @@
           <li><a href="{% url 'subscriptions:pricing' %}" class="text-slate-600 transition-colors hover:text-indigo-600">Pricing</a></li>
           <li><a href="{% url 'terms' %}" class="text-slate-600 transition-colors hover:text-indigo-600">Terms of service</a></li>
           <li><a href="{% url 'privacy' %}" class="text-slate-600 transition-colors hover:text-indigo-600">Privacy</a></li>
+          {% if advertising_ready %}<li><button type="button" data-ad-choices hidden class="text-slate-600 hover:text-indigo-600">Advertising choices / Do not sell or share</button></li>{% endif %}
           <li><a href="/sitemap.xml" class="text-slate-600 transition-colors hover:text-indigo-600">Sitemap</a></li>
         </ul>
       </div>
@@ -161,6 +167,7 @@
     </div>
   </div>
 </footer>
+{% if advertising_ready %}{% include "_partials/ad_choices.html" %}{% endif %}
 
 <script>
 (function () {
