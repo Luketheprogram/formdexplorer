@@ -1,19 +1,8 @@
-{% load money %}
 <div class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-  <div class="card p-4">
-    <div class="eyebrow">Total filings</div>
-    <div class="amount mt-1.5 text-2xl font-semibold tracking-tight text-slate-900">{{ stats.total_filings|default:0 }}</div>
-  </div>
-  <div class="card p-4">
-    <div class="eyebrow">Last 12 months</div>
-    <div class="amount mt-1.5 text-2xl font-semibold tracking-tight text-slate-900">{{ stats.filings_last_year|default:0 }}</div>
-  </div>
-  <div class="card p-4">
-    <div class="eyebrow">Total raised</div>
-    <div class="amount mt-1.5 text-2xl font-semibold tracking-tight text-slate-900">{{ stats.total_raised|dollars }}</div>
-  </div>
-  <div class="card p-4">
-    <div class="eyebrow">Avg offering</div>
-    <div class="amount mt-1.5 text-2xl font-semibold tracking-tight text-slate-900">{{ stats.avg_raised|dollars }}</div>
-  </div>
+  <div class="card p-4"><div class="eyebrow">Filings in this dataset</div><div class="amount mt-1.5 text-2xl font-semibold text-slate-900">{{ stats.total_filings }}</div></div>
+  <div class="card p-4"><div class="eyebrow">Distinct issuers (CIKs)</div><div class="amount mt-1.5 text-2xl font-semibold text-slate-900">{{ stats.issuer_count }}</div></div>
+  <div class="card p-4"><div class="eyebrow">Last 365 days</div><div class="amount mt-1.5 text-2xl font-semibold text-slate-900">{{ stats.filings_last_year }}</div></div>
+  <div class="card p-4"><div class="eyebrow">Amendments (D/A)</div><div class="amount mt-1.5 text-2xl font-semibold text-slate-900">{{ stats.amendment_count }}</div></div>
 </div>
+{% if stats.last_filed %}<p class="mt-3 text-sm text-slate-500">Available filing dates: {{ stats.first_filed|date:"M j, Y" }} through {{ stats.last_filed|date:"M j, Y" }}. Counts include original notices and amendments, not unique offerings or completed funding rounds.</p>{% endif %}
+{% include "_partials/research_note.html" %}

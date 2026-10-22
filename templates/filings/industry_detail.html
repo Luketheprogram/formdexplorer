@@ -4,22 +4,23 @@
 <nav class="mb-4 text-sm text-slate-500" aria-label="Breadcrumb">
   <a href="/" class="transition-colors hover:text-indigo-600">Home</a>
   <span class="mx-1 text-slate-300">/</span>
-  <span class="text-slate-700">Industry</span>
+  <a class="link" href="/industries/">Industries</a> / <span>{{ industry }}</span>
 </nav>
 <h1 class="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">{{ industry }} — Form D filings</h1>
 
 {% include "_partials/stats.html" %}
+<p class="mt-4"><a class="link" href="/learn/research-company-form-d-history/">How to research issuer filing history</a> · <a class="link" href="/search/">Search and export a filtered set</a></p>
 
 {% if top_issuers %}
 <section class="mt-8">
-  <h2 class="eyebrow">Top issuers by capital offered</h2>
+  <h2 class="eyebrow">Issuers by filing activity</h2>
   <ul class="card-list mt-3">
     {% for i in top_issuers %}
     <li class="row-hover flex items-center justify-between p-3.5 text-sm">
       <a href="/issuer/{{ i.issuer__name_slug }}-{{ i.issuer__cik }}/" class="truncate text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">{{ i.issuer__name }}</a>
       <div class="shrink-0 text-right">
-        <div class="amount font-medium text-slate-900">{{ i.total_raised|dollars }}</div>
-        <div class="text-xs text-slate-500">{{ i.filing_count }} filing{{ i.filing_count|pluralize }}</div>
+        <div class="amount font-medium text-slate-900">{{ i.filing_count }} filings</div>
+        <div class="text-xs text-slate-500">Latest: {{ i.latest|date:"M j, Y" }}</div>
       </div>
     </li>
     {% endfor %}
@@ -41,7 +42,7 @@
           </div>
         </div>
         <div class="shrink-0 text-right text-sm">
-          {% if f.total_offering_amount %}<div class="amount font-medium text-slate-900">{{ f.total_offering_amount|dollars }}</div>{% endif %}
+          {% if f.total_offering_amount != None %}<div class="amount font-medium text-slate-900">Offered: {{ f.total_offering_amount|dollars }}</div>{% endif %}
           <a href="/filing/{{ f.accession_number }}/" class="mt-0.5 inline-block text-xs font-medium text-indigo-600 hover:text-indigo-800">View filing →</a>
         </div>
       </div>

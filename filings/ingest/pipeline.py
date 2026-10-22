@@ -78,7 +78,10 @@ class IngestPipeline:
         pf = parse_primary_doc(xml_bytes, accession)
         if pf.filing_date is None:
             pf.filing_date = _parse_index_date(entry.filing_date)
-        if pf.form_type not in ("D", "D/A"):
+        # The SEC index supplies the submission type even when XML omits it.
+        # ParsedFiling defaults to D, so testing that default used to silently
+        # discard D/A from the index. Prefer this authoritative entry for both.
+        if entry.form_type in ("D", "D/A"):
             pf.form_type = entry.form_type
             pf.is_amendment = entry.form_type == "D/A"
         if not self.store_raw_xml:

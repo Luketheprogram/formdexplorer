@@ -1,0 +1,308 @@
+{
+  "base": "http://127.0.0.1:8766",
+  "checks": [
+    {
+      "check": "/ status",
+      "passed": true
+    },
+    {
+      "check": "/ canonical",
+      "passed": true
+    },
+    {
+      "check": "/ metadata",
+      "passed": true
+    },
+    {
+      "check": "/ heading",
+      "passed": true
+    },
+    {
+      "check": "/ indexable",
+      "passed": true
+    },
+    {
+      "check": "/ JSON-LD",
+      "passed": true
+    },
+    {
+      "check": "/states/ status",
+      "passed": true
+    },
+    {
+      "check": "/states/ canonical",
+      "passed": true
+    },
+    {
+      "check": "/states/ metadata",
+      "passed": true
+    },
+    {
+      "check": "/states/ heading",
+      "passed": true
+    },
+    {
+      "check": "/states/ indexable",
+      "passed": true
+    },
+    {
+      "check": "/states/ JSON-LD",
+      "passed": true
+    },
+    {
+      "check": "/industries/ status",
+      "passed": true
+    },
+    {
+      "check": "/industries/ canonical",
+      "passed": true
+    },
+    {
+      "check": "/industries/ metadata",
+      "passed": true
+    },
+    {
+      "check": "/industries/ heading",
+      "passed": true
+    },
+    {
+      "check": "/industries/ indexable",
+      "passed": true
+    },
+    {
+      "check": "/industries/ JSON-LD",
+      "passed": true
+    },
+    {
+      "check": "/learn/ status",
+      "passed": true
+    },
+    {
+      "check": "/learn/ canonical",
+      "passed": true
+    },
+    {
+      "check": "/learn/ metadata",
+      "passed": true
+    },
+    {
+      "check": "/learn/ heading",
+      "passed": true
+    },
+    {
+      "check": "/learn/ indexable",
+      "passed": true
+    },
+    {
+      "check": "/learn/ JSON-LD",
+      "passed": true
+    },
+    {
+      "check": "/recent/ status",
+      "passed": true
+    },
+    {
+      "check": "/recent/ canonical",
+      "passed": true
+    },
+    {
+      "check": "/recent/ metadata",
+      "passed": true
+    },
+    {
+      "check": "/recent/ heading",
+      "passed": true
+    },
+    {
+      "check": "/recent/ indexable",
+      "passed": true
+    },
+    {
+      "check": "/recent/ JSON-LD",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-data-methodology/ status",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-data-methodology/ canonical",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-data-methodology/ metadata",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-data-methodology/ heading",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-data-methodology/ indexable",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-data-methodology/ JSON-LD",
+      "passed": true
+    },
+    {
+      "check": "/learn/research-company-form-d-history/ status",
+      "passed": true
+    },
+    {
+      "check": "/learn/research-company-form-d-history/ canonical",
+      "passed": true
+    },
+    {
+      "check": "/learn/research-company-form-d-history/ metadata",
+      "passed": true
+    },
+    {
+      "check": "/learn/research-company-form-d-history/ heading",
+      "passed": true
+    },
+    {
+      "check": "/learn/research-company-form-d-history/ indexable",
+      "passed": true
+    },
+    {
+      "check": "/learn/research-company-form-d-history/ JSON-LD",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-offering-amount-vs-amount-sold/ status",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-offering-amount-vs-amount-sold/ canonical",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-offering-amount-vs-amount-sold/ metadata",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-offering-amount-vs-amount-sold/ heading",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-offering-amount-vs-amount-sold/ indexable",
+      "passed": true
+    },
+    {
+      "check": "/learn/form-d-offering-amount-vs-amount-sold/ JSON-LD",
+      "passed": true
+    },
+    {
+      "check": "robots sitemap",
+      "passed": true
+    },
+    {
+      "check": "sitemap index",
+      "passed": true
+    },
+    {
+      "check": "sitemap section origins",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-static.xml valid",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-static.xml bounded",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-static.xml canonical",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-static.xml unique",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-issuers.xml valid",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-issuers.xml bounded",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-issuers.xml canonical",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-issuers.xml unique",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-filings.xml valid",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-filings.xml bounded",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-filings.xml canonical",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-filings.xml unique",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-industries.xml valid",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-industries.xml bounded",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-industries.xml canonical",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-industries.xml unique",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-states.xml valid",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-states.xml bounded",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-states.xml canonical",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-states.xml unique",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-articles.xml valid",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-articles.xml bounded",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-articles.xml canonical",
+      "passed": true
+    },
+    {
+      "check": "http://127.0.0.1:8766/sitemap-articles.xml unique",
+      "passed": true
+    }
+  ],
+  "child_sitemaps": 6,
+  "checked_content_urls": 2124,
+  "failed": 0
+}

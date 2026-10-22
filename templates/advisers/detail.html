@@ -11,8 +11,8 @@
 <header>
   <h1 class="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">{{ adviser.name }}</h1>
   <div class="mt-2 flex flex-wrap gap-x-2 gap-y-1 text-sm text-slate-500">
-    <span>CRD {{ adviser.crd }}</span>
-    {% if adviser.sec_file_number %}<span>&middot; SEC# {{ adviser.sec_file_number }}</span>{% endif %}
+    <span>{{ adviser.identifier_label }} {{ adviser.crd }}</span>
+    {% if adviser.has_crd and adviser.sec_file_number %}<span>&middot; SEC# {{ adviser.sec_file_number }}</span>{% endif %}
     {% if adviser.state %}<span>&middot; {{ adviser.city }}, {{ adviser.state }}</span>{% endif %}
     {% if adviser.registration_status %}<span>&middot; {{ adviser.registration_status }}</span>{% endif %}
   </div>
@@ -27,6 +27,7 @@
     {% endif %}
   </div>
 </header>
+{% if not adviser.has_crd %}<p class="mt-4 text-sm text-slate-600">This record was imported using its SEC file number. A CRD has not been verified in our database. Search SEC IAPD by firm name and confirm the entity before relying on this profile.</p>{% endif %}
 
 <section class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
   <div class="card p-4">
@@ -60,7 +61,7 @@
   <div class="card p-5 md:p-6">
     <h2 class="eyebrow">Sources</h2>
     <ul class="mt-4 space-y-2 text-sm text-slate-800">
-      <li><a class="link" href="{{ adviser.iapd_url }}" target="_blank" rel="noopener">View on SEC IAPD ↗</a> <span class="text-slate-500">(full Form ADV brochure + filing history)</span></li>
+      <li><a class="link" href="{{ adviser.iapd_url }}" target="_blank" rel="noopener">{% if adviser.has_crd %}View on SEC IAPD ↗{% else %}Search SEC IAPD to verify this firm ↗{% endif %}</a></li>
       <li class="text-slate-500">Last refreshed {{ adviser.updated_at|date:"M j, Y" }}</li>
     </ul>
   </div>

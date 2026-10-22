@@ -52,8 +52,12 @@ def seo_structured_data(context):
     elif filing:
         crumbs.extend([(filing.issuer.name, origin + f"/issuer/{filing.issuer.url_slug}/"),
                        (f"Form {filing.form_type} — {filing.accession_number}", url)])
-    elif context.get("industry") or context.get("state"):
-        crumbs.append((context.get("industry") or context["state"], url))
+    elif context.get("directory_label"):
+        crumbs.append((context["directory_label"] + " directory", url))
+    elif context.get("industry"):
+        crumbs.extend([("Industries", origin + "/industries/"), (context["industry"], url)])
+    elif context.get("state"):
+        crumbs.extend([("States", origin + "/states/"), (context.get("state_name") or context["state"], url)])
     if len(crumbs) > 1:
         graph.append({"@type": "BreadcrumbList", "itemListElement": [
             {"@type": "ListItem", "position": i, "name": name, "item": item}

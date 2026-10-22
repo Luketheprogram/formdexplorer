@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<nav class="mb-4 text-sm text-slate-500" aria-label="Breadcrumb"><a class="link" href="/">Home</a> / <span>{{ directory_label }} directory</span></nav>
+<h1 class="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">Browse Form D filings by {{ directory_label|lower }}</h1>
+<p class="mt-4 max-w-3xl text-slate-600">Find issuer histories and original SEC disclosures in populated research categories. Counts describe records available in Form D Explorer, including amendments, and may lag new imports by up to 15 minutes.</p>
+{% if kind == "states" %}<p class="mt-3 text-sm text-slate-600">Locations use the issuer's stored business address, not where investors live or where proceeds are spent. Historical filings are grouped using the current stored issuer location.</p>{% else %}<p class="mt-3 text-sm text-slate-600">Industry groups come from each filing's issuer-reported classification. An industry label does not establish an investment strategy or the identity of a portfolio company.</p>{% endif %}
+<ul class="mt-6 grid gap-4 md:grid-cols-2">
+{% for row in rows %}<li class="card p-5"><h2 class="font-semibold"><a class="link" href="{{ row.url }}">{{ row.name }} Form D filings</a></h2><p class="mt-2 text-sm text-slate-600">{{ row.filing_count }} filing{{ row.filing_count|pluralize }} · {{ row.issuer_count }} issuer{{ row.issuer_count|pluralize }}</p><p class="mt-1 text-sm text-slate-500">Latest filing: {{ row.latest|date:"M j, Y" }}</p></li>{% empty %}<li class="text-slate-600">No populated categories are available yet.</li>{% endfor %}
+</ul>
+{% include "_partials/research_note.html" %}
+<p class="mt-6"><a class="btn-secondary" href="/search/">Search and filter filings</a> <a class="link" href="/learn/research-company-form-d-history/">Research an issuer's history</a></p>
+{% endblock %}

@@ -1,0 +1,6 @@
+observed_at,source,property,period_start,period_end,timezone,filters,data_last_updated,metric,value,status,notes
+2026-10-22,Google Search Console,sc-domain:formdexplorer.com,,,report timezone,24-hour Web search,,clicks,0,reported,"Preliminary window; update shown roughly 4.5 hours earlier"
+2026-10-22,Google Search Console,sc-domain:formdexplorer.com,,,report timezone,24-hour Web search,,impressions,0,reported,"Not a full-day organic traffic baseline"
+2026-10-22,Google Search Console,sc-domain:formdexplorer.com,,,,Page indexing,,indexed_pages,,processing,"No indexed total available at inspection"
+2026-10-22,Application analytics,formdexplorer.com,,,,organic acquisition,,organic_sessions,,unavailable,"No repository GA implementation found"
+2026-10-22,Application analytics,formdexplorer.com,,,,organic acquisition,,attributed_paid_exports,,unavailable,"Requires consent-aware attribution and payment reconciliation"

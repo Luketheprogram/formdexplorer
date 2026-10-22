@@ -1,0 +1,255 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "title": [
+      "SEC Form D Filings & Private Placement Database | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/"
+    ],
+    "robots": null,
+    "h1": [
+      "\n    Search SEC Form D filings",
+      ".",
+      "\n  "
+    ],
+    "html_bytes": 40121,
+    "seconds": 0.827,
+    "has_total_raised": false
+  },
+  {
+    "path": "/recent/",
+    "status": 200,
+    "title": [
+      "Recent SEC Form D Filings & Private Capital Raises | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/recent/"
+    ],
+    "robots": null,
+    "h1": [
+      "Recent Form D filings"
+    ],
+    "html_bytes": 55938,
+    "seconds": 0.125,
+    "has_total_raised": false
+  },
+  {
+    "path": "/state/CA/",
+    "status": 200,
+    "title": [
+      "California SEC Form D Filings | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/state/CA/"
+    ],
+    "robots": null,
+    "h1": [
+      "CA \u2014 Form D filings"
+    ],
+    "html_bytes": 55753,
+    "seconds": 0.354,
+    "has_total_raised": true
+  },
+  {
+    "path": "/industry/biotechnology/",
+    "status": 200,
+    "title": [
+      "Biotechnology SEC Form D Filings | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/industry/biotechnology/"
+    ],
+    "robots": null,
+    "h1": [
+      "Biotechnology \u2014 Form D filings"
+    ],
+    "html_bytes": 57613,
+    "seconds": 0.3,
+    "has_total_raised": true
+  },
+  {
+    "path": "/learn/",
+    "status": 200,
+    "title": [
+      "SEC Filing Guides: Form D, Form C, ADV & Reg A+ | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/learn/"
+    ],
+    "robots": null,
+    "h1": [
+      "About Form D Explorer"
+    ],
+    "html_bytes": 19606,
+    "seconds": 0.119,
+    "has_total_raised": false
+  },
+  {
+    "path": "/learn/what-is-form-d/",
+    "status": 200,
+    "title": [
+      "What Is SEC Form D? Regulation D Guide | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/learn/what-is-form-d/"
+    ],
+    "robots": null,
+    "h1": [
+      "What is SEC Form D? A plain-English guide"
+    ],
+    "html_bytes": 15159,
+    "seconds": 0.105,
+    "has_total_raised": false
+  },
+  {
+    "path": "/adv/",
+    "status": 200,
+    "title": [
+      "Investment Adviser Search \u2014 Form ADV | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/adv/"
+    ],
+    "robots": "noindex, follow",
+    "h1": [
+      "Form ADV search"
+    ],
+    "html_bytes": 40467,
+    "seconds": 0.118,
+    "has_total_raised": false
+  },
+  {
+    "path": "/cf/",
+    "status": 200,
+    "title": [
+      "Crowdfunding Filings \u2014 SEC Form C Search | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/cf/"
+    ],
+    "robots": "noindex, follow",
+    "h1": [
+      "Form C search"
+    ],
+    "html_bytes": 45210,
+    "seconds": 0.184,
+    "has_total_raised": false
+  },
+  {
+    "path": "/1a/",
+    "status": 200,
+    "title": [
+      "Reg A+ Filings \u2014 SEC Form 1-A Search | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/1a/"
+    ],
+    "robots": "noindex, follow",
+    "h1": [
+      "Form 1-A search"
+    ],
+    "html_bytes": 38326,
+    "seconds": 0.214,
+    "has_total_raised": false
+  },
+  {
+    "path": "/pricing/",
+    "status": 200,
+    "title": [
+      "SEC Filing Export Pricing | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/pricing/"
+    ],
+    "robots": null,
+    "h1": [
+      "Pricing"
+    ],
+    "html_bytes": 19818,
+    "seconds": 0.116,
+    "has_total_raised": false
+  },
+  {
+    "path": "/login/",
+    "status": 200,
+    "title": [
+      "Log in \u2014 Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/login/"
+    ],
+    "robots": "noindex, follow",
+    "h1": [
+      "Log in"
+    ],
+    "html_bytes": 10426,
+    "seconds": 0.122,
+    "has_total_raised": false
+  },
+  {
+    "path": "/filing/0002159173-26-000002/",
+    "status": 200,
+    "title": [
+      "ZDN VC LLC - Series Fuse \u2014 SEC Form D, 2026-10-21 (0002159173-26-000002) | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/filing/0002159173-26-000002/"
+    ],
+    "robots": null,
+    "h1": [
+      "Form D \u2014 ZDN VC LLC - Series Fuse"
+    ],
+    "html_bytes": 15050,
+    "seconds": 0.111
+  },
+  {
+    "path": "/adv/801-78074/",
+    "status": 404,
+    "title": [
+      "Not found \u2014 Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/adv/801-78074/"
+    ],
+    "robots": "noindex, follow",
+    "h1": [
+      "We couldn't find that."
+    ],
+    "html_bytes": 10023,
+    "seconds": 0.17
+  },
+  {
+    "path": "/cf/0001855821-26-000002/",
+    "status": 200,
+    "title": [
+      "Pranos Inc \u2014 SEC Form C/A, 2026-10-21 (0001855821-26-000002) | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/cf/0001855821-26-000002/"
+    ],
+    "robots": null,
+    "h1": [
+      "Form C/A \u2014 Pranos Inc"
+    ],
+    "html_bytes": 14695,
+    "seconds": 0.182
+  },
+  {
+    "path": "/1a/0001096906-26-001589/",
+    "status": 200,
+    "title": [
+      "CIK 1991519 \u2014 SEC Form 1-Z, 2026-10-21 (0001096906-26-001589) | Form D Explorer"
+    ],
+    "canonical": [
+      "https://formdexplorer.com/1a/0001096906-26-001589/"
+    ],
+    "robots": null,
+    "h1": [
+      "Form 1-Z \u2014 CIK 1991519"
+    ],
+    "html_bytes": 14321,
+    "seconds": 0.181
+  }
+]

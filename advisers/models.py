@@ -51,5 +51,15 @@ class Adviser(models.Model):
         super().save(*args, **kwargs)
 
     @property
+    def has_crd(self) -> bool:
+        # Bulk imports historically store the SEC file number in this field
+        # when the source has no CRD. Do not send that fallback to IAPD as a CRD.
+        return self.crd.isascii() and self.crd.isdigit()
+
+    @property
+    def identifier_label(self) -> str:
+        return "CRD" if self.has_crd else "SEC file number"
+
+    @property
     def iapd_url(self) -> str:
-        return f"https://adviserinfo.sec.gov/firm/summary/{self.crd}"
+        return f"https://adviserinfo.sec.gov/firm/summary/{self.crd}" if self.has_crd else "https://adviserinfo.sec.gov/"

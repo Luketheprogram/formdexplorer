@@ -25,7 +25,7 @@ def _is_postgres() -> bool:
 
 
 def _build_qs(params):
-    qs = CrowdfundingFiling.objects.select_related("issuer").all()
+    qs = CrowdfundingFiling.objects.select_related("issuer").defer("raw_xml").all()
     q = (params.get("q") or "").strip()
     if q:
         if _is_postgres():
@@ -89,11 +89,11 @@ def search_partial(request):
 
 def detail(request, accession_number: str):
     filing = get_object_or_404(
-        CrowdfundingFiling.objects.select_related("issuer"),
+        CrowdfundingFiling.objects.select_related("issuer").defer("raw_xml"),
         accession_number=accession_number,
     )
     # Cross-links: same issuer's Form D filings; matched advisers
-    form_d_filings = filing.issuer.filings.order_by("-filing_date")[:10]
+    form_d_filings = filing.issuer.filings.defer("raw_xml").order_by("-filing_date")[:10]
     likely_advisers = []
     try:
         from advisers.matching import find_matching_advisers

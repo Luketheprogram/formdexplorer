@@ -104,7 +104,7 @@ def find_matching_issuers(adviser, limit: int = 12) -> list[dict]:
         first = _core_tokens(norm)[:1]
         if first:
             _add(
-                Issuer.objects.filter(normalized_name__icontains=first[0]).order_by("name")[:limit],
+                Issuer.objects.filter(normalized_name__icontains=first[0]).order_by("name"),
                 "low",
             )
     return out
