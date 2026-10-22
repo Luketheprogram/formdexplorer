@@ -1,6 +1,7 @@
 import markdown as md
 from html import unescape
 from django.contrib import messages
+from django.db.models.functions import Trim
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -16,7 +17,7 @@ from .metadata import GUIDES
 
 
 def article_list(request):
-    articles = Article.objects.exclude(published_at__isnull=True).order_by("-published_at")
+    articles = Article.objects.filter(published_at__lte=timezone.now()).alias(content=Trim("body")).exclude(content="").order_by("-published_at")
     ctx = {
         "articles": articles,
         **metadata(
@@ -33,7 +34,7 @@ def article_list(request):
 def article_detail(request, slug: str):
     if slug == "api":
         return api_docs(request)
-    article = get_object_or_404(Article, slug=slug, published_at__isnull=False)
+    article = get_object_or_404(Article, slug=slug, published_at__lte=timezone.now())
     body_html = mark_safe(md.markdown(article.body, extensions=["extra", "toc"]))
     title, description = GUIDES.get(article.slug, (article.title, article.meta_description))
     if not clean_text(description):
@@ -46,6 +47,8 @@ def article_detail(request, slug: str):
         **metadata(title, description),
         "canonical_path": f"/learn/{article.slug}/",
     }
+    if not article.body.strip():
+        request.seo_noindex = True
     if article.body.strip():
         ctx.update(placement(request, "article"))
     return render(request, "content/article_detail.html", ctx)

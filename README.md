@@ -114,3 +114,7 @@ python manage.py test
 - Ingestion rate-limited to ~8 req/sec with a compliant User-Agent.
 - AdSense stays disabled until the real account is approved and the CMP is configured and verified. Never commit live credentials or use test publisher IDs in production.
 - AdSense never goes on utility pages (home, search, issuer, filing, industry, state, recent).
+
+## Technical SEO
+
+See [the SEO audit and rollout guide](docs/seo.md) for indexing policy, Railway settings, Google Search Console verification/sitemap submission, and organic-traffic measurement. `/sitemap.xml` is an index of bounded canonical sitemap sections. Keep `SEO_INDEXING_ENABLED=False` on local/staging deployments; production uses `SITE_URL=https://formdexplorer.com`.

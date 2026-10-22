@@ -64,20 +64,24 @@ social consistency, guide fallbacks, JSON-LD, all supported filing form types,
 pagination, and HTMX partials. Local validation uses an isolated SQLite test
 database; it does not query or change production data.
 
-Validation on this branch: all 40 Django tests passed, including 13 new metadata
-tests; Django's system check and `git diff --check` passed. A harmless warning
+Validation after reconciliation: all 56 Django tests passed, including 13 metadata
+tests and 16 technical SEO tests; Django's system check passed. A harmless warning
 notes that collected production static files are absent in the test checkout.
 
-This change is independent of the concurrent crawl/indexing work. Reconcile
-shared view/context/template edits when combining the branches, especially page
-number formatting so it is applied only once. Form D search remains `noindex`
-and disallowed by this branch's existing robots.txt; metadata does not itself
-enable indexing.
+The technical SEO foundation from PR #2 is integrated. `config/metadata.py`
+alone formats page numbers; `config/seo.py` handles collection canonical URLs
+and noindex rules. The shared structured-data tag uses the resolved description
+and emits a single JSON-LD graph. Invalid collection page numbers return 404;
+the tests now enforce that policy along with exactly one page-number label.
+Form D search remains `noindex` but is crawlable in robots.txt so crawlers can
+read that directive. See `docs/seo.md` for the complete indexing policy.
 
-At the release audit, Railway's `web` service in `loyal-warmth` followed `main`
-but its latest successful deployment was `ed01040`. The branch base was
-`280bbb9`, which also includes the separate advertising change. Review that
-release gap before deploying `main`; this metadata change does not enable ads,
-set Railway variables, or modify service configuration. After an authorized
-release, verify Railway's deployed commit and inspect the live HTML metadata
+At the reconciliation audit, Railway's `web` service in `loyal-warmth` followed
+`main` and was queued behind a Railway platform outage. Production settings were
+verified in the dashboard: `DEBUG=False`, `SEO_INDEXING_ENABLED=True`,
+`SITE_URL=https://formdexplorer.com`, both aliases configured, and
+`ADSENSE_ENABLED=False`. Advertising therefore remains disabled when the older
+advertising code ships with the SEO changes. No new migrations are introduced;
+the migration dry run still reports the previously documented ID/index drift.
+After release, verify Railway's deployed commit and inspect the live HTML metadata
 on the homepage, one listing, one issuer, one filing, and one guide.

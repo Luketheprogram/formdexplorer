@@ -172,7 +172,9 @@ class PageMetadataTests(TestCase):
             self.assertNotEqual(first, second)
             self.assertIn("Page 2", second[0])
             self.assertTrue(second[1].startswith("Page 2."))
-            self.assertEqual(first, self.head(path + "?page=invalid"))
+            self.assertEqual(second[0].count("Page 2"), 1)
+            self.assertEqual(second[1].count("Page 2"), 1)
+            self.assertEqual(self.client.get(path + "?page=invalid").status_code, 404)
 
     def test_search_queries_do_not_pollute_canonical_metadata_or_branding(self):
         for path in ["/search/", "/adv/", "/cf/", "/1a/"]:
@@ -216,7 +218,8 @@ class PageMetadataTests(TestCase):
         self.assertIn("notices", description)
         html = self.client.get("/learn/form-d-vs-form-1a/").content.decode()
         blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)
-        article = next(json.loads(block) for block in blocks if json.loads(block).get("@type") == "Article")
+        self.assertEqual(len(blocks), 1)
+        article = next(item for item in json.loads(blocks[0])["@graph"] if item["@type"] == "Article")
         self.assertEqual(article["description"], description)
 
     def test_partials_do_not_emit_document_metadata(self):
@@ -227,5 +230,5 @@ class PageMetadataTests(TestCase):
             self.assertNotContains(response, 'name="description"')
 
     def test_existing_crawl_directives_and_canonical_are_preserved(self):
-        self.assertContains(self.client.get("/search/"), 'name="robots" content="noindex,follow"')
+        self.assertContains(self.client.get("/search/"), 'name="robots" content="noindex, follow"')
         self.assertContains(self.client.get("/recent/"), 'rel="canonical" href="http://localhost:8000/recent/"')

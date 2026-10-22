@@ -6,13 +6,14 @@ logger = logging.getLogger(__name__)
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Max, Min, Sum
 from django.db.models.functions import ExtractYear
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from config.metadata import DEFAULT_DESCRIPTION, DEFAULT_TITLE, filing_metadata, metadata, short_name
+
+from config.seo import collection_meta, paginate
 
 from .industry import INDUSTRY_GROUPS, NAME_TO_SLUG, SLUG_TO_NAME
 from .models import Filing, Issuer, IssuerView, IssuerWatch, RelatedPerson, SavedSearch
@@ -39,14 +40,20 @@ OUTLIER_CAP = 10_000_000_000  # $10B — above this is almost always bad data
 
 
 def home(request):
-    recent = list(Filing.objects.select_related("issuer").order_by("-filing_date", "-id")[:20])
-    industries = [(name, slug) for name, slug in NAME_TO_SLUG.items()]
+    recent = list(Filing.objects.select_related("issuer").defer("raw_xml").order_by("-filing_date", "-id")[:20])
+    from .sitemaps import IndustrySitemap, StateSitemap
+    active_industries = set(IndustrySitemap().items())
+    active_states = set(StateSitemap().items())
+    industries = [(name, slug) for name, slug in NAME_TO_SLUG.items() if f"/industry/{slug}/" in active_industries]
+    states = [(code, name) for code, name in US_STATES if f"/state/{code}/" in active_states]
     ctx = {
         "recent": recent,
         "viewed_ids": _viewed_issuer_ids(request.user, recent),
         "industries": industries,
         "page_title": DEFAULT_TITLE,
         "meta_description": DEFAULT_DESCRIPTION,
+        "states": states,
+        "canonical_path": "/",
     }
     return render(request, "filings/home.html", ctx)
 
@@ -117,8 +124,13 @@ def issuer_detail(request, slug_cik: str):
     if not cik.isdigit():
         raise Http404
     issuer = get_object_or_404(Issuer, cik=cik)
-    filings = issuer.filings.all().order_by("-filing_date")
-    page_obj = Paginator(filings, 50).get_page(request.GET.get("page"))
+    if slug_cik != issuer.url_slug:
+        query = request.GET.urlencode()
+        return redirect(f"/issuer/{issuer.url_slug}/" + (f"?{query}" if query else ""), permanent=True)
+    if not issuer.name.strip():
+        request.seo_noindex = True
+    filings = issuer.filings.defer("raw_xml").order_by("-filing_date", "-id")
+    page_obj = paginate(request, filings)
     sane_filings = filings.filter(total_offering_amount__lte=OUTLIER_CAP)
     agg = sane_filings.aggregate(
         total_offered=Sum("total_offering_amount"),
@@ -170,7 +182,7 @@ def issuer_detail(request, slug_cik: str):
         IssuerView.objects.update_or_create(user=request.user, issuer=issuer)
     ctx = {
         "issuer": issuer,
-        "filings": filings,
+        "filings": page_obj.object_list,
         "page_obj": page_obj,
         "stats": agg,
         "by_year": by_year,
@@ -189,6 +201,7 @@ def issuer_detail(request, slug_cik: str):
         ),
         "canonical_path": f"/issuer/{issuer.url_slug}/",
     }
+    collection_meta(request, ctx, page_obj)
     return render(request, "filings/issuer_detail.html", ctx)
 
 
@@ -306,6 +319,8 @@ def filing_detail(request, accession_number: str):
         Filing.objects.select_related("issuer").prefetch_related("related_persons"),
         accession_number=accession_number,
     )
+    if not filing.issuer.name.strip():
+        request.seo_noindex = True
     # Same issuer, near-in-date Form D / D/A chain.
     window = timedelta(days=365 * 3)
     lineage = (
@@ -343,10 +358,9 @@ def industry_detail(request, slug: str):
         raise Http404
     qs = Filing.objects.filter(industry_group__iexact=name)
     stats = _aggregate_stats(qs)
-    list_qs = qs.select_related("issuer").order_by("-filing_date")
+    list_qs = qs.select_related("issuer").defer("raw_xml").order_by("-filing_date", "-id")
     top_issuers = _top_issuers(qs)
-    paginator = Paginator(list_qs, 50)
-    page = paginator.get_page(request.GET.get("page"))
+    page = paginate(request, list_qs)
     ctx = {
         "industry": name,
         "slug": slug,
@@ -361,17 +375,21 @@ def industry_detail(request, slug: str):
         ),
         "canonical_path": f"/industry/{slug}/",
     }
+    collection_meta(request, ctx, page)
     return render(request, "filings/industry_detail.html", ctx)
 
 
 def state_detail(request, state: str):
     state_up = state.upper()
     state_name = dict(US_STATES).get(state_up, state_up)
+    if state != state_up:
+        query = request.GET.urlencode()
+        return redirect(f"/state/{state_up}/" + (f"?{query}" if query else ""), permanent=True)
     qs = Filing.objects.filter(issuer__state=state_up)
     if not qs.exists():
         raise Http404
     stats = _aggregate_stats(qs)
-    list_qs = qs.select_related("issuer").order_by("-filing_date")
+    list_qs = qs.select_related("issuer").defer("raw_xml").order_by("-filing_date", "-id")
     top_issuers = _top_issuers(qs)
     top_industries = list(
         qs.exclude(industry_group="")
@@ -381,8 +399,7 @@ def state_detail(request, state: str):
     )
     for ind in top_industries:
         ind["slug"] = NAME_TO_SLUG.get(ind["industry_group"])
-    paginator = Paginator(list_qs, 50)
-    page = paginator.get_page(request.GET.get("page"))
+    page = paginate(request, list_qs)
     ctx = {
         "state": state_up,
         "page_obj": page,
@@ -397,11 +414,12 @@ def state_detail(request, state: str):
         ),
         "canonical_path": f"/state/{state_up}/",
     }
+    collection_meta(request, ctx, page)
     return render(request, "filings/state_detail.html", ctx)
 
 
 def recent(request):
-    qs = list(Filing.objects.select_related("issuer").order_by("-filing_date", "-id")[:50])
+    qs = list(Filing.objects.select_related("issuer").defer("raw_xml").order_by("-filing_date", "-id")[:50])
     ctx = {
         "filings": qs,
         "viewed_ids": _viewed_issuer_ids(request.user, qs),

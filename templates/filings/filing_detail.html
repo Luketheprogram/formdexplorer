@@ -69,6 +69,14 @@
   </ul>
 </section>
 
+{% if lineage %}
+<section class="mt-8">
+  <h2 class="eyebrow">Other filings from this issuer</h2>
+  <ul class="card-list mt-3">
+    {% for related in lineage %}<li class="p-4 text-sm"><a class="link" href="/filing/{{ related.accession_number }}/">Form {{ related.form_type }} — {{ related.filing_date|date:"M j, Y" }} — {{ related.accession_number }}</a></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
 <p class="mt-8 text-sm text-slate-500">
   View the original filing on <a href="{{ filing.edgar_url }}" class="link" rel="nofollow noopener">SEC EDGAR ↗</a>
 </p>

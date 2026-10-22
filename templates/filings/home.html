@@ -63,4 +63,17 @@
     {% endfor %}
   </div>
 </section>
+{% if states %}
+<section class="mt-14">
+  <h2 class="text-xl font-semibold tracking-tight text-slate-900">Browse Form D filings by state</h2>
+  <div class="mt-4 flex flex-wrap gap-2">
+    {% for code, name in states %}<a href="/state/{{ code }}/" class="chip-link">{{ name }}</a>{% endfor %}
+  </div>
+</section>
+{% endif %}
+<section class="mt-14">
+  <h2 class="text-xl font-semibold tracking-tight text-slate-900">Understand SEC Form D filings</h2>
+  <p class="mt-3 text-sm leading-relaxed text-slate-600">Form D notices report offerings of securities under Regulation D. Research issuers, compare reported offering amounts, and follow filing histories using data from SEC EDGAR.</p>
+  <p class="mt-3 text-sm"><a href="/learn/" class="link">Read our Form D guides</a> for filing explanations and research tips. Filings are self-reported and do not imply SEC approval.</p>
+</section>
 {% endblock %}
