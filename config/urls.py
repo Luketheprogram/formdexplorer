@@ -1,9 +1,8 @@
 from django.contrib import admin
-from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 from django.views.generic import TemplateView
 
-from filings.sitemaps import SITEMAPS
+from filings.sitemaps import SITEMAPS, sitemap_index, sitemap_section
 from .advertising import ads_txt
 
 _UPDATED = "2026-04-24"
@@ -35,7 +34,8 @@ urlpatterns = [
     path("", include("accounts.urls")),
     path("", include("subscriptions.urls")),
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
-    path("sitemap.xml", sitemap, {"sitemaps": SITEMAPS}, name="sitemap"),
+    path("sitemap.xml", sitemap_index, name="sitemap"),
+    path("sitemap-<str:section>.xml", sitemap_section, {"sitemaps": SITEMAPS}, name="sitemap_section"),
     path(
         "robots.txt",
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),

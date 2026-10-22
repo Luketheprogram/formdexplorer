@@ -1,4 +1,4 @@
-{% load static %}<!doctype html>
+{% load static seo %}{% seo_canonical as canonical_url %}{% seo_robots as seo_robots_value %}<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -6,31 +6,22 @@
 {% if adsense_client %}<meta name="google-adsense-account" content="{{ adsense_client }}">{% endif %}
 <title>{% block title %}{{ page_title|default:SITE_NAME }}{% endblock %}</title>
 <meta name="description" content="{% block meta_description %}{{ meta_description|default:DEFAULT_META_DESCRIPTION }}{% endblock %}">
-{% block robots %}{% if robots %}<meta name="robots" content="{{ robots }}">{% endif %}{% endblock %}
-{% if canonical_path %}<link rel="canonical" href="{{ SITE_URL }}{{ canonical_path }}">{% endif %}
+{% block robots %}{% if seo_robots_value %}<meta name="robots" content="{{ seo_robots_value }}">{% endif %}{% endblock %}
+<link rel="canonical" href="{{ canonical_url }}">
+{% if GOOGLE_SITE_VERIFICATION %}<meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}">{% endif %}
 <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
 <link rel="alternate icon" href="{% static 'favicon.svg' %}">
 <meta property="og:site_name" content="{{ SITE_NAME }}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{% block og_title %}{{ page_title|default:SITE_NAME }}{% endblock %}">
 <meta property="og:description" content="{{ meta_description|default:DEFAULT_META_DESCRIPTION }}">
-<meta property="og:url" content="{{ SITE_URL }}{{ canonical_path|default:request.path }}">
+<meta property="og:url" content="{{ canonical_url }}">
 <meta property="og:image" content="{{ SITE_URL }}{% static 'og-image.svg' %}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ page_title|default:SITE_NAME }}">
 <meta name="twitter:description" content="{{ meta_description|default:DEFAULT_META_DESCRIPTION }}">
 <meta name="twitter:image" content="{{ SITE_URL }}{% static 'og-image.svg' %}">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "Form D Explorer",
-  "url": "{{ SITE_URL }}",
-  "logo": "{{ SITE_URL }}{% static 'favicon.svg' %}",
-  "description": "{{ DEFAULT_META_DESCRIPTION }}",
-  "sameAs": ["https://dawncrestconsulting.com"]
-}
-</script>
+{% seo_structured_data %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
@@ -73,7 +64,7 @@
       <a href="{{ url_cf }}" class="nav-link {% if request.path == url_cf %}nav-link-active{% endif %}">Form C</a>
       <a href="{{ url_rega }}" class="nav-link {% if request.path == url_rega %}nav-link-active{% endif %}">Reg A+</a>
       <a href="{{ url_recent }}" class="nav-link {% if request.path == url_recent %}nav-link-active{% endif %}">Recent</a>
-      <a href="{{ url_learn }}" class="nav-link {% if request.path == url_learn %}nav-link-active{% endif %}">About</a>
+      <a href="{{ url_learn }}" class="nav-link {% if request.path == url_learn %}nav-link-active{% endif %}">Guides</a>
       <a href="{{ url_pricing }}" class="nav-link {% if request.path == url_pricing %}nav-link-active{% endif %}">Pricing</a>
       <span class="mx-2 h-5 w-px bg-slate-200" aria-hidden="true"></span>
       {% if user.is_authenticated %}

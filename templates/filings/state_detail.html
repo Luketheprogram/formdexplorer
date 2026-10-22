@@ -62,11 +62,5 @@
   </ul>
 </section>
 
-{% if page_obj.has_other_pages %}
-<div class="mt-6 flex items-center justify-between text-sm">
-  {% if page_obj.has_previous %}<a class="btn-secondary btn-sm" href="?page={{ page_obj.previous_page_number }}">← Prev</a>{% else %}<span></span>{% endif %}
-  <span class="text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-  {% if page_obj.has_next %}<a class="btn-secondary btn-sm" href="?page={{ page_obj.next_page_number }}">Next →</a>{% else %}<span></span>{% endif %}
-</div>
-{% endif %}
+{% include "_partials/pagination.html" %}
 {% endblock %}

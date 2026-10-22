@@ -1,5 +1,6 @@
 import markdown as md
 from django.contrib import messages
+from django.db.models.functions import Trim
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -11,10 +12,10 @@ from config.advertising import placement
 
 
 def article_list(request):
-    articles = Article.objects.exclude(published_at__isnull=True).order_by("-published_at")
+    articles = Article.objects.filter(published_at__lte=timezone.now()).alias(content=Trim("body")).exclude(content="").order_by("-published_at")
     ctx = {
         "articles": articles,
-        "page_title": "About — Form D Explorer",
+        "page_title": "SEC Form D Guides & Filing Research | Form D Explorer",
         "meta_description": (
             "Form D Explorer is a clean, fast search interface over SEC Form D filings. "
             "Free search, alerts, and watchlists; pay only for Excel and CSV exports."
@@ -28,7 +29,7 @@ def article_list(request):
 def article_detail(request, slug: str):
     if slug == "api":
         return api_docs(request)
-    article = get_object_or_404(Article, slug=slug, published_at__isnull=False)
+    article = get_object_or_404(Article, slug=slug, published_at__lte=timezone.now())
     body_html = mark_safe(md.markdown(article.body, extensions=["extra", "toc"]))
     ctx = {
         "article": article,
@@ -37,6 +38,8 @@ def article_detail(request, slug: str):
         "meta_description": article.meta_description or article.title,
         "canonical_path": f"/learn/{article.slug}/",
     }
+    if not article.body.strip():
+        request.seo_noindex = True
     if article.body.strip():
         ctx.update(placement(request, "article"))
     return render(request, "content/article_detail.html", ctx)
