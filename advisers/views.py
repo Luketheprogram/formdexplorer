@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from config.metadata import metadata, short_name
 
-from filings.exports import xlsx_response
+from filings.exports import finish_export, xlsx_response
 from filings.models import Filing, Issuer
 from filings.views import _enforce_export_gate
 
@@ -127,9 +127,7 @@ def export_xlsx(request):
             ])
         filename = f"form-adv-firms-{timezone.now().date().isoformat()}.xlsx"
         response = xlsx_response(filename, rows, headers)
-        if token is not None:
-            token.consume()
-        return response
+        return finish_export(request, response, token)
     except Exception:
         logger.exception("advisers.export_xlsx failed for user=%s GET=%s", request.user, request.GET.urlencode())
         raise

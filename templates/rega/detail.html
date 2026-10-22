@@ -56,7 +56,7 @@
 <section class="mt-8">
   <div class="card p-5 md:p-6">
     <h2 class="eyebrow">Most recent fiscal year financials</h2>
-    <p class="mt-1.5 text-xs text-slate-500">Reg A+ Tier 2 financials are audited (1-A, 1-K). Tier 1 are reviewed.</p>
+    <p class="mt-1.5 text-xs text-slate-500">Financial statement requirements vary by tier and report. Verify the audit or review status in the original SEC filing.</p>
     <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm md:grid-cols-3">
       <div><dt class="text-slate-500">Total assets</dt><dd class="amount font-medium">{{ filing.total_assets|dollars_full }}</dd></div>
       <div><dt class="text-slate-500">Total liabilities</dt><dd class="amount font-medium">{{ filing.total_liabilities|dollars_full }}</dd></div>
@@ -77,7 +77,7 @@
         <a href="/filing/{{ f.accession_number }}/" class="font-medium text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">{{ f.form_type }}</a>
         <span class="text-slate-500"> &middot; {{ f.filing_date|date:"M j, Y" }}</span>
       </div>
-      <div class="amount shrink-0 text-right font-semibold text-slate-900">{% if f.total_offering_amount %}{{ f.total_offering_amount|dollars }}{% endif %}</div>
+      <div class="amount shrink-0 text-right font-semibold text-slate-900">{% if f.total_offering_amount != None %}{{ f.total_offering_amount|dollars }}{% endif %}</div>
     </li>
     {% endfor %}
   </ul>
@@ -91,7 +91,7 @@
     {% for f in crowdfunding_filings %}
     <li class="row-hover flex items-center justify-between gap-3 p-4 text-sm">
       <a href="/cf/{{ f.accession_number }}/" class="min-w-0 truncate font-medium text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">Form {{ f.form_type }} · {{ f.filing_date|date:"M j, Y" }}{% if f.intermediary_name %} · via {{ f.intermediary_name }}{% endif %}</a>
-      <span class="amount shrink-0 font-semibold text-slate-900">{% if f.maximum_offering_amount %}{{ f.maximum_offering_amount|dollars }}{% endif %}</span>
+      <span class="amount shrink-0 font-semibold text-slate-900">{% if f.maximum_offering_amount != None %}{{ f.maximum_offering_amount|dollars }}{% endif %}</span>
     </li>
     {% endfor %}
   </ul>

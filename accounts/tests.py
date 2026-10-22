@@ -62,6 +62,7 @@ class ExportGatingTests(TestCase):
     def test_paid_user_gets_csv(self):
         U = get_user_model()
         u = U.objects.create_user(email="p@x.com", password="pw")
+        u.subscription_status = "active"
         u.subscription_tier = U.SUBSCRIPTION_PRO
         u.save()
         self.client.force_login(u)

@@ -8,6 +8,27 @@ from io import BytesIO
 from django.http import HttpResponse
 
 
+def csv_safe_cell(value):
+    """Neutralize spreadsheet expressions in text without changing numbers."""
+    if isinstance(value, str) and (
+        value.lstrip().startswith(("=", "+", "-", "@"))
+        or value.startswith(("\t", "\r", "\n"))
+    ):
+        return "'" + value
+    return value
+
+
+def finish_export(request, response, token):
+    """Claim after generation; never return a file if another request won."""
+    if token is not None and not token.consume():
+        return HttpResponse(
+            "This export credit was already used by another request. Please retry with another credit.",
+            status=409, content_type="text/plain",
+        )
+    response["Cache-Control"] = "private, no-store"
+    return response
+
+
 def xlsx_response(filename: str, rows: list[list], headers: list[str]) -> HttpResponse:
     """Build a single-sheet xlsx and wrap it in an HttpResponse."""
     # Import inside the function so the module imports cheaply elsewhere.
@@ -24,8 +45,12 @@ def xlsx_response(filename: str, rows: list[list], headers: list[str]) -> HttpRe
         cell.font = bold
         cell.alignment = Alignment(horizontal="left")
 
-    for row in rows:
+    for row_index, row in enumerate(rows, start=2):
         ws.append(row)
+        # Explicit string cells prevent formula/error interpretation by Excel.
+        for column_index, value in enumerate(row, start=1):
+            if isinstance(value, str):
+                ws.cell(row=row_index, column=column_index).data_type = "s"
 
     # Reasonable column widths; xlsx auto-fit is expensive, set generous defaults.
     widths = {1: 42, 2: 36, 3: 13, 4: 18, 5: 18, 6: 24, 7: 60}

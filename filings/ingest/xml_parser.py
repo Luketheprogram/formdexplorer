@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
 
 from lxml import etree
 
@@ -61,9 +62,14 @@ def _int(el, path: str) -> int | None:
     if not v:
         return None
     try:
-        return int(float(v))
-    except (TypeError, ValueError):
+        return int(Decimal(v))
+    except (InvalidOperation, OverflowError, TypeError, ValueError):
         return None
+
+
+def _first_present(*values):
+    """Unlike `or`, preserve explicitly reported zero and false values."""
+    return next((v for v in values if v is not None), None)
 
 
 def _parse_date(v: str) -> date | None:
@@ -79,7 +85,7 @@ def _parse_date(v: str) -> date | None:
 
 def parse_primary_doc(xml_bytes: bytes, accession_number: str) -> ParsedFiling:
     """Parse a Form D primary_doc.xml into a ParsedFiling dataclass."""
-    parser = etree.XMLParser(recover=True, huge_tree=False)
+    parser = etree.XMLParser(recover=True, huge_tree=False, resolve_entities=False, no_network=True)
     root = etree.fromstring(xml_bytes, parser=parser)
 
     header = root.find(".//headerData")
@@ -135,16 +141,21 @@ def parse_primary_doc(xml_bytes: bytes, accession_number: str) -> ParsedFiling:
         pf.total_offering_amount = _int(offering, ".//offeringSalesAmounts/totalOfferingAmount")
         pf.total_amount_sold = _int(offering, ".//offeringSalesAmounts/totalAmountSold")
         pf.minimum_investment = _int(offering, ".//minimumInvestmentAccepted")
-        pf.num_investors = _int(offering, ".//numberAlreadyInvested")
+        pf.num_investors = _first_present(
+            _int(offering, ".//totalNumberAlreadyInvested"),
+            _int(offering, ".//numberAlreadyInvested"),
+        )
         # Sales commission / finders fees: SEC moved the element names; both
         # paths covered.
-        pf.sales_commission = (
-            _int(offering, ".//salesCommissionsFindersFees/salesCommissions")
-            or _int(offering, ".//salesCommissionsAmount")
+        pf.sales_commission = _first_present(
+            _int(offering, ".//salesCommissionsFindersFees/salesCommissions/dollarAmount"),
+            _int(offering, ".//salesCommissionsFindersFees/salesCommissions"),
+            _int(offering, ".//salesCommissionsAmount"),
         )
-        pf.finders_fees = (
-            _int(offering, ".//salesCommissionsFindersFees/findersFees")
-            or _int(offering, ".//findersFeesAmount")
+        pf.finders_fees = _first_present(
+            _int(offering, ".//salesCommissionsFindersFees/findersFees/dollarAmount"),
+            _int(offering, ".//salesCommissionsFindersFees/findersFees"),
+            _int(offering, ".//findersFeesAmount"),
         )
 
         # Banker / placement-agent recipients: the real "did they use a banker"

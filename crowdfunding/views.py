@@ -10,7 +10,8 @@ from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from config.metadata import filing_metadata, metadata
 
-from filings.exports import xlsx_response
+from filings.search_params import SearchValidationError, normalize_search_params, validated_export
+from filings.exports import finish_export, xlsx_response
 from filings.views import _enforce_export_gate
 
 from .models import CrowdfundingFiling
@@ -25,6 +26,7 @@ def _is_postgres() -> bool:
 
 
 def _build_qs(params):
+    params = normalize_search_params(params)
     qs = CrowdfundingFiling.objects.select_related("issuer").defer("raw_xml").all()
     q = (params.get("q") or "").strip()
     if q:
@@ -60,10 +62,16 @@ def _build_qs(params):
 
 def search(request):
     q = (request.GET.get("q") or "").strip()
-    qs = _build_qs(request.GET)
+    errors = {}
+    try:
+        qs = _build_qs(request.GET)
+    except SearchValidationError as exc:
+        errors = exc.errors
+        qs = CrowdfundingFiling.objects.none()
     paginator = Paginator(qs, 50)
     page = paginator.get_page(request.GET.get("page"))
     ctx = {
+        "search_errors": errors,
         "q": q,
         "page_obj": page,
         "total": qs.count(),
@@ -79,11 +87,16 @@ def search(request):
 
 
 def search_partial(request):
-    qs = _build_qs(request.GET)
+    errors = {}
+    try:
+        qs = _build_qs(request.GET)
+    except SearchValidationError as exc:
+        errors = exc.errors
+        qs = CrowdfundingFiling.objects.none()
     return render(
         request,
         "crowdfunding/_partials/results.html",
-        {"results": qs[:50], "total": qs.count(), "q": request.GET.get("q", "")},
+        {"results": qs[:50], "total": qs.count(), "q": request.GET.get("q", ""), "search_errors": errors},
     )
 
 
@@ -113,6 +126,7 @@ def detail(request, accession_number: str):
 
 
 @login_required
+@validated_export
 def export_xlsx(request):
     """Form C xlsx export — same filters as /cf/ search."""
     try:
@@ -138,9 +152,9 @@ def export_xlsx(request):
             ])
         filename = f"form-c-filings-{timezone.now().date().isoformat()}.xlsx"
         response = xlsx_response(filename, rows, headers)
-        if token is not None:
-            token.consume()
-        return response
+        return finish_export(request, response, token)
+    except SearchValidationError:
+        raise
     except Exception:
         logger.exception("crowdfunding.export_xlsx failed for user=%s GET=%s", request.user, request.GET.urlencode())
         raise

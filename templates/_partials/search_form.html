@@ -14,6 +14,7 @@
       </svg>
       <input
         type="search"
+        aria-label="Search issuers by name"
         name="q"
         value="{{ q|default:'' }}"
         placeholder="Search issuers by name…"
@@ -137,7 +138,7 @@
         {% if request.GET.no_banker %}checked{% endif %}
         class="checkbox">
       <span class="text-slate-700">Only filings with no disclosed banker</span>
-      <span class="cursor-help text-xs text-slate-400" title="Heuristic: no sales commission and no finders fees reported. Doesn't cover bankers paid in equity instead of cash.">(?)</span>
+      <span class="cursor-help text-xs text-slate-400" title="No placement-agent recipients disclosed in the filing. Missing recipient data is excluded; this does not prove no banker was involved.">(?)</span>
     </label>
     {% if request.GET %}
     <a href="{{ request.path }}" class="text-xs text-slate-500 transition-colors hover:text-indigo-600">Reset all filters</a>

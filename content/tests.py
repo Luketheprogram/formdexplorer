@@ -57,7 +57,7 @@ class AdvertisingTests(TestCase):
     def test_paid_and_staff_users_do_not_get_ads(self):
         for tier, staff in [("pro", False), ("api", False), ("free", True)]:
             user = get_user_model().objects.create_user(
-                email=f"{tier}-{staff}@example.com", subscription_tier=tier, is_staff=staff
+                email=f"{tier}-{staff}@example.com", subscription_tier=tier, subscription_status="active", is_staff=staff
             )
             self.client.force_login(user)
             for path in ["/learn/", "/learn/test-guide/"]:

@@ -11,7 +11,7 @@ from decimal import Decimal, InvalidOperation
 
 from lxml import etree
 
-from filings.ingest.xml_parser import ParsedIssuer, ParsedRelatedPerson, _int, _parse_date, _text
+from filings.ingest.xml_parser import ParsedIssuer, ParsedRelatedPerson, _first_present, _int, _parse_date, _text
 
 
 @dataclass
@@ -68,7 +68,7 @@ def _bool(el, path: str) -> bool | None:
 
 
 def parse_form_c(xml_bytes: bytes, accession_number: str) -> ParsedCrowdfundingFiling:
-    parser = etree.XMLParser(recover=True, huge_tree=False)
+    parser = etree.XMLParser(recover=True, huge_tree=False, resolve_entities=False, no_network=True)
     root = etree.fromstring(xml_bytes, parser=parser)
     _strip_ns(root)
 
@@ -156,14 +156,14 @@ def parse_form_c(xml_bytes: bytes, accession_number: str) -> ParsedCrowdfundingF
         off = form_data
     if off is not None:
         pf.target_offering_amount = (
-            _int(off, ".//targetOfferingAmount") or _int(off, ".//offeringAmount")
+            _first_present(_int(off, ".//targetOfferingAmount"), _int(off, ".//offeringAmount"))
         )
         pf.maximum_offering_amount = _int(off, ".//maximumOfferingAmount")
         pf.offering_deadline = _parse_date(_text(off, ".//deadlineDate"))
         pf.security_type = (_text(off, ".//securityOfferedType") or _text(off, ".//securityOffered"))[:128]
-        pf.price_per_security = _decimal(off, ".//price") or _decimal(off, ".//pricePerSecurity")
+        pf.price_per_security = _first_present(_decimal(off, ".//price"), _decimal(off, ".//pricePerSecurity"))
         pf.oversubscription_accepted = (
-            _bool(off, ".//overSubscriptionAccepted") or _bool(off, ".//oversubscriptionAccepted")
+            _first_present(_bool(off, ".//overSubscriptionAccepted"), _bool(off, ".//oversubscriptionAccepted"))
         )
 
     # Financials live under various paths depending on form variant
@@ -174,35 +174,28 @@ def parse_form_c(xml_bytes: bytes, accession_number: str) -> ParsedCrowdfundingF
         fc = form_data
     if fc is not None:
         pf.total_assets = (
-            _int(fc, ".//totalAssetMostRecentFiscalYear")
-            or _int(fc, ".//totalAsset")
-            or _int(fc, ".//totalAssets")
+            _first_present(_int(fc, ".//totalAssetMostRecentFiscalYear"), _int(fc, ".//totalAsset"), _int(fc, ".//totalAssets"))
         )
         pf.cash_equivalents = (
-            _int(fc, ".//cashAndCashEquiMostRecentFiscalYear")
-            or _int(fc, ".//cashAndCashEquivalents")
-            or _int(fc, ".//cash")
+            _first_present(_int(fc, ".//cashAndCashEquiMostRecentFiscalYear"), _int(fc, ".//cashAndCashEquivalents"), _int(fc, ".//cash"))
         )
         pf.short_term_debt = (
-            _int(fc, ".//shortTermDebtMostRecentFiscalYear") or _int(fc, ".//shortTermDebt")
+            _first_present(_int(fc, ".//shortTermDebtMostRecentFiscalYear"), _int(fc, ".//shortTermDebt"))
         )
         pf.long_term_debt = (
-            _int(fc, ".//longTermDebtMostRecentFiscalYear") or _int(fc, ".//longTermDebt")
+            _first_present(_int(fc, ".//longTermDebtMostRecentFiscalYear"), _int(fc, ".//longTermDebt"))
         )
         pf.revenues = (
-            _int(fc, ".//revenueMostRecentFiscalYear")
-            or _int(fc, ".//revenues")
-            or _int(fc, ".//revenue")
+            _first_present(_int(fc, ".//revenueMostRecentFiscalYear"), _int(fc, ".//revenues"), _int(fc, ".//revenue"))
         )
         pf.cost_of_goods_sold = (
-            _int(fc, ".//costGoodsSoldMostRecentFiscalYear") or _int(fc, ".//costGoodsSold")
+            _first_present(_int(fc, ".//costGoodsSoldMostRecentFiscalYear"), _int(fc, ".//costGoodsSold"))
         )
         pf.taxes_paid = (
-            _int(fc, ".//taxesPaidMostRecentFiscalYear") or _int(fc, ".//taxesPaid")
+            _first_present(_int(fc, ".//taxesPaidMostRecentFiscalYear"), _int(fc, ".//taxesPaid"))
         )
         pf.net_income = (
-            _int(fc, ".//netIncomeMostRecentFiscalYear")
-            or _int(fc, ".//netIncome")
+            _first_present(_int(fc, ".//netIncomeMostRecentFiscalYear"), _int(fc, ".//netIncome"))
         )
 
     # Signatories / officers

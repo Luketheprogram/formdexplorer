@@ -63,7 +63,7 @@ def api_keys(request):
 def api_key_create(request):
     if request.method != "POST":
         return redirect("accounts:api_keys")
-    if request.user.subscription_tier != request.user.SUBSCRIPTION_API:
+    if not request.user.has_api_access:
         messages.info(request, "API access requires the API subscription.")
         return redirect("subscriptions:pricing")
     name = (request.POST.get("name") or "Default").strip()[:80] or "Default"

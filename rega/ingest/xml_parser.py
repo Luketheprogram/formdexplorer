@@ -10,7 +10,7 @@ from decimal import Decimal, InvalidOperation
 
 from lxml import etree
 
-from filings.ingest.xml_parser import ParsedIssuer, ParsedRelatedPerson, _int, _parse_date, _text
+from filings.ingest.xml_parser import ParsedIssuer, ParsedRelatedPerson, _first_present, _int, _parse_date, _text
 
 
 @dataclass
@@ -54,7 +54,7 @@ def _decimal(el, path: str) -> Decimal | None:
 
 
 def parse_form_1a(xml_bytes: bytes, accession_number: str) -> ParsedRegAFiling:
-    parser = etree.XMLParser(recover=True, huge_tree=False)
+    parser = etree.XMLParser(recover=True, huge_tree=False, resolve_entities=False, no_network=True)
     root = etree.fromstring(xml_bytes, parser=parser)
     _strip_ns(root)
 
@@ -115,6 +115,8 @@ def parse_form_1a(xml_bytes: bytes, accession_number: str) -> ParsedRegAFiling:
         addr = issuer_info.find("issuerAddress")
         if addr is None:
             addr = issuer_info.find(".//issuerAddress")
+        if addr is None:
+            addr = issuer_info
         if addr is not None:
             pf.issuer.street = _text(addr, "street1") or _text(addr, ".//street1")
             pf.issuer.city = _text(addr, "city") or _text(addr, ".//city")
@@ -124,36 +126,43 @@ def parse_form_1a(xml_bytes: bytes, accession_number: str) -> ParsedRegAFiling:
             pf.issuer.zip_code = (
                 _text(addr, "zipCode") or _text(addr, ".//zipCode")
             )[:16]
-        pf.issuer.phone = _text(issuer_info, ".//issuerPhoneNumber")[:32]
+        pf.issuer.phone = (_text(issuer_info, ".//issuerPhoneNumber") or _text(issuer_info, "phoneNumber"))[:32]
+
+    # Current 1-A schema splits legal identity and address/financials.
+    employees = form_data.find("employeesInfo")
+    if employees is not None:
+        pf.issuer.name = _text(employees, "issuerName") or pf.issuer.name
+        pf.issuer.cik = pf.issuer.cik or _text(employees, "cik").lstrip("0")
+        pf.issuer.jurisdiction = _text(employees, "jurisdictionOrganization") or pf.issuer.jurisdiction
+        pf.issuer.year_of_incorporation = _text(employees, "yearIncorporation") or pf.issuer.year_of_incorporation
 
     # Tier — look for "tier1" / "tier2" boolean or text
-    tier_text = _text(form_data, ".//regulationAItem") or _text(form_data, ".//tier")
+    tier_text = (_text(form_data, ".//regulationAItem") or _text(form_data, ".//tier")
+                 or _text(form_data, "summaryInfo/indicateTier1Tier2Offering"))
     if tier_text:
         t = tier_text.strip().lower()
-        if "tier 2" in t or t == "2":
+        if t.replace(" ", "") in {"tier2", "2"}:
             pf.tier = "Tier 2"
-        elif "tier 1" in t or t == "1":
+        elif t.replace(" ", "") in {"tier1", "1"}:
             pf.tier = "Tier 1"
         else:
             pf.tier = tier_text[:8]
 
     # Offering info
     pf.total_offering_amount = (
-        _int(form_data, ".//offeringSalesAmounts/totalOfferingAmount")
-        or _int(form_data, ".//totalOfferingAmount")
+        _first_present(_int(form_data, ".//offeringSalesAmounts/totalOfferingAmount"), _int(form_data, ".//totalOfferingAmount"))
     )
     pf.total_amount_sold = (
-        _int(form_data, ".//offeringSalesAmounts/totalAmountSold")
-        or _int(form_data, ".//totalAmountSold")
+        _first_present(_int(form_data, ".//offeringSalesAmounts/totalAmountSold"), _int(form_data, ".//totalAmountSold"))
     )
     pf.price_per_security = (
-        _decimal(form_data, ".//pricePerSecurity")
-        or _decimal(form_data, ".//offeringPrice")
+        _first_present(_decimal(form_data, ".//pricePerSecurity"), _decimal(form_data, ".//offeringPrice"))
     )
-    pf.security_type = (_text(form_data, ".//securityOfferedType") or _text(form_data, ".//typeOfSecurity"))[:128]
-    pf.over_allotment = _int(form_data, ".//overallotmentAmount") or _int(
+    pf.security_type = (_text(form_data, ".//securityOfferedType") or _text(form_data, ".//typeOfSecurity")
+                        or _text(form_data, "summaryInfo/securitiesOfferedTypes"))[:128]
+    pf.over_allotment = _first_present(_int(form_data, ".//overallotmentAmount"), _int(
         form_data, ".//overAllotmentAmount"
-    )
+    ))
     juris = form_data.findall(".//jurisdictionOfSecOffer/item") or form_data.findall(
         ".//jurisdictionsOfSecOffer/item"
     )
@@ -161,22 +170,24 @@ def parse_form_1a(xml_bytes: bytes, accession_number: str) -> ParsedRegAFiling:
         pf.jurisdictions = ",".join((j.text or "").strip() for j in juris if j.text)[:255]
 
     # 1-K financials
-    fc = form_data.find(".//annualReportFinancialStatements") or form_data
-    pf.total_assets = _int(fc, ".//totalAssetsMostRecentFiscalYear") or _int(
+    fc = form_data.find(".//annualReportFinancialStatements")
+    if fc is None:
+        fc = form_data
+    pf.total_assets = _first_present(_int(fc, ".//totalAssetsMostRecentFiscalYear"), _int(
         fc, ".//totalAssets"
-    )
-    pf.total_liabilities = _int(fc, ".//totalLiabilitiesMostRecentFiscalYear") or _int(
+    ))
+    pf.total_liabilities = _first_present(_int(fc, ".//totalLiabilitiesMostRecentFiscalYear"), _int(
         fc, ".//totalLiabilities"
-    )
-    pf.total_revenues = _int(fc, ".//totalRevenuesMostRecentFiscalYear") or _int(
+    ))
+    pf.total_revenues = _first_present(_int(fc, ".//totalRevenuesMostRecentFiscalYear"), _int(
         fc, ".//totalRevenues"
-    )
-    pf.net_income = _int(fc, ".//netIncomeMostRecentFiscalYear") or _int(
+    ))
+    pf.net_income = _first_present(_int(fc, ".//netIncomeMostRecentFiscalYear"), _int(
         fc, ".//netIncome"
-    )
-    pf.cash_equivalents = _int(fc, ".//cashAndCashEquivalentsMostRecentFiscalYear") or _int(
+    ))
+    pf.cash_equivalents = _first_present(_int(fc, ".//cashAndCashEquivalentsMostRecentFiscalYear"), _int(
         fc, ".//cashAndCashEquivalents"
-    )
+    ), _int(fc, "issuerInfo/cashEquivalents"))
 
     # Signatories
     for rp in root.findall(".//signatureBlock") + root.findall(".//signature"):

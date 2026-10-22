@@ -1,4 +1,5 @@
 {% load money %}
+{% include "_partials/search_errors.html" %}
 {% if active_filters %}
 <div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
   <div class="flex flex-wrap gap-1.5">
@@ -56,8 +57,8 @@
         </div>
       </div>
       <div class="shrink-0 text-right text-sm">
-        {% if f.total_offering_amount %}<div class="amount font-semibold text-slate-900">{{ f.total_offering_amount|dollars }}</div>{% endif %}
-        {% if f.num_investors %}<div class="text-xs text-slate-500">{{ f.num_investors }} investor{{ f.num_investors|pluralize }}</div>{% endif %}
+        {% if f.total_offering_amount != None %}<div class="amount font-semibold text-slate-900">{{ f.total_offering_amount|dollars }}</div>{% endif %}
+        {% if f.num_investors != None %}<div class="text-xs text-slate-500">{{ f.num_investors }} investor{{ f.num_investors|pluralize }}</div>{% endif %}
         <a href="/filing/{{ f.accession_number }}/" class="mt-0.5 inline-block text-xs font-medium text-indigo-600 hover:text-indigo-800">View filing →</a>
       </div>
     </div>
@@ -65,7 +66,7 @@
   {% endfor %}
 </ul>
 
-{% else %}
+{% elif not search_errors %}
 <div class="card border-dashed p-10 text-center">
   <div class="text-sm font-medium text-slate-700">No matching filings</div>
   <p class="mt-1 text-sm text-slate-500">Try a shorter company name, or clear a filter or two.</p>

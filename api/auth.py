@@ -23,7 +23,7 @@ def api_key_required(view):
                 status=401,
             )
         user = key.user
-        if not user.is_active or user.subscription_tier != user.SUBSCRIPTION_API:
+        if not user.has_api_access:
             return JsonResponse(
                 {"error": "inactive_subscription", "detail": "API Access subscription required."},
                 status=403,

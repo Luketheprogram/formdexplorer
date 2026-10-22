@@ -4,7 +4,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     initial = True
-    dependencies: list = []
+    # The trigram index below requires the extension installed by filings.
+    dependencies = [("filings", "0001_initial")]
 
     operations = [
         migrations.CreateModel(

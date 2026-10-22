@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.text import slugify
 
 from filings.models import normalize_issuer_name
+from .disclosures import disciplinary_status
 
 
 class Adviser(models.Model):
@@ -43,6 +44,11 @@ class Adviser(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} (CRD {self.crd})"
+
+    @property
+    def disciplinary_status(self):
+        # Legacy false defaults (and bool("false")) are not source evidence.
+        return disciplinary_status(self.raw_data)
 
     def save(self, *args, **kwargs):
         if not self.name_slug and self.name:

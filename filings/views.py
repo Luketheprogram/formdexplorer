@@ -15,9 +15,11 @@ from config.metadata import DEFAULT_DESCRIPTION, DEFAULT_TITLE, filing_metadata,
 
 from config.seo import collection_meta, paginate
 
+from .exports import csv_safe_cell, finish_export
 from .industry import INDUSTRY_GROUPS, NAME_TO_SLUG, SLUG_TO_NAME
 from .models import Filing, Issuer, IssuerView, IssuerWatch, RelatedPerson, SavedSearch
 from .search import active_filters, build_filing_query, search_persons
+from .search_params import SearchValidationError, normalize_search_params, validated_export
 from .states import US_STATES
 from .research import activity_stats, directory_data
 
@@ -57,16 +59,22 @@ def _viewed_issuer_ids(user, filings) -> set[int]:
 
 
 def _search_context(request):
-    qs = build_filing_query(request.GET)
+    errors = {}
+    try:
+        qs = build_filing_query(request.GET)
+    except SearchValidationError as exc:
+        errors = exc.errors
+        qs = Filing.objects.none()
     total = qs.count()
     visible = list(qs[:SEARCH_RESULT_LIMIT])
     q_text = (request.GET.get("q") or "").strip()
-    persons = search_persons(q_text, limit=6) if q_text else []
+    persons = search_persons(q_text, limit=6) if q_text and not errors else []
     selected_states = set(s.upper() for s in request.GET.getlist("state") if s.strip())
     selected_industries = set(i for i in request.GET.getlist("industry") if i.strip())
     industry_mode = (request.GET.get("industry_mode") or "include").lower()
     viewed_ids = _viewed_issuer_ids(request.user, visible)
     return {
+        "search_errors": errors,
         "q": request.GET.get("q", ""),
         "results": visible,
         "total": total,
@@ -418,12 +426,7 @@ def recent(request):
 
 
 def _enforce_export_gate(request):
-    """Returns (ok, token, redirect_response). Caller pattern:
-        ok, token, resp = _enforce_export_gate(request)
-        if not ok: return resp
-        ... write export ...
-        if token: token.consume()
-    """
+    """Check access; callers must use finish_export before returning a file."""
     user = request.user
     if not user.is_authenticated:
         return False, None, redirect("accounts:login")
@@ -437,6 +440,7 @@ def _enforce_export_gate(request):
 
 
 @login_required
+@validated_export
 def export_xlsx(request):
     """Form D xlsx export — same filters as /search/."""
     try:
@@ -464,23 +468,20 @@ def export_xlsx(request):
             ])
         filename = f"form-d-filings-{timezone.now().date().isoformat()}.xlsx"
         response = xlsx_response(filename, rows, headers)
-        if token is not None:
-            token.consume()
-        return response
+        return finish_export(request, response, token)
+    except SearchValidationError:
+        raise
     except Exception:
         logger.exception("export_xlsx failed for user=%s GET=%s", request.user, request.GET.urlencode())
         raise
 
 
 @login_required
+@validated_export
 def export_csv(request):
-    user = request.user
-    token = None
-    if not user.is_paid:
-        token = user.export_tokens.filter(used_at__isnull=True).first()
-        if token is None:
-            messages.info(request, "CSV export requires Pro or a one-time export purchase.")
-            return redirect("subscriptions:pricing")
+    ok, token, response = _enforce_export_gate(request)
+    if not ok:
+        return response
 
     qs = build_filing_query(request.GET)[:EXPORT_ROW_LIMIT]
     response = HttpResponse(content_type="text/csv")
@@ -492,14 +493,12 @@ def export_csv(request):
         "minimum_investment", "num_investors", "exemptions",
     ])
     for f in qs.iterator():
-        writer.writerow([
+        writer.writerow([csv_safe_cell(value) for value in [
             f.accession_number, f.form_type, f.filing_date, f.issuer.name, f.issuer.cik,
             f.issuer.state, f.industry_group, f.total_offering_amount, f.total_amount_sold,
             f.minimum_investment, f.num_investors, f.offering_type,
-        ])
-    if token is not None:
-        token.consume()
-    return response
+        ]])
+    return finish_export(request, response, token)
 
 
 @login_required
@@ -573,9 +572,14 @@ def saved_search_create(request):
         elif not params:
             messages.error(request, "Add at least one filter on the search page before saving.")
         else:
-            SavedSearch.objects.create(user=request.user, name=name, params=params)
-            messages.success(request, f"Saved '{name}'.")
-            return redirect("filings:saved_search_list")
+            try:
+                normalize_search_params(params)
+            except SearchValidationError as exc:
+                messages.error(request, str(exc))
+            else:
+                SavedSearch.objects.create(user=request.user, name=name, params=params)
+                messages.success(request, f"Saved '{name}'.")
+                return redirect("filings:saved_search_list")
     return render(
         request,
         "filings/saved_search_form.html",

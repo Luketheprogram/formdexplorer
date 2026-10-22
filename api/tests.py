@@ -33,6 +33,7 @@ class ApiAuthTests(TestCase):
     def _seed(self, tier="api"):
         U = get_user_model()
         u = U.objects.create_user(email="k@x.com", password="pw")
+        u.subscription_status = "active"
         u.subscription_tier = tier
         u.save()
         _, raw = ApiKey.generate(u)

@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from filings.models import SavedSearch
 from filings.search import build_filing_query
+from filings.search_params import SearchValidationError
 
 
 class Command(BaseCommand):
@@ -24,7 +25,11 @@ class Command(BaseCommand):
         sent = 0
         for ss in SavedSearch.objects.select_related("user").all():
             since = (ss.last_checked_at or fallback_since).date()
-            qs = build_filing_query(ss.params).filter(filing_date__gte=since)[:100]
+            try:
+                qs = build_filing_query(ss.params).filter(filing_date__gte=since)[:100]
+            except SearchValidationError:
+                self.stderr.write(f"Skipped saved search {ss.pk}: invalid filters")
+                continue
             results = list(qs)
             if not results:
                 if not dry:

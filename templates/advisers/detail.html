@@ -55,7 +55,7 @@
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Address</dt><dd class="text-right font-medium">{{ adviser.street }}{% if adviser.city %}<br>{{ adviser.city }}, {{ adviser.state }} {{ adviser.zip_code }}{% endif %}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Phone</dt><dd class="text-right font-medium">{{ adviser.phone|default:"—" }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Website</dt><dd class="text-right font-medium">{% if adviser.website %}<a class="link" href="{{ adviser.website }}" target="_blank" rel="noopener nofollow">{{ adviser.website }}</a><br><span class="text-xs font-normal text-amber-700">(name-match guess, not verified)</span>{% else %}—{% endif %}</dd></div>
-      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Disciplinary</dt><dd class="text-right font-medium">{% if adviser.has_disciplinary %}<span class="text-amber-700">Disclosed ✓</span>{% else %}<span class="font-normal text-slate-500">None reported</span>{% endif %}</dd></div>
+      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Disciplinary</dt><dd class="text-right font-medium">{% if adviser.disciplinary_status == True %}<span class="text-amber-700">Disclosed ✓</span>{% elif adviser.disciplinary_status == False %}<span class="font-normal text-slate-500">None reported in source</span>{% else %}<span class="font-normal text-slate-500">Unknown — verify on SEC IAPD</span>{% endif %}</dd></div>
     </dl>
   </div>
   <div class="card p-5 md:p-6">
@@ -67,17 +67,17 @@
   </div>
 </section>
 
-{% if matched_issuers or matched_filings %}
+{% if matches or matched_filings %}
 <section class="mt-8">
-  <h2 class="eyebrow">Form D filings under this name</h2>
-  {% if matched_issuers %}
+  <h2 class="eyebrow">Possible Form D name matches (not verified)</h2>
+  {% if matches %}
   <ul class="card-list mt-3">
-    {% for i in matched_issuers %}
-    <li class="row-hover flex items-center justify-between gap-3 p-4 text-sm">
+    {% for match in matches %}{% with i=match.issuer %}
+    <li class="row-hover flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
       <a href="/issuer/{{ i.url_slug }}/" class="truncate font-medium text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">{{ i.name }}</a>
-      <span class="shrink-0 text-slate-500">CIK {{ i.cik }}{% if i.state %} &middot; {{ i.state }}{% endif %}</span>
+      <span class="shrink-0 text-slate-500">{{ match.confidence|title }} name-match confidence &middot; CIK {{ i.cik }}{% if i.state %} &middot; {{ i.state }}{% endif %}</span>
     </li>
-    {% endfor %}
+    {% endwith %}{% endfor %}
   </ul>
   {% endif %}
   {% if matched_filings %}
@@ -88,7 +88,7 @@
         <a href="/issuer/{{ f.issuer.url_slug }}/" class="font-medium text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">{{ f.issuer.name }}</a>
         <span class="text-slate-500"> &middot; {{ f.form_type }} &middot; {{ f.filing_date|date:"M j, Y" }}</span>
       </div>
-      <div class="amount shrink-0 text-right font-semibold text-slate-900">{% if f.total_offering_amount %}{{ f.total_offering_amount|dollars }}{% endif %}</div>
+      <div class="amount shrink-0 text-right font-semibold text-slate-900">{% if f.total_offering_amount != None %}{{ f.total_offering_amount|dollars }}{% endif %}</div>
     </li>
     {% endfor %}
   </ul>

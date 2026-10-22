@@ -5,6 +5,7 @@ import stripe
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError, transaction
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -114,10 +115,22 @@ def stripe_webhook(request):
     except stripe.error.SignatureVerificationError:
         return HttpResponseBadRequest("invalid signature")
 
+    if event.get("livemode") is not settings.STRIPE_LIVE_MODE:
+        return HttpResponseBadRequest("incorrect Stripe mode")
+
     try:
         from djstripe.models import Event as DJEvent
-        dj_event = DJEvent._create_from_stripe_object(event)
-        dj_event.invoke_webhook_handlers()
+        with transaction.atomic():
+            try:
+                with transaction.atomic():
+                    dj_event = DJEvent._create_from_stripe_object(event, api_key=_stripe_api_key())
+            except IntegrityError:
+                # Concurrent deliveries can race on Event.id. Roll back the
+                # insert savepoint before reading the winning committed row.
+                # Still invoke idempotent receivers so legacy failed events
+                # persisted before the atomic handler can recover on retry.
+                dj_event = DJEvent.objects.get(id=event["id"])
+            dj_event.invoke_webhook_handlers()
     except Exception:
         log.exception("Webhook processing failed for %s", event.get("id"))
         return HttpResponse(status=500)

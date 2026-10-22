@@ -80,7 +80,7 @@
         <a href="/filing/{{ f.accession_number }}/" class="font-medium text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">{{ f.form_type }}</a>
         <span class="text-slate-500"> &middot; {{ f.filing_date|date:"M j, Y" }}</span>
       </div>
-      <div class="amount shrink-0 text-right font-semibold text-slate-900">{% if f.total_offering_amount %}{{ f.total_offering_amount|dollars }}{% endif %}</div>
+      <div class="amount shrink-0 text-right font-semibold text-slate-900">{% if f.total_offering_amount != None %}{{ f.total_offering_amount|dollars }}{% endif %}</div>
     </li>
     {% endfor %}
   </ul>

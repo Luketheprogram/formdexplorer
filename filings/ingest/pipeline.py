@@ -2,9 +2,9 @@ import logging
 from datetime import date, datetime
 
 from django.db import OperationalError, connection, transaction
-from django.utils.text import slugify
+from filings.ingest.issuers import upsert_issuer
 
-from ..models import Filing, Issuer, RelatedPerson
+from ..models import Filing, RelatedPerson
 from .edgar_client import EdgarClient
 from .index_parser import (
     IndexEntry,
@@ -34,7 +34,7 @@ class IngestPipeline:
         self.store_raw_xml = store_raw_xml
 
     def run(self, start: date, end: date) -> dict:
-        stats = {"days": 0, "entries": 0, "parsed": 0, "upserted": 0, "errors": 0}
+        stats = {"days": 0, "entries": 0, "parsed": 0, "upserted": 0, "errors": 0, "skipped": 0}
         for day in iter_business_days(start, end):
             stats["days"] += 1
             entries = self._fetch_day_index(day)
@@ -43,6 +43,7 @@ class IngestPipeline:
                 try:
                     parsed = self._fetch_and_parse(e)
                     if parsed is None:
+                        stats["skipped"] += 1
                         continue
                     stats["parsed"] += 1
                     try:
@@ -70,12 +71,14 @@ class IngestPipeline:
     def _fetch_and_parse(self, entry: IndexEntry) -> ParsedFiling | None:
         url = primary_doc_url(entry.filename)
         accession = accession_from_filename(entry.filename)
-        try:
-            xml_bytes = self.client.get_bytes(url)
-        except Exception as exc:  # noqa: BLE001
-            log.warning("No primary_doc.xml for %s: %s", accession, exc)
-            return None
+        xml_bytes = self.client.get_bytes(url)
         pf = parse_primary_doc(xml_bytes, accession)
+        index_cik = entry.cik.lstrip("0")
+        if pf.issuer.cik and pf.issuer.cik.lstrip("0") != index_cik:
+            raise ValueError(f"Source/index CIK mismatch for {accession}")
+        pf.issuer.cik = index_cik
+        if not pf.issuer.name:
+            pf.issuer.name = entry.company.strip()
         if pf.filing_date is None:
             pf.filing_date = _parse_index_date(entry.filing_date)
         # The SEC index supplies the submission type even when XML omits it.
@@ -93,21 +96,7 @@ class IngestPipeline:
         cik = pf.issuer.cik.strip()
         if not cik:
             raise ValueError(f"Missing CIK for {pf.accession_number}")
-        issuer, _ = Issuer.objects.update_or_create(
-            cik=cik,
-            defaults={
-                "name": pf.issuer.name or f"CIK {cik}",
-                "name_slug": slugify(pf.issuer.name or f"cik-{cik}")[:250] or f"cik-{cik}",
-                "entity_type": pf.issuer.entity_type,
-                "jurisdiction": pf.issuer.jurisdiction,
-                "year_of_incorporation": pf.issuer.year_of_incorporation,
-                "street": pf.issuer.street,
-                "city": pf.issuer.city,
-                "state": pf.issuer.state,
-                "zip_code": pf.issuer.zip_code,
-                "phone": pf.issuer.phone,
-            },
-        )
+        issuer = upsert_issuer(pf.issuer, pf.filing_date)
         filing, _ = Filing.objects.update_or_create(
             accession_number=pf.accession_number,
             defaults={

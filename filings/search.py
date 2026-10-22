@@ -3,6 +3,7 @@ from django.db import connection
 from django.db.models import F, Q, QuerySet
 
 from .models import Filing, RelatedPerson
+from .search_params import normalize_search_params
 
 SORT_CHOICES = {
     "newest": ("-filing_date", "-id"),
@@ -17,6 +18,7 @@ def _is_postgres() -> bool:
 
 
 def build_filing_query(params) -> QuerySet:
+    params = normalize_search_params(params)
     qs = Filing.objects.select_related("issuer").all()
 
     q = (params.get("q") or "").strip()

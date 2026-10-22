@@ -26,8 +26,8 @@
         </div>
       </div>
       <div class="shrink-0 text-right text-sm">
-        {% if a.regulatory_aum %}<div class="amount font-semibold text-slate-900">{{ a.regulatory_aum|dollars }} AUM</div>{% endif %}
-        {% if a.has_disciplinary %}<div class="mt-1 text-xs text-amber-700">Disciplinary disclosure ✓</div>{% endif %}
+        {% if a.regulatory_aum != None %}<div class="amount font-semibold text-slate-900">{{ a.regulatory_aum|dollars }} AUM</div>{% endif %}
+        {% if a.disciplinary_status == True %}<div class="mt-1 text-xs text-amber-700">Disciplinary disclosure ✓</div>{% endif %}
       </div>
     </div>
   </li>

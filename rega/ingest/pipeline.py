@@ -2,7 +2,7 @@ import logging
 from datetime import date, datetime, timedelta
 
 from django.db import OperationalError, connection, transaction
-from django.utils.text import slugify
+from filings.ingest.issuers import upsert_issuer
 
 from filings.ingest.edgar_client import EdgarClient
 from filings.ingest.index_parser import (
@@ -11,10 +11,9 @@ from filings.ingest.index_parser import (
     daily_index_paths,
     iter_business_days,
     parse_form_idx,
-    primary_doc_url,
 )
-from filings.models import Issuer
 from rega.ingest.xml_parser import parse_form_1a
+from rega.ingest.documents import UnsupportedDocument, primary_xml
 from rega.models import Form1AFiling
 
 log = logging.getLogger(__name__)
@@ -37,7 +36,7 @@ class Form1APipeline:
         self.store_raw_xml = store_raw_xml
 
     def run(self, start: date, end: date) -> dict:
-        stats = {"days": 0, "entries": 0, "parsed": 0, "upserted": 0, "errors": 0}
+        stats = {"days": 0, "entries": 0, "parsed": 0, "upserted": 0, "errors": 0, "skipped": 0}
         for day in iter_business_days(start, end):
             stats["days"] += 1
             for entry in self._fetch_day_index(day):
@@ -45,6 +44,7 @@ class Form1APipeline:
                 try:
                     parsed = self._fetch_and_parse(entry)
                     if parsed is None:
+                        stats["skipped"] += 1
                         continue
                     stats["parsed"] += 1
                     try:
@@ -54,6 +54,9 @@ class Form1APipeline:
                         connection.close()
                         self._upsert(parsed)
                     stats["upserted"] += 1
+                except UnsupportedDocument as exc:
+                    stats["skipped"] += 1
+                    log.warning("Unsupported document: %s", exc)
                 except Exception as exc:  # noqa: BLE001
                     stats["errors"] += 1
                     log.exception("Failed to ingest %s: %s", entry.filename, exc)
@@ -70,18 +73,18 @@ class Form1APipeline:
         return []
 
     def _fetch_and_parse(self, entry: IndexEntry):
-        url = primary_doc_url(entry.filename)
         accession = accession_from_filename(entry.filename)
-        try:
-            xml_bytes = self.client.get_bytes(url)
-        except Exception as exc:  # noqa: BLE001
-            log.warning("No primary_doc.xml for %s: %s", accession, exc)
-            return None
+        xml_bytes = primary_xml(self.client, entry)
         pf = parse_form_1a(xml_bytes, accession)
+        index_cik = entry.cik.lstrip("0")
+        if pf.issuer.cik and pf.issuer.cik.lstrip("0") != index_cik:
+            raise ValueError(f"Source/index CIK mismatch for {accession}")
+        pf.issuer.cik = index_cik
+        if not pf.issuer.name:
+            pf.issuer.name = entry.company.strip()
         if pf.filing_date is None:
             pf.filing_date = _parse_index_date(entry.filing_date)
-        if not pf.form_type:
-            pf.form_type = entry.form_type
+        pf.form_type = entry.form_type
         pf.is_amendment = "/A" in pf.form_type
         if not self.store_raw_xml:
             pf.raw_xml = ""
@@ -92,21 +95,7 @@ class Form1APipeline:
         cik = pf.issuer.cik.strip()
         if not cik:
             raise ValueError(f"Missing CIK for {pf.accession_number}")
-        issuer, _ = Issuer.objects.update_or_create(
-            cik=cik,
-            defaults={
-                "name": pf.issuer.name or f"CIK {cik}",
-                "name_slug": slugify(pf.issuer.name or f"cik-{cik}")[:250] or f"cik-{cik}",
-                "entity_type": pf.issuer.entity_type,
-                "jurisdiction": pf.issuer.jurisdiction,
-                "year_of_incorporation": pf.issuer.year_of_incorporation,
-                "street": pf.issuer.street,
-                "city": pf.issuer.city,
-                "state": pf.issuer.state,
-                "zip_code": pf.issuer.zip_code,
-                "phone": pf.issuer.phone,
-            },
-        )
+        issuer = upsert_issuer(pf.issuer, pf.filing_date)
         Form1AFiling.objects.update_or_create(
             accession_number=pf.accession_number,
             defaults={

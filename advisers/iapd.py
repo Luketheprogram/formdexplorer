@@ -7,6 +7,8 @@ but does want a real User-Agent."""
 import logging
 from typing import Any
 
+from .disclosures import disciplinary_status
+
 import requests
 from django.conf import settings
 
@@ -97,7 +99,7 @@ def parse_firm(payload: dict) -> dict:
         "num_employees": _to_int(_first(info, "numberOfEmployees", "totalEmployees")),
         "num_clients": _to_int(_first(info, "numberOfClients", "totalClients")),
         "registration_status": _first(info, "registrationStatus", "status"),
-        "has_disciplinary": bool(_first(info, "hasDisclosure", "hasDrp", default=False)),
+        "has_disciplinary": disciplinary_status(payload) is True,
         "raw_data": payload,
     }
 
