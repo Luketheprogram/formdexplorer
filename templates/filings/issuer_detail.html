@@ -183,7 +183,7 @@
 {% endif %}
 
 <section class="mt-8">
-  <h2 class="text-xl font-semibold tracking-tight text-slate-900">Form D filings ({{ filings|length }})</h2>
+  <h2 class="text-xl font-semibold tracking-tight text-slate-900">Form D filings ({{ stats.count }})</h2>
   <ul class="card-list mt-4">
     {% for f in filings %}
     <li class="row-hover p-4">
@@ -206,23 +206,5 @@
     {% endfor %}
   </ul>
 </section>
-{% endblock %}
-
-{% block head_extra %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "{{ issuer.name|escapejs }}",
-  "identifier": "CIK-{{ issuer.cik }}",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "{{ issuer.street|escapejs }}",
-    "addressLocality": "{{ issuer.city|escapejs }}",
-    "addressRegion": "{{ issuer.state|escapejs }}",
-    "postalCode": "{{ issuer.zip_code|escapejs }}"
-  },
-  "url": "{{ SITE_URL }}/issuer/{{ issuer.url_slug }}/"
-}
-</script>
+{% include "_partials/pagination.html" %}
 {% endblock %}

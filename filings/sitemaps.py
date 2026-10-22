@@ -1,127 +1,109 @@
-import math
+"""Bounded, canonical sitemap sections. No searches, empty hubs or pagination."""
+from types import SimpleNamespace
+from urllib.parse import urlsplit
 
+from django.conf import settings
 from django.contrib.sitemaps import Sitemap
-from django.db.models import Count
+from django.contrib.sitemaps.views import sitemap, x_robots_tag
+from django.db.models import Exists, OuterRef
+from django.db.models.functions import Lower, Trim
+from django.template.response import TemplateResponse
 from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.cache import cache_page
 
 from content.models import Article
-
 from .industry import NAME_TO_SLUG
 from .models import Filing, Issuer
 
-PER_PAGE = 50  # keep in sync with industry/state list views
+
+class CanonicalSitemap(Sitemap):
+    limit = 5000
+
+    def get_urls(self, page=1, site=None, protocol=None):
+        origin = urlsplit(settings.SITE_URL)
+        return super().get_urls(page, SimpleNamespace(domain=origin.netloc), origin.scheme)
 
 
-class StaticSitemap(Sitemap):
-    changefreq = "daily"
-    priority = 0.7
-
+class StaticSitemap(CanonicalSitemap):
     def items(self):
-        return ["filings:home", "filings:recent", "content:article_list"]
+        return ["/", "/recent/", "/learn/", "/learn/api/", "/pricing/", "/privacy/", "/terms/"]
 
     def location(self, item):
-        return reverse(item)
+        return item
 
 
-class IssuerSitemap(Sitemap):
-    changefreq = "weekly"
-    priority = 0.8
-    limit = 5000
-
+class IssuerSitemap(CanonicalSitemap):
     def items(self):
-        return Issuer.objects.all().order_by("id")
+        return Issuer.objects.filter(
+            Exists(Filing.objects.filter(issuer_id=OuterRef("pk")))
+        ).alias(issuer_name=Trim("name")).exclude(issuer_name="").only("id", "name_slug", "cik").order_by("id")
 
-    def location(self, obj: Issuer) -> str:
+    def location(self, obj):
         return f"/issuer/{obj.url_slug}/"
 
-    def lastmod(self, obj: Issuer):
-        return obj.updated_at
 
-
-class FilingSitemap(Sitemap):
-    changefreq = "monthly"
-    priority = 0.5
-    limit = 5000
-
+class FilingSitemap(CanonicalSitemap):
     def items(self):
-        return Filing.objects.all().order_by("-filing_date", "-id")
+        # Avoid loading potentially large raw XML into each sitemap response.
+        return Filing.objects.alias(issuer_name=Trim("issuer__name")).exclude(issuer_name="").only("id", "accession_number").order_by("id")
 
-    def location(self, obj: Filing) -> str:
+    def location(self, obj):
         return f"/filing/{obj.accession_number}/"
 
-    def lastmod(self, obj: Filing):
-        return obj.updated_at
 
-
-class IndustrySitemap(Sitemap):
-    """Every industry page, paginated — each page as its own URL."""
-
-    changefreq = "daily"
-    priority = 0.6
-    limit = 5000
-
+class IndustrySitemap(CanonicalSitemap):
     def items(self):
-        counts = {
-            row["industry_group"]: row["n"]
-            for row in Filing.objects.exclude(industry_group="")
-            .values("industry_group")
-            .annotate(n=Count("id"))
-        }
-        urls: list[str] = []
-        for name, slug in NAME_TO_SLUG.items():
-            pages = max(1, math.ceil(counts.get(name, 1) / PER_PAGE))
-            urls.append(f"/industry/{slug}/")
-            for page in range(2, pages + 1):
-                urls.append(f"/industry/{slug}/?page={page}")
-        return urls
+        present = set(Filing.objects.order_by().annotate(key=Lower("industry_group")).values_list("key", flat=True).distinct())
+        return [f"/industry/{slug}/" for name, slug in NAME_TO_SLUG.items() if name.lower() in present]
 
-    def location(self, url: str) -> str:
-        return url
+    def location(self, item):
+        return item
 
 
-class StateSitemap(Sitemap):
-    changefreq = "daily"
-    priority = 0.6
-    limit = 5000
-
+class StateSitemap(CanonicalSitemap):
     def items(self):
-        rows = (
-            Issuer.objects.exclude(state="")
-            .values("state")
-            .annotate(n=Count("filings"))
-        )
-        urls: list[str] = []
-        for row in rows:
-            state = row["state"].upper()
-            pages = max(1, math.ceil(row["n"] / PER_PAGE))
-            urls.append(f"/state/{state}/")
-            for page in range(2, pages + 1):
-                urls.append(f"/state/{state}/?page={page}")
-        return urls
+        states = Issuer.objects.filter(
+            Exists(Filing.objects.filter(issuer_id=OuterRef("pk")))
+        ).exclude(state="").order_by("state").values_list("state", flat=True).distinct()
+        # The state view uses uppercase SEC codes; don't advertise invalid aliases.
+        return [f"/state/{state}/" for state in states if state.isalpha() and state == state.upper()]
 
-    def location(self, url: str) -> str:
-        return url
+    def location(self, item):
+        return item
 
 
-class ArticleSitemap(Sitemap):
-    changefreq = "weekly"
-    priority = 0.6
-
+class ArticleSitemap(CanonicalSitemap):
     def items(self):
-        return Article.objects.exclude(published_at__isnull=True)
+        return Article.objects.filter(published_at__lte=timezone.now()).alias(
+            content=Trim("body")
+        ).exclude(content="").exclude(slug="api").only("slug", "updated_at").order_by("id")
 
-    def location(self, obj: Article) -> str:
+    def location(self, obj):
         return f"/learn/{obj.slug}/"
 
-    def lastmod(self, obj: Article):
+    def lastmod(self, obj):
         return obj.updated_at
 
 
 SITEMAPS = {
-    "static": StaticSitemap,
-    "issuers": IssuerSitemap,
-    "filings": FilingSitemap,
-    "industries": IndustrySitemap,
-    "states": StateSitemap,
-    "articles": ArticleSitemap,
+    "static": StaticSitemap, "issuers": IssuerSitemap, "filings": FilingSitemap,
+    "industries": IndustrySitemap, "states": StateSitemap, "articles": ArticleSitemap,
 }
+
+
+@cache_page(900)
+@x_robots_tag
+def sitemap_index(request):
+    sections = []
+    for name, cls in SITEMAPS.items():
+        section = cls()
+        if not section.paginator.count:
+            continue
+        url = settings.SITE_URL + reverse("sitemap_section", kwargs={"section": name})
+        for page in range(1, section.paginator.num_pages + 1):
+            sections.append({"location": url + (f"?p={page}" if page > 1 else "")})
+    return TemplateResponse(request, "sitemap_index.xml", {"sitemaps": sections}, content_type="application/xml")
+
+
+sitemap_section = cache_page(900)(sitemap)

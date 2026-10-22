@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class NewsletterSubscriber(models.Model):
@@ -34,4 +35,4 @@ class Article(models.Model):
 
     @property
     def is_published(self) -> bool:
-        return self.published_at is not None
+        return self.published_at is not None and self.published_at <= timezone.now()

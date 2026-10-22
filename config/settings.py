@@ -24,7 +24,17 @@ if not DEBUG and SECRET_KEY == "dev-insecure-key-change-me":
     )
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "*").split(",") if h.strip()]
 
-SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")
+SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000").strip().rstrip("/")
+_site = urlparse(SITE_URL)
+if _site.scheme not in {"http", "https"} or not _site.netloc or _site.path or _site.query or _site.fragment:
+    raise RuntimeError("SITE_URL must be an absolute origin without a path, query or fragment")
+SEO_INDEXING_ENABLED = _bool(os.environ.get("SEO_INDEXING_ENABLED"), default=not DEBUG)
+GOOGLE_SITE_VERIFICATION = os.environ.get("GOOGLE_SITE_VERIFICATION", "").strip()
+CANONICAL_REDIRECT_HOSTS = {
+    h.strip().lower() for h in os.environ.get(
+        "CANONICAL_REDIRECT_HOSTS", "www.formdexplorer.com"
+    ).split(",") if h.strip()
+}
 # Verification is independent of serving ads. Enable only after account approval
 # and testing the published Google CMP messages; see docs/advertising.md.
 ADSENSE_ENABLED = _bool(os.environ.get("ADSENSE_ENABLED"))
@@ -60,6 +70,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "config.seo.SEOMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

@@ -21,30 +21,3 @@
   {% include "_partials/ad_slot.html" %}
 </div>
 {% endblock %}
-
-{% block head_extra %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "{{ article.title|escapejs }}",
-  "description": "{{ article.meta_description|escapejs }}",
-  "datePublished": "{{ article.published_at|date:'c' }}",
-  "dateModified": "{{ article.updated_at|date:'c' }}",
-  "author": {"@type": "Organization", "name": "Form D Explorer"},
-  "publisher": {"@type": "Organization", "name": "Form D Explorer", "logo": {"@type": "ImageObject", "url": "{{ SITE_URL }}/static/favicon.svg"}},
-  "mainEntityOfPage": "{{ SITE_URL }}/learn/{{ article.slug }}/"
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {"@type": "ListItem", "position": 1, "name": "Home", "item": "{{ SITE_URL }}/"},
-    {"@type": "ListItem", "position": 2, "name": "About", "item": "{{ SITE_URL }}/learn/"},
-    {"@type": "ListItem", "position": 3, "name": "{{ article.title|escapejs }}", "item": "{{ SITE_URL }}/learn/{{ article.slug }}/"}
-  ]
-}
-</script>
-{% endblock %}
