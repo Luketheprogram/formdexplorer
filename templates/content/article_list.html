@@ -1,21 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="max-w-3xl">
-  <h1 class="text-3xl font-bold tracking-tight text-slate-900">About Form D Explorer</h1>
+  <h1 class="text-3xl font-bold tracking-tight text-slate-900">SEC filing guides and research tools</h1>
   <p class="mt-2 text-lg text-slate-500">
     A clean, fast search interface over SEC Form D filings &mdash; the disclosures issuers file
     when raising capital under Regulation D private placements.
   </p>
 </section>
+{% if articles %}
+<section class="mt-6 max-w-3xl">
+  <h2 class="text-xl font-semibold tracking-tight text-slate-900">Guides &amp; explainers</h2>
+  <ul class="card-list mt-4">
+    {% for a in articles %}
+    <li class="row-hover p-5">
+      <a href="/learn/{{ a.slug }}/" class="text-lg font-semibold text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">{{ a.title }}</a>
+      <div class="mt-1 text-sm text-slate-500">{{ a.published_at|date:"M j, Y" }}</div>
+      {% if a.meta_description %}<p class="mt-2 text-sm text-slate-600">{{ a.meta_description }}</p>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+
 
 <section class="mt-12 max-w-3xl space-y-4 leading-relaxed text-slate-700">
   <h2 class="text-xl font-semibold tracking-tight text-slate-900">Why this exists</h2>
   <p>
-    SEC EDGAR is the system of record for Form D filings, but its interface wasn't built for
-    browsing. Commercial providers like sec-api.io solve the problem for enterprise buyers at
-    $300+ per month. For everyone in between &mdash; investors, BD teams, compliance analysts,
-    and lawyers doing occasional lookups &mdash; there wasn't a clean, free option. Form D
-    Explorer fills that gap.
+    Form D Explorer brings issuer histories, filing details, and research guides together.
+    Start with a name or browse a populated state or industry, then verify disclosures
+    using the linked SEC source. Our <a class="link" href="/learn/form-d-data-methodology/">methodology</a>
+    explains coverage, amendments, and the limits of extracted data.
   </p>
 </section>
 
@@ -30,8 +45,8 @@
   <p>The dataset covers:</p>
   <ul class="list-disc space-y-1 pl-6">
     <li><a href="/recent/" class="link">Recent filings</a> &mdash; the 50 most recent Form D and D/A submissions.</li>
-    <li><a href="/" class="link">Issuer search</a> &mdash; fuzzy-matching on company names with filters for state, industry, offering size, and date range.</li>
-    <li>Per-issuer pages &mdash; every filing a given company has made, in one place.</li>
+    <li><a href="/search/" class="link">Issuer search</a> &mdash; fuzzy-matching on company names with filters for state, industry, offering size, and date range.</li>
+    <li>Per-issuer pages &mdash; available filings for a given issuer, in one place.</li>
     <li>Per-industry and per-state pages &mdash; aggregate stats plus the full filing list for that slice.</li>
   </ul>
 </section>
@@ -88,19 +103,5 @@
   </p>
 </section>
 
-{% if articles %}
-<section class="mt-14 max-w-3xl">
-  <h2 class="text-xl font-semibold tracking-tight text-slate-900">Guides &amp; explainers</h2>
-  <ul class="card-list mt-4">
-    {% for a in articles %}
-    <li class="row-hover p-5">
-      <a href="/learn/{{ a.slug }}/" class="text-lg font-semibold text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">{{ a.title }}</a>
-      <div class="mt-1 text-sm text-slate-500">{{ a.published_at|date:"M j, Y" }}</div>
-      {% if a.meta_description %}<p class="mt-2 text-sm text-slate-600">{{ a.meta_description }}</p>{% endif %}
-    </li>
-    {% endfor %}
-  </ul>
-</section>
-{% endif %}
 {% include "_partials/ad_slot.html" %}
 {% endblock %}

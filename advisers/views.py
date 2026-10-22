@@ -1,4 +1,5 @@
 import logging
+import re
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.postgres.search import TrigramSimilarity
@@ -71,16 +72,18 @@ def search_partial(request):
 
 
 def adviser_detail(request, crd: str):
-    if not crd.isdigit():
+    if not re.fullmatch(r"[0-9]+|80[12]-[0-9]+", crd):
         raise Http404
     adviser = get_object_or_404(Adviser, crd=crd)
+    if not adviser.has_crd:
+        request.seo_noindex = True
     matches = find_matching_issuers(adviser, limit=12)
     matched_issuer_ids = [m["issuer"].id for m in matches]
     matched_filings: list = []
     if matched_issuer_ids:
         matched_filings = list(
             Filing.objects.filter(issuer_id__in=matched_issuer_ids)
-            .select_related("issuer")
+            .select_related("issuer").defer("raw_xml")
             .order_by("-filing_date")[:25]
         )
     ctx = {
@@ -88,8 +91,8 @@ def adviser_detail(request, crd: str):
         "matches": matches,
         "matched_filings": matched_filings,
         **metadata(
-            f"{short_name(adviser.name)} — Form ADV (CRD {adviser.crd})",
-            f"{short_name(adviser.name)} (CRD {adviser.crd}): Form ADV firm details, "
+            f"{short_name(adviser.name)} — Form ADV ({adviser.identifier_label} {adviser.crd})",
+            f"{short_name(adviser.name)} ({adviser.identifier_label} {adviser.crd}): Form ADV firm details, "
             "reported regulatory AUM, registration status, and the SEC IAPD source.",
         ),
         "canonical_path": f"/adv/{adviser.crd}/",

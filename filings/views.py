@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Count, Max, Min, Sum
+from django.db.models import Count, Max
 from django.db.models.functions import ExtractYear
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -19,33 +19,18 @@ from .industry import INDUSTRY_GROUPS, NAME_TO_SLUG, SLUG_TO_NAME
 from .models import Filing, Issuer, IssuerView, IssuerWatch, RelatedPerson, SavedSearch
 from .search import active_filters, build_filing_query, search_persons
 from .states import US_STATES
+from .research import activity_stats, directory_data
 
-
-def _aggregate_stats(qs):
-    last_365 = timezone.now().date() - timedelta(days=365)
-    last_year = qs.filter(filing_date__gte=last_365)
-    sane = qs.filter(total_offering_amount__lte=OUTLIER_CAP)
-    agg = qs.aggregate(total_filings=Count("id"))
-    money = sane.aggregate(
-        total_raised=Sum("total_offering_amount"),
-        avg_raised=Avg("total_offering_amount"),
-    )
-    agg.update(money)
-    agg["filings_last_year"] = last_year.count()
-    return agg
 
 SEARCH_RESULT_LIMIT = 500
 EXPORT_ROW_LIMIT = 5000
-OUTLIER_CAP = 10_000_000_000  # $10B — above this is almost always bad data
 
 
 def home(request):
     recent = list(Filing.objects.select_related("issuer").defer("raw_xml").order_by("-filing_date", "-id")[:20])
-    from .sitemaps import IndustrySitemap, StateSitemap
-    active_industries = set(IndustrySitemap().items())
-    active_states = set(StateSitemap().items())
-    industries = [(name, slug) for name, slug in NAME_TO_SLUG.items() if f"/industry/{slug}/" in active_industries]
-    states = [(code, name) for code, name in US_STATES if f"/state/{code}/" in active_states]
+    directories = directory_data()
+    industries = [(row["name"], row["slug"]) for row in directories["industries"]]
+    states = [(row["code"], row["name"]) for row in directories["states"]]
     ctx = {
         "recent": recent,
         "viewed_ids": _viewed_issuer_ids(request.user, recent),
@@ -131,25 +116,12 @@ def issuer_detail(request, slug_cik: str):
         request.seo_noindex = True
     filings = issuer.filings.defer("raw_xml").order_by("-filing_date", "-id")
     page_obj = paginate(request, filings)
-    sane_filings = filings.filter(total_offering_amount__lte=OUTLIER_CAP)
-    agg = sane_filings.aggregate(
-        total_offered=Sum("total_offering_amount"),
-        total_sold=Sum("total_amount_sold"),
-    )
-    meta = filings.aggregate(
-        first_filed=Min("filing_date"),
-        last_filed=Max("filing_date"),
-        count=Count("id"),
-    )
-    agg.update(meta)
-    by_year = list(
-        sane_filings.annotate(year=ExtractYear("filing_date"))
-        .values("year")
-        .annotate(total=Sum("total_offering_amount"), count=Count("id"))
-        .order_by("year")
-    )
-    max_year_total = max((row["total"] or 0 for row in by_year), default=0)
-    industry_slug = NAME_TO_SLUG.get(filings.first().industry_group) if filings.exists() and filings.first().industry_group else None
+    agg = activity_stats(filings)
+    agg["count"] = agg["total_filings"]
+    by_year = list(filings.annotate(year=ExtractYear("filing_date"))
+                   .values("year").annotate(count=Count("id")).order_by("year"))
+    latest_filing = filings.first()
+    industry_slug = NAME_TO_SLUG.get(latest_filing.industry_group) if latest_filing else None
     related = []
     likely_advisers: list = []
     if issuer.normalized_name:
@@ -165,14 +137,14 @@ def issuer_detail(request, slug_cik: str):
     crowdfunding_filings: list = []
     try:
         crowdfunding_filings = list(
-            issuer.crowdfunding_filings.order_by("-filing_date")[:10]
+            issuer.crowdfunding_filings.defer("raw_xml").order_by("-filing_date")[:10]
         )
     except Exception:
         crowdfunding_filings = []
     rega_filings: list = []
     try:
         rega_filings = list(
-            issuer.rega_filings.order_by("-filing_date")[:10]
+            issuer.rega_filings.defer("raw_xml").order_by("-filing_date")[:10]
         )
     except Exception:
         rega_filings = []
@@ -186,7 +158,7 @@ def issuer_detail(request, slug_cik: str):
         "page_obj": page_obj,
         "stats": agg,
         "by_year": by_year,
-        "max_year_total": max_year_total,
+        "latest_filing": latest_filing,
         "industry_slug": industry_slug,
         "related_issuers": related,
         "likely_advisers": likely_advisers,
@@ -316,7 +288,7 @@ def watchlist(request):
 
 def filing_detail(request, accession_number: str):
     filing = get_object_or_404(
-        Filing.objects.select_related("issuer").prefetch_related("related_persons"),
+        Filing.objects.select_related("issuer").defer("raw_xml").prefetch_related("related_persons"),
         accession_number=accession_number,
     )
     if not filing.issuer.name.strip():
@@ -324,7 +296,7 @@ def filing_detail(request, accession_number: str):
     # Same issuer, near-in-date Form D / D/A chain.
     window = timedelta(days=365 * 3)
     lineage = (
-        Filing.objects.filter(issuer=filing.issuer)
+        Filing.objects.defer("raw_xml").filter(issuer=filing.issuer)
         .exclude(pk=filing.pk)
         .filter(
             filing_date__gte=filing.filing_date - window,
@@ -335,6 +307,7 @@ def filing_detail(request, accession_number: str):
     ctx = {
         "filing": filing,
         "lineage": list(lineage),
+        "industry_slug": NAME_TO_SLUG.get(filing.industry_group),
         **filing_metadata(
             filing, "Review reported offering amounts, amounts sold, related persons, and the EDGAR source."
         ),
@@ -344,12 +317,22 @@ def filing_detail(request, accession_number: str):
 
 
 def _top_issuers(qs, limit: int = 10):
-    return list(
-        qs.filter(total_offering_amount__lte=OUTLIER_CAP)
-        .values("issuer__name", "issuer__cik", "issuer__name_slug")
-        .annotate(total_raised=Sum("total_offering_amount"), filing_count=Count("id"))
-        .order_by("-total_raised")[:limit]
-    )
+    return list(qs.values("issuer__name", "issuer__cik", "issuer__name_slug")
+                .annotate(filing_count=Count("id"), latest=Max("filing_date"))
+                .order_by("-filing_count", "issuer__cik")[:limit])
+
+
+def research_directory(request, kind):
+    rows = directory_data()[kind]
+    label = "State" if kind == "states" else "Industry"
+    if not rows:
+        request.seo_noindex = True
+    return render(request, "filings/directory.html", {
+        "rows": rows, "kind": kind, "directory_label": label,
+        "canonical_path": f"/{kind}/",
+        **metadata(f"Browse SEC Form D Filings by {label}",
+                   f"Browse populated {label.lower()} directories of SEC Form D filings. Compare filing counts, issuers, and latest filing dates; open records and SEC sources."),
+    })
 
 
 def industry_detail(request, slug: str):
@@ -357,7 +340,7 @@ def industry_detail(request, slug: str):
     if not name:
         raise Http404
     qs = Filing.objects.filter(industry_group__iexact=name)
-    stats = _aggregate_stats(qs)
+    stats = activity_stats(qs)
     list_qs = qs.select_related("issuer").defer("raw_xml").order_by("-filing_date", "-id")
     top_issuers = _top_issuers(qs)
     page = paginate(request, list_qs)
@@ -388,13 +371,13 @@ def state_detail(request, state: str):
     qs = Filing.objects.filter(issuer__state=state_up)
     if not qs.exists():
         raise Http404
-    stats = _aggregate_stats(qs)
+    stats = activity_stats(qs)
     list_qs = qs.select_related("issuer").defer("raw_xml").order_by("-filing_date", "-id")
     top_issuers = _top_issuers(qs)
     top_industries = list(
         qs.exclude(industry_group="")
         .values("industry_group")
-        .annotate(count=Count("id"), total=Sum("total_offering_amount"))
+        .annotate(count=Count("id"))
         .order_by("-count")[:8]
     )
     for ind in top_industries:
@@ -402,6 +385,7 @@ def state_detail(request, state: str):
     page = paginate(request, list_qs)
     ctx = {
         "state": state_up,
+        "state_name": dict(US_STATES).get(state_up, state_up),
         "page_obj": page,
         "stats": stats,
         "top_issuers": top_issuers,

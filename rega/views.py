@@ -25,7 +25,7 @@ def _is_postgres() -> bool:
 
 
 def _build_qs(params):
-    qs = Form1AFiling.objects.select_related("issuer").all()
+    qs = Form1AFiling.objects.select_related("issuer").defer("raw_xml").all()
     q = (params.get("q") or "").strip()
     if q:
         if _is_postgres():
@@ -85,10 +85,10 @@ def search_partial(request):
 
 def detail(request, accession_number: str):
     filing = get_object_or_404(
-        Form1AFiling.objects.select_related("issuer"),
+        Form1AFiling.objects.select_related("issuer").defer("raw_xml"),
         accession_number=accession_number,
     )
-    form_d_filings = list(filing.issuer.filings.order_by("-filing_date")[:10])
+    form_d_filings = list(filing.issuer.filings.defer("raw_xml").order_by("-filing_date")[:10])
     crowdfunding_filings: list = []
     try:
         crowdfunding_filings = list(

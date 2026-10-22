@@ -15,6 +15,7 @@ from django.views.decorators.cache import cache_page
 from content.models import Article
 from .industry import NAME_TO_SLUG
 from .models import Filing, Issuer
+from .research import directory_data
 
 
 class CanonicalSitemap(Sitemap):
@@ -27,7 +28,9 @@ class CanonicalSitemap(Sitemap):
 
 class StaticSitemap(CanonicalSitemap):
     def items(self):
-        return ["/", "/recent/", "/learn/", "/learn/api/", "/pricing/", "/privacy/", "/terms/"]
+        urls = ["/", "/recent/", "/learn/", "/learn/api/", "/pricing/", "/privacy/", "/terms/"]
+        urls += [f"/{kind}/" for kind, rows in directory_data().items() if rows]
+        return urls
 
     def location(self, item):
         return item

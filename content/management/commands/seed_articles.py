@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from content.models import Article
+from content.research_guides import RESEARCH_GUIDES
 
 
 ARTICLES = [
@@ -18,8 +19,7 @@ ARTICLES = [
 
 Form D is a notice an issuer files with the SEC after raising money under **Regulation D** —
 the exemption that lets private companies sell securities without registering them publicly. It
-is not a fundraising approval; it is a **report that the fundraising already happened** (or
-started). The first Form D is due within 15 days of the first sale.
+is not a fundraising approval; it reports offering activity; it is not proof of a completed funding round or cash received. The first Form D is due within 15 days of the first sale.
 
 ## Why Form D exists
 
@@ -38,10 +38,9 @@ It is public by design. Anyone can read it on EDGAR — or here.
 
 ## What Form D does *not* tell you
 
-- **Nothing about financial performance.** No revenue, EBITDA, burn rate, or cap table.
+- **Limited issuer-size information.** The form may disclose a revenue or net-asset-value range, but it does not provide a complete financial statement, burn rate, or cap table.
 - **No investor names.** Just a count of how many invested and the minimum investment.
-- **No valuation.** You can back it out from total offered vs. stake in some cases, but the form
-  itself doesn't disclose it.
+- **No valuation.** Offering amounts and reported sales alone do not establish a company valuation.
 - **It's self-reported.** The SEC does not audit Form Ds. Errors and stale amendments are common.
 
 ## D vs. D/A
@@ -54,9 +53,7 @@ typo. Some issuers file D/As every quarter while a fund is still raising; others
 
 A few fields that matter more than you'd think:
 
-- **Total offering amount vs. amount sold.** "Up to $50M offered, $12M sold" tells you where a
-  fund is in its raise — and if sold = $0, often the filing was triggered by a first commitment
-  with no money yet in the door.
+- **Offering amount vs. reported amount sold.** Keep these fields separate. A zero sold value does not establish why the filing was made. Read the source and [amount interpretation guide](/learn/form-d-offering-amount-vs-amount-sold/).
 - **Date of first sale.** Starts the 15-day filing clock and signals when the deal actually
   began.
 - **Industry group.** The issuer picks this from a fixed SEC list. "Pooled Investment Fund"
@@ -802,7 +799,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **opts):
         now = timezone.now()
-        for data in ARTICLES:
+        for data in ARTICLES + RESEARCH_GUIDES:
             defaults = {key: data[key] for key in ("title", "meta_description", "body")}
             article, created = Article.objects.get_or_create(
                 slug=data["slug"], defaults={**defaults, "published_at": now}

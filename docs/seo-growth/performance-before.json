@@ -1,0 +1,82 @@
+[
+  {
+    "path": "/",
+    "cache": "cold",
+    "median_ms": 4.19,
+    "queries": 3,
+    "raw_xml_selects": 0,
+    "html_bytes": 34814
+  },
+  {
+    "path": "/",
+    "cache": "warm",
+    "median_ms": 3.93,
+    "queries": 3,
+    "raw_xml_selects": 0,
+    "html_bytes": 34814
+  },
+  {
+    "path": "/state/CA/",
+    "cache": "cold",
+    "median_ms": 16.16,
+    "queries": 8,
+    "raw_xml_selects": 0,
+    "html_bytes": 52968
+  },
+  {
+    "path": "/state/CA/",
+    "cache": "warm",
+    "median_ms": 14.89,
+    "queries": 8,
+    "raw_xml_selects": 0,
+    "html_bytes": 52968
+  },
+  {
+    "path": "/industry/biotechnology/",
+    "cache": "cold",
+    "median_ms": 14.02,
+    "queries": 6,
+    "raw_xml_selects": 0,
+    "html_bytes": 57330
+  },
+  {
+    "path": "/industry/biotechnology/",
+    "cache": "warm",
+    "median_ms": 13.67,
+    "queries": 6,
+    "raw_xml_selects": 0,
+    "html_bytes": 57330
+  },
+  {
+    "path": "/issuer/research-fixture-0-9000000/",
+    "cache": "cold",
+    "median_ms": 6.37,
+    "queries": 16,
+    "raw_xml_selects": 2,
+    "html_bytes": 27003
+  },
+  {
+    "path": "/issuer/research-fixture-0-9000000/",
+    "cache": "warm",
+    "median_ms": 5.63,
+    "queries": 16,
+    "raw_xml_selects": 2,
+    "html_bytes": 27003
+  },
+  {
+    "path": "/filing/fixture-0/",
+    "cache": "cold",
+    "median_ms": 2.49,
+    "queries": 3,
+    "raw_xml_selects": 2,
+    "html_bytes": 15016
+  },
+  {
+    "path": "/filing/fixture-0/",
+    "cache": "warm",
+    "median_ms": 2.38,
+    "queries": 3,
+    "raw_xml_selects": 2,
+    "html_bytes": 15016
+  }
+]

@@ -11,6 +11,7 @@ from django.utils.text import Truncator
 from django.views.decorators.http import require_POST
 
 from .models import Article, NewsletterSubscriber
+from .research_guides import RESEARCH_GUIDES
 from config.advertising import placement
 from config.metadata import clean_text, metadata, short_name
 from .metadata import GUIDES
@@ -44,6 +45,7 @@ def article_detail(request, slug: str):
     ctx = {
         "article": article,
         "body_html": body_html,
+        "related_guides": Article.objects.filter(slug__in=[g["slug"] for g in RESEARCH_GUIDES], published_at__lte=timezone.now()).exclude(pk=article.pk).alias(content=Trim("body")).exclude(content="").only("title", "slug"),
         **metadata(title, description),
         "canonical_path": f"/learn/{article.slug}/",
     }

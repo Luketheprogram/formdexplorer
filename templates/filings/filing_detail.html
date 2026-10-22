@@ -15,16 +15,18 @@
   </div>
 </header>
 
+{% include "_partials/research_note.html" %}
+<p class="mt-3 text-sm"><a class="link" href="{{ filing.edgar_url }}" rel="noopener">Check this disclosure on SEC EDGAR</a>{% if industry_slug %} · <a class="link" href="/industry/{{ industry_slug }}/">More {{ filing.industry_group }} filings</a>{% endif %}</p>
 <section class="mt-8 grid gap-4 md:grid-cols-2 md:gap-6">
   <div class="card p-5 md:p-6">
     <h2 class="eyebrow">Offering</h2>
     <dl class="mt-4 divide-y divide-slate-100 text-sm text-slate-800">
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Industry</dt><dd class="text-right font-medium">{{ filing.industry_group|default:"—" }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Exemptions</dt><dd class="text-right font-medium">{{ filing.offering_type|default:"—" }}</dd></div>
-      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Total offering</dt><dd class="amount text-right font-medium">{{ filing.total_offering_amount|dollars_full }}</dd></div>
-      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Total sold</dt><dd class="amount text-right font-medium">{{ filing.total_amount_sold|dollars_full }}</dd></div>
+      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Reported offering amount</dt><dd class="amount text-right font-medium">{{ filing.total_offering_amount|dollars_full }}</dd></div>
+      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Reported amount sold</dt><dd class="amount text-right font-medium">{{ filing.total_amount_sold|dollars_full }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Minimum investment</dt><dd class="amount text-right font-medium">{{ filing.minimum_investment|dollars_full }}</dd></div>
-      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Investors</dt><dd class="amount text-right font-medium">{{ filing.num_investors|default:"—" }}</dd></div>
+      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Investors</dt><dd class="amount text-right font-medium">{{ filing.num_investors|default_if_none:"—" }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Sales commission</dt><dd class="amount text-right font-medium">{{ filing.sales_commission|dollars_full }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Finders' fees</dt><dd class="amount text-right font-medium">{{ filing.finders_fees|dollars_full }}</dd></div>
     </dl>
@@ -78,6 +80,6 @@
 </section>
 {% endif %}
 <p class="mt-8 text-sm text-slate-500">
-  View the original filing on <a href="{{ filing.edgar_url }}" class="link" rel="nofollow noopener">SEC EDGAR ↗</a>
+  View the original filing on <a href="{{ filing.edgar_url }}" class="link" rel="noopener">SEC EDGAR ↗</a>
 </p>
 {% endblock %}

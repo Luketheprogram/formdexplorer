@@ -86,6 +86,12 @@ def parse_primary_doc(xml_bytes: bytes, accession_number: str) -> ParsedFiling:
     offering = root.find(".//offeringData")
     pf = ParsedFiling(accession_number=accession_number, raw_xml=xml_bytes.decode("utf-8", errors="replace"))
 
+    # Live submissions can put submissionType directly under edgarSubmission.
+    sub_type = _text(root, "submissionType") or _text(root, ".//headerData/submissionType")
+    if sub_type.upper() in {"D", "D/A"}:
+        pf.form_type = sub_type.upper()
+        pf.is_amendment = pf.form_type == "D/A"
+
     if header is not None:
         sub_type = _text(header, "submissionType") or _text(header, ".//submissionType")
         if sub_type:
