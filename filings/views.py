@@ -11,6 +11,7 @@ from django.db.models.functions import ExtractYear
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from config.metadata import DEFAULT_DESCRIPTION, DEFAULT_TITLE, filing_metadata, metadata, short_name
 
 from config.seo import collection_meta, paginate
 
@@ -49,13 +50,10 @@ def home(request):
         "recent": recent,
         "viewed_ids": _viewed_issuer_ids(request.user, recent),
         "industries": industries,
+        "page_title": DEFAULT_TITLE,
+        "meta_description": DEFAULT_DESCRIPTION,
         "states": states,
         "canonical_path": "/",
-        "page_title": "Form D Explorer — Search SEC Form D Filings",
-        "meta_description": (
-            "Search SEC Form D filings by company, state, industry, or offering size. "
-            "Clean, fast, free."
-        ),
     }
     return render(request, "filings/home.html", ctx)
 
@@ -102,8 +100,11 @@ def _search_context(request):
 def search(request):
     ctx = _search_context(request)
     ctx.update({
-        "page_title": "Search — Form D Explorer",
-        "meta_description": "Search SEC Form D filings by issuer, state, industry, or offering size.",
+        **metadata(
+            "Search SEC Form D Filings",
+            "Search private placement filings by issuer, state, industry, date, or offering size. "
+            "Compare reported offering amounts and amounts sold in SEC Form D records.",
+        ),
         "robots": "noindex,follow",
     })
     return render(request, "filings/search.html", ctx)
@@ -192,10 +193,11 @@ def issuer_detail(request, slug_cik: str):
         "crowdfunding_filings": crowdfunding_filings,
         "rega_filings": rega_filings,
         "is_watching": is_watching,
-        "page_title": f"{issuer.name} SEC Form D Filings | Form D Explorer",
-        "meta_description": (
-            f"{issuer.name} (CIK {issuer.cik}) — all SEC Form D filings, offering "
-            f"amounts, related persons, and filing history."
+        **metadata(
+            f"{short_name(issuer.name)} — Form D Filings (CIK {issuer.cik})",
+            f"Explore SEC Form D filings for {short_name(issuer.name)} (CIK {issuer.cik}). "
+            "Review filing history and reported offering amounts and amounts sold.",
+            page=page_obj,
         ),
         "canonical_path": f"/issuer/{issuer.url_slug}/",
     }
@@ -288,10 +290,10 @@ def person_detail(request, slug: str):
         "filings_total": filings.count(),
         "relationships": relationships,
         "issuers": list(issuers.values())[:20],
-        "page_title": f"{display_name} — SEC Form D Filings | Form D Explorer",
-        "meta_description": (
-            f"Every SEC Form D filing where {display_name} is listed as an executive "
-            f"officer, director, or promoter."
+        **metadata(
+            f"{short_name(display_name)} — Form D Related Person",
+            f"Browse SEC Form D records listing the name {short_name(display_name)}. "
+            "Review reported roles, associated issuers, and links to individual filings.",
         ),
         "canonical_path": f"/person/{slug}/",
     }
@@ -333,12 +335,8 @@ def filing_detail(request, accession_number: str):
     ctx = {
         "filing": filing,
         "lineage": list(lineage),
-        "page_title": (
-            f"Form {filing.form_type} — {filing.issuer.name} ({filing.filing_date}) | Form D Explorer"
-        ),
-        "meta_description": (
-            f"{filing.issuer.name} filed Form {filing.form_type} on {filing.filing_date}. "
-            f"Offering details, related persons, and SEC EDGAR link."
+        **filing_metadata(
+            filing, "Review reported offering amounts, amounts sold, related persons, and the EDGAR source."
         ),
         "canonical_path": f"/filing/{filing.accession_number}/",
     }
@@ -369,9 +367,11 @@ def industry_detail(request, slug: str):
         "page_obj": page,
         "stats": stats,
         "top_issuers": top_issuers,
-        "page_title": f"{name} — SEC Form D Filings | Form D Explorer",
-        "meta_description": (
-            f"Recent SEC Form D filings in {name}. Offering amounts, issuers, and filing history."
+        **metadata(
+            f"{name} SEC Form D Filings",
+            f"Browse {name} private placement filings. Review issuers, reported offering "
+            "amounts, filing dates, and industry filing history from SEC Form D records.",
+            page=page,
         ),
         "canonical_path": f"/industry/{slug}/",
     }
@@ -381,6 +381,7 @@ def industry_detail(request, slug: str):
 
 def state_detail(request, state: str):
     state_up = state.upper()
+    state_name = dict(US_STATES).get(state_up, state_up)
     if state != state_up:
         query = request.GET.urlencode()
         return redirect(f"/state/{state_up}/" + (f"?{query}" if query else ""), permanent=True)
@@ -405,9 +406,11 @@ def state_detail(request, state: str):
         "stats": stats,
         "top_issuers": top_issuers,
         "top_industries": top_industries,
-        "page_title": f"{dict(US_STATES).get(state_up, state_up)} SEC Form D Filings | Form D Explorer",
-        "meta_description": (
-            f"SEC Form D filings from issuers in {dict(US_STATES).get(state_up, state_up)}. Offering amounts, industries, dates."
+        **metadata(
+            f"{state_name} SEC Form D Filings",
+            f"Explore SEC Form D filings from issuers in {state_name}. "
+            "Browse private placement notices by company, industry, filing date, and reported offering amount.",
+            page=page,
         ),
         "canonical_path": f"/state/{state_up}/",
     }
@@ -420,8 +423,11 @@ def recent(request):
     ctx = {
         "filings": qs,
         "viewed_ids": _viewed_issuer_ids(request.user, qs),
-        "page_title": "Recent SEC Form D Filings | Form D Explorer",
-        "meta_description": "The 50 most recent SEC Form D filings.",
+        **metadata(
+            "Recent SEC Form D Filings & Private Capital Raises",
+            "Research recent private capital raises through the latest 50 Form D filings in our database. "
+            "View issuers, filing dates, and reported offering amounts.",
+        ),
         "canonical_path": "/recent/",
     }
     return render(request, "filings/recent.html", ctx)

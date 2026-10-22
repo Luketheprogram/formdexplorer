@@ -35,7 +35,7 @@ def seo_structured_data(context):
     if article:
         graph.append({
             "@type": "Article", "headline": article.title,
-            "description": article.meta_description or article.title,
+            "description": context.get("meta_description") or article.meta_description or article.title,
             "datePublished": article.published_at.isoformat(),
             "dateModified": article.updated_at.isoformat(),
             "author": {"@id": publisher["@id"]}, "publisher": {"@id": publisher["@id"]},

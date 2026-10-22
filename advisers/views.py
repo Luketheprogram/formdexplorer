@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from config.metadata import metadata, short_name
 
 from filings.exports import xlsx_response
 from filings.models import Filing, Issuer
@@ -48,10 +49,11 @@ def search(request):
         "q": q,
         "page_obj": page,
         "total": qs.count(),
-        "page_title": "ADV Search — Form D Explorer",
-        "meta_description": (
-            "Search SEC-registered investment advisers (Form ADV). "
-            "AUM, employees, registration status, and links to Form D filings."
+        **metadata(
+            "Investment Adviser Search — Form ADV",
+            "Search investment adviser records from Form ADV. Review reported regulatory AUM, "
+            "firm details, registration status, and SEC IAPD source links.",
+            page=page,
         ),
         "canonical_path": "/adv/",
     }
@@ -85,10 +87,10 @@ def adviser_detail(request, crd: str):
         "adviser": adviser,
         "matches": matches,
         "matched_filings": matched_filings,
-        "page_title": f"{adviser.name} (Form ADV) | Form D Explorer",
-        "meta_description": (
-            f"{adviser.name} — Form ADV registration details, AUM, address, "
-            f"and any Form D filings filed under the same name."
+        **metadata(
+            f"{short_name(adviser.name)} — Form ADV (CRD {adviser.crd})",
+            f"{short_name(adviser.name)} (CRD {adviser.crd}): Form ADV firm details, "
+            "reported regulatory AUM, registration status, and the SEC IAPD source.",
         ),
         "canonical_path": f"/adv/{adviser.crd}/",
     }

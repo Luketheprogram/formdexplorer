@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from config.metadata import filing_metadata, metadata
 
 from filings.exports import xlsx_response
 from filings.views import _enforce_export_gate
@@ -62,10 +63,11 @@ def search(request):
         "q": q,
         "page_obj": page,
         "total": qs.count(),
-        "page_title": "Form 1-A Search — Form D Explorer",
-        "meta_description": (
-            "Search SEC Reg A+ filings (Form 1-A / 1-K / 1-U / 1-Z). Tier 1 vs "
-            "Tier 2, offering size, audited financials, and cross-links to Form D."
+        **metadata(
+            "Reg A+ Filings — SEC Form 1-A Search",
+            "Search Regulation A filings, including Form 1-A offering statements and ongoing reports. "
+            "Review issuers, offering tiers, and reported offering details.",
+            page=page,
         ),
         "canonical_path": "/1a/",
     }
@@ -105,12 +107,8 @@ def detail(request, accession_number: str):
         "form_d_filings": form_d_filings,
         "crowdfunding_filings": crowdfunding_filings,
         "likely_advisers": likely_advisers,
-        "page_title": (
-            f"Form {filing.form_type} — {filing.issuer.name} ({filing.filing_date}) | Form D Explorer"
-        ),
-        "meta_description": (
-            f"{filing.issuer.name} filed Form {filing.form_type} on {filing.filing_date}. "
-            f"Reg A+ offering details, tier, and financials."
+        **filing_metadata(
+            filing, "View the Regulation A filing record, available disclosures, and SEC EDGAR source."
         ),
         "canonical_path": f"/1a/{filing.accession_number}/",
     }

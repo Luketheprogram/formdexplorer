@@ -44,8 +44,7 @@ def collection_meta(request, context, page):
         context["robots"] = "noindex, follow"
     if page.number > 1:
         context["canonical_path"] += f"?page={page.number}"
-        context["page_title"] = f"Page {page.number} — {context['page_title']}"
-        context["meta_description"] += f" Page {page.number}."
+        # Title/description pagination is applied once by config.metadata.
         # Retain crawlable links and a self-canonical, but focus indexing on hubs.
         request.seo_noindex = True
         context["robots"] = "noindex, follow"

@@ -1,24 +1,29 @@
 import markdown as md
+from html import unescape
 from django.contrib import messages
 from django.db.models.functions import Trim
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django.utils.html import strip_tags
+from django.utils.text import Truncator
 from django.views.decorators.http import require_POST
 
 from .models import Article, NewsletterSubscriber
 from config.advertising import placement
+from config.metadata import clean_text, metadata, short_name
+from .metadata import GUIDES
 
 
 def article_list(request):
     articles = Article.objects.filter(published_at__lte=timezone.now()).alias(content=Trim("body")).exclude(content="").order_by("-published_at")
     ctx = {
         "articles": articles,
-        "page_title": "SEC Form D Guides & Filing Research | Form D Explorer",
-        "meta_description": (
-            "Form D Explorer is a clean, fast search interface over SEC Form D filings. "
-            "Free search, alerts, and watchlists; pay only for Excel and CSV exports."
+        **metadata(
+            "SEC Filing Guides: Form D, Form C, ADV & Reg A+",
+            "Learn how to read SEC private market filings. Explore guides to Form D, "
+            "Regulation D exemptions, crowdfunding, Reg A+ offerings, and investment advisers.",
         ),
         "canonical_path": "/learn/",
     }
@@ -31,11 +36,15 @@ def article_detail(request, slug: str):
         return api_docs(request)
     article = get_object_or_404(Article, slug=slug, published_at__lte=timezone.now())
     body_html = mark_safe(md.markdown(article.body, extensions=["extra", "toc"]))
+    title, description = GUIDES.get(article.slug, (article.title, article.meta_description))
+    if not clean_text(description):
+        description = Truncator(clean_text(unescape(strip_tags(body_html)))).chars(160)
+    if not description:
+        description = f"Read {short_name(article.title)}, an educational guide from Form D Explorer."
     ctx = {
         "article": article,
         "body_html": body_html,
-        "page_title": f"{article.title} | Form D Explorer",
-        "meta_description": article.meta_description or article.title,
+        **metadata(title, description),
         "canonical_path": f"/learn/{article.slug}/",
     }
     if not article.body.strip():
@@ -47,7 +56,7 @@ def article_detail(request, slug: str):
 
 def api_docs(request):
     ctx = {
-        "page_title": "API reference | Form D Explorer",
+        "page_title": "SEC Form D API Reference | Form D Explorer",
         "meta_description": (
             "REST API reference for Form D Explorer. Endpoints, authentication, "
             "rate limits, and response formats."
