@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 {% if adsense_client %}<meta name="google-adsense-account" content="{{ adsense_client }}">{% endif %}
-<title>{% block title %}{{ page_title|default:SITE_NAME }}{% endblock %}</title>
+<title>{% block title %}{{ page_title|default:DEFAULT_PAGE_TITLE }}{% endblock %}</title>
 <meta name="description" content="{% block meta_description %}{{ meta_description|default:DEFAULT_META_DESCRIPTION }}{% endblock %}">
 {% block robots %}{% if robots %}<meta name="robots" content="{{ robots }}">{% endif %}{% endblock %}
 {% if canonical_path %}<link rel="canonical" href="{{ SITE_URL }}{{ canonical_path }}">{% endif %}
@@ -12,12 +12,12 @@
 <link rel="alternate icon" href="{% static 'favicon.svg' %}">
 <meta property="og:site_name" content="{{ SITE_NAME }}">
 <meta property="og:type" content="website">
-<meta property="og:title" content="{% block og_title %}{{ page_title|default:SITE_NAME }}{% endblock %}">
+<meta property="og:title" content="{% block og_title %}{{ page_title|default:DEFAULT_PAGE_TITLE }}{% endblock %}">
 <meta property="og:description" content="{{ meta_description|default:DEFAULT_META_DESCRIPTION }}">
 <meta property="og:url" content="{{ SITE_URL }}{{ canonical_path|default:request.path }}">
 <meta property="og:image" content="{{ SITE_URL }}{% static 'og-image.svg' %}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{{ page_title|default:SITE_NAME }}">
+<meta name="twitter:title" content="{{ page_title|default:DEFAULT_PAGE_TITLE }}">
 <meta name="twitter:description" content="{{ meta_description|default:DEFAULT_META_DESCRIPTION }}">
 <meta name="twitter:image" content="{{ SITE_URL }}{% static 'og-image.svg' %}">
 <script type="application/ld+json">

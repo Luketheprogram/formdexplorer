@@ -15,7 +15,11 @@ urlpatterns = [
         "privacy/",
         TemplateView.as_view(
             template_name="legal/privacy.html",
-            extra_context={"page_title": "Privacy — Form D Explorer", "canonical_path": "/privacy/", "updated": "2026-10-21"},
+            extra_context={
+                "page_title": "Privacy Policy | Form D Explorer",
+                "meta_description": "Read how Form D Explorer handles account information, usage data, cookies, advertising choices, and privacy requests.",
+                "canonical_path": "/privacy/", "updated": "2026-10-21",
+            },
         ),
         name="privacy",
     ),
@@ -23,7 +27,11 @@ urlpatterns = [
         "terms/",
         TemplateView.as_view(
             template_name="legal/terms.html",
-            extra_context={"page_title": "Terms of Service — Form D Explorer", "canonical_path": "/terms/", "updated": _UPDATED},
+            extra_context={
+                "page_title": "Terms of Service | Form D Explorer",
+                "meta_description": "Review the terms for using Form D Explorer, including SEC data limitations, permitted use, paid exports, and account responsibilities.",
+                "canonical_path": "/terms/", "updated": _UPDATED,
+            },
         ),
         name="terms",
     ),

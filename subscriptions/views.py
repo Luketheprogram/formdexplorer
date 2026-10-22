@@ -23,7 +23,7 @@ def _stripe_api_key() -> str:
 def pricing(request):
     ctx = {
         "plans": PLANS,
-        "page_title": "Pricing — Form D Explorer",
+        "page_title": "SEC Filing Export Pricing | Form D Explorer",
         "meta_description": "Search, alerts, and watchlists are free. Pay only for Excel and CSV exports.",
         "canonical_path": "/pricing/",
     }

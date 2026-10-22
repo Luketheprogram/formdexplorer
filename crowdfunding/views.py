@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from config.metadata import filing_metadata, metadata
 
 from filings.exports import xlsx_response
 from filings.views import _enforce_export_gate
@@ -66,10 +67,11 @@ def search(request):
         "q": q,
         "page_obj": page,
         "total": qs.count(),
-        "page_title": "Form C Search — Form D Explorer",
-        "meta_description": (
-            "Search SEC Form C / Reg CF crowdfunding filings. Issuer, intermediary "
-            "(Republic, WeFunder, StartEngine, etc.), offering amount, financials."
+        **metadata(
+            "Crowdfunding Filings — SEC Form C Search",
+            "Search SEC Form C crowdfunding filings, amendments, and reports. Explore issuers, "
+            "funding portals, reported offering targets, and available financial data.",
+            page=page,
         ),
         "canonical_path": "/cf/",
     }
@@ -102,12 +104,8 @@ def detail(request, accession_number: str):
         "filing": filing,
         "form_d_filings": list(form_d_filings),
         "likely_advisers": likely_advisers,
-        "page_title": (
-            f"Form {filing.form_type} — {filing.issuer.name} ({filing.filing_date}) | Form D Explorer"
-        ),
-        "meta_description": (
-            f"{filing.issuer.name} filed Form {filing.form_type} on {filing.filing_date}. "
-            f"Reg CF crowdfunding offering details, intermediary, and financials."
+        **filing_metadata(
+            filing, "View the Reg CF filing record, available disclosures, and SEC EDGAR source."
         ),
         "canonical_path": f"/cf/{filing.accession_number}/",
     }

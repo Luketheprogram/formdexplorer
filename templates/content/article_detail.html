@@ -28,7 +28,7 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "{{ article.title|escapejs }}",
-  "description": "{{ article.meta_description|escapejs }}",
+  "description": "{{ meta_description|escapejs }}",
   "datePublished": "{{ article.published_at|date:'c' }}",
   "dateModified": "{{ article.updated_at|date:'c' }}",
   "author": {"@type": "Organization", "name": "Form D Explorer"},
