@@ -35,7 +35,7 @@
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Target</dt><dd class="amount text-right font-medium">{{ filing.target_offering_amount|dollars_full }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Maximum</dt><dd class="amount text-right font-medium">{{ filing.maximum_offering_amount|dollars_full }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Security type</dt><dd class="text-right font-medium">{{ filing.security_type|default:"—" }}</dd></div>
-      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Price per security</dt><dd class="amount text-right font-medium">{% if filing.price_per_security %}${{ filing.price_per_security }}{% else %}—{% endif %}</dd></div>
+      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Price per security</dt><dd class="amount text-right font-medium">{% if filing.price_per_security != None %}${{ filing.price_per_security }}{% else %}—{% endif %}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Deadline</dt><dd class="text-right font-medium">{{ filing.offering_deadline|date:"M j, Y"|default:"—" }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Oversubscription</dt><dd class="text-right font-medium">{{ filing.oversubscription_accepted|yesno:"Accepted,Not accepted,—" }}</dd></div>
     </dl>

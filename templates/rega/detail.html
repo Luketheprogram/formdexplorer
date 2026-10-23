@@ -35,7 +35,7 @@
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Total offering</dt><dd class="amount text-right font-medium">{{ filing.total_offering_amount|dollars_full }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Total sold</dt><dd class="amount text-right font-medium">{{ filing.total_amount_sold|dollars_full }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Security type</dt><dd class="text-right font-medium">{{ filing.security_type|default:"—" }}</dd></div>
-      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Price per security</dt><dd class="amount text-right font-medium">{% if filing.price_per_security %}${{ filing.price_per_security }}{% else %}—{% endif %}</dd></div>
+      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Price per security</dt><dd class="amount text-right font-medium">{% if filing.price_per_security != None %}${{ filing.price_per_security }}{% else %}—{% endif %}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Over-allotment</dt><dd class="amount text-right font-medium">{{ filing.over_allotment|dollars_full }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Jurisdictions</dt><dd class="text-right font-medium">{{ filing.jurisdictions|default:"—" }}</dd></div>
     </dl>
