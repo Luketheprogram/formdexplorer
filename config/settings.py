@@ -207,3 +207,10 @@ if SENTRY_DSN:
         send_default_pii=False,
         environment="production" if not DEBUG else "development",
     )
+
+# Filing alerts are fail-closed until the reviewed rollout explicitly enables them.
+ALERT_EMAIL_ENABLED = _bool(os.environ.get("ALERT_EMAIL_ENABLED"), default=False)
+ALERT_EMAIL_TIMEOUT = 30
+ALERT_BATCH_SIZE = 50
+ALERT_MATCH_LIMIT = 1000
+ALERT_SEND_LIMIT = 100

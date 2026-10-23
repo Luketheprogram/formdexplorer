@@ -1,0 +1,16 @@
+{% autoescape off %}New Form D filings matching your saved searches or followed issuers:
+
+{% for event in events %}- {{ event.filing.issuer.name }} ({{ event.filing.form_type }}, filed {{ event.filing.filing_date|date:"Y-m-d" }})
+  {{ site_url }}/filing/{{ event.filing.accession_number }}/
+{% endfor %}
+Each filing is included once, even when it matches more than one search or followed issuer. Additional matches may arrive in a later digest.
+
+Manage saved searches: {{ site_url }}/saved-searches/
+Manage followed issuers: {{ site_url }}/watchlist/
+Email preferences: {{ site_url }}/saved-searches/alerts/
+Unsubscribe from all saved-search and watchlist emails: {{ unsubscribe_url }}
+
+You receive these emails because you saved a search or followed an issuer on Form D Explorer. Filing dates may be earlier than the date we first imported a filing.
+
+— Form D Explorer
+{% endautoescape %}

@@ -4,7 +4,7 @@
   <h1 class="text-2xl font-bold tracking-tight text-slate-900">Saved searches</h1>
   <a href="{% url 'filings:saved_search_create' %}" class="btn-primary btn-sm">New search</a>
 </div>
-<p class="mt-1 text-sm text-slate-500">Up to {{ max_searches }}. Emails sent daily when new filings match.</p>
+<p class="mt-1 text-sm text-slate-500">Up to {{ max_searches }}. Email digests cover newly imported Form D matches. <a href="{% url 'filings:alert_preferences' %}" class="link">Email preferences</a>.</p>
 
 <ul class="card-list mt-6">
   {% for s in searches %}
@@ -16,7 +16,11 @@
       </div>
       <div class="mt-1.5 text-xs text-slate-400">Created {{ s.created_at|date:"M j, Y" }} &middot; last checked {{ s.last_checked_at|date:"M j, Y"|default:"never" }}</div>
     </div>
-    <div class="flex shrink-0 items-center gap-2">
+    {% if s.alert_error %}<p class="text-sm text-red-600">{{ s.alert_error }}</p>{% endif %}
+    <div class="flex shrink-0 flex-wrap items-center gap-2">
+      <form method="post" action="{% url 'filings:saved_search_alert_toggle' s.pk %}">{% csrf_token %}
+        <button type="submit" class="btn-secondary btn-sm">{% if s.alerts_enabled %}Pause emails{% else %}Resume emails{% endif %}</button>
+      </form>
       <a href="{% url 'filings:saved_search_run' s.pk %}" class="btn-primary btn-sm">Run</a>
       <form method="post" action="{% url 'filings:saved_search_delete' s.pk %}">{% csrf_token %}
         <button type="submit" class="btn btn-sm border border-red-200 bg-white text-red-600 shadow-sm hover:border-red-300 hover:bg-red-50">Delete</button>

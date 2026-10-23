@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold tracking-tight text-slate-900">{% if done %}Filing emails paused{% else %}Unsubscribe from filing emails{% endif %}</h1>
+<p class="mt-2 text-sm text-slate-500">{% if done %}You will no longer receive saved-search or watchlist emails. Your saved searches and followed issuers are still available.{% else %}Pause all saved-search and watchlist emails. Your saved searches and followed issuers will remain available.{% endif %}</p>
+{% if not done %}<form method="post" class="mt-6">{% csrf_token %}<button class="btn-primary btn-sm" type="submit">Unsubscribe</button></form>{% endif %}
+<p class="mt-6 text-sm"><a class="link" href="{% url 'filings:alert_preferences' %}">Manage email preferences</a></p>
+{% endblock %}

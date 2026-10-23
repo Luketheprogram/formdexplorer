@@ -244,7 +244,7 @@ def issuer_watch_toggle(request, cik: str):
     if watch:
         watch.delete()
     else:
-        IssuerWatch.objects.create(user=request.user, issuer=issuer)
+        IssuerWatch.objects.create(user=request.user, issuer=issuer, alerts_started_at=timezone.now())
     return redirect(f"/issuer/{issuer.url_slug}/")
 
 
@@ -577,7 +577,7 @@ def saved_search_create(request):
             except SearchValidationError as exc:
                 messages.error(request, str(exc))
             else:
-                SavedSearch.objects.create(user=request.user, name=name, params=params)
+                SavedSearch.objects.create(user=request.user, name=name, params=params, alerts_started_at=timezone.now())
                 messages.success(request, f"Saved '{name}'.")
                 return redirect("filings:saved_search_list")
     return render(

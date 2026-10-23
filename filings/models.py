@@ -103,6 +103,7 @@ class Filing(models.Model):
         indexes = [
             models.Index(fields=["-filing_date"]),
             models.Index(fields=["industry_group", "-filing_date"]),
+            models.Index(fields=["created_at", "id"], name="filing_alert_created_idx"),
         ]
 
     def __str__(self) -> str:
@@ -143,6 +144,8 @@ class IssuerWatch(models.Model):
         "filings.Issuer", on_delete=models.CASCADE, related_name="watchers"
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    alerts_enabled = models.BooleanField(default=True)
+    alerts_started_at = models.DateTimeField(null=True, blank=True)
     last_notified_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -160,6 +163,9 @@ class SavedSearch(models.Model):
     name = models.CharField(max_length=120)
     params = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
+    alerts_enabled = models.BooleanField(default=True)
+    alerts_started_at = models.DateTimeField(null=True, blank=True)
+    alert_error = models.CharField(max_length=255, blank=True)
     last_checked_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -250,3 +256,5 @@ class IssuerFieldObservation(models.Model):
 
 # Imported here so Django discovers the operational models with the filings app.
 from filings.ingest.models import IngestionJob, IngestionRun, IngestionSource  # noqa: E402,F401
+
+from .alerts.models import AlertPreference, AlertDelivery, AlertEvent, AlertRun  # noqa: E402,F401

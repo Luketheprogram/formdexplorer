@@ -1,10 +1,16 @@
 from django.urls import path
 
 from . import feeds, views
+from .alerts import views as alert_views
 
 app_name = "filings"
 
 urlpatterns = [
+    path("saved-searches/alerts/", alert_views.preferences, name="alert_preferences"),
+    path("saved-searches/alerts/unsubscribe/<uuid:token>/", alert_views.unsubscribe, name="alert_unsubscribe"),
+    path("saved-searches/alerts/unsubscribe/<uuid:token>/one-click/", alert_views.unsubscribe_one_click, name="alert_unsubscribe_one_click"),
+    path("saved-searches/<int:pk>/alerts/", alert_views.toggle_source, {"kind":"search"}, name="saved_search_alert_toggle"),
+    path("watchlist/<int:pk>/alerts/", alert_views.toggle_source, {"kind":"watch"}, name="watch_alert_toggle"),
     path("", views.home, name="home"),
     path("search/", views.search, name="search"),
     path("search/partial/", views.search_partial, name="search_partial"),

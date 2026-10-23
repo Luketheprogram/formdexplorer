@@ -70,9 +70,9 @@ class SearchValidationTests(TestCase):
         SavedSearch.objects.create(user=self.user, name="invalid", params={"date_from": "bad"})
         SavedSearch.objects.create(user=self.user, name="valid", params={"state": ["CA", "NY"]})
         out, err = StringIO(), StringIO()
-        call_command("send_saved_search_alerts", dry_run=True, lookback_days=10000, stdout=out, stderr=err)
+        call_command("send_saved_search_alerts", dry_run=True, stdout=out, stderr=err)
         self.assertIn("invalid filters", err.getvalue())
-        self.assertIn("Alerts processed: 1", out.getvalue())
+        self.assertIn('"initialized": 1', out.getvalue())
 
     def test_nested_saved_values_are_rejected(self):
         with self.assertRaises(SearchValidationError):

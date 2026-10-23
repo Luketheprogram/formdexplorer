@@ -1,0 +1,144 @@
+SAVED-SEARCH AND WATCHLIST ALERTS — LOCAL REVIEW, NOT DEPLOYED
+
+Baseline: production release 00f6677822241c2ee5a70538b61cc98f58ff54fa.
+No production code/settings/data were changed, no scheduler was activated,
+and no customer emails were sent. ALERT_EMAIL_ENABLED defaults to False.
+Unrelated signup/growth changes in the shared checkout are excluded from
+outputs/alert-reliability/review.patch and the isolated test checkout.
+
+What changes
+
+1. Durable outbox and discovery
+   Saved searches and followed issuers share a unique user/filing event.
+   Overlapping filters/follows cannot produce duplicate filing notifications.
+   Discovery uses first-import timestamps, preserving explicit saved date
+   filters, so late imports of old SEC filings are still eligible. It scans
+   unmatched rows instead of advancing a cursor that could skip a late commit.
+   Invalid searches are isolated and show an actionable status in the saved
+   search list; valid searches and watches continue.
+
+   Each pass discovers at most 1,000 matches per source, excluding already
+   associated rows before the limit. Subsequent passes continue overflow.
+   A digest contains at most 50 filings; additional events remain queued.
+   One outstanding digest per user avoids an immediate burst of emails.
+   A run sends at most 100 due digests. Queue age is monitored.
+
+   Legacy searches/watches start at their first enqueue pass, with no historical
+   email blast. Newly created subscriptions start when saved/followed. No old
+   filing, issuer, source XML, reviewed-field, or URL value is overwritten.
+
+2. Delivery, retry and duplicate protection
+   PostgreSQL serializes workers through a dedicated advisory lock. A delivery
+   claim and attempt counter commit before SMTP, and sent records are not sent
+   again. Each message has a stable delivery Message-ID.
+   Connection failures and explicit temporary SMTP rejections retry with
+   exponential backoff (15, 30, 60, 120 and 240 minutes; six total attempts).
+   Actual retry time is the next worker run after the deadline.
+   Permanent rejections, exhausted retries, interrupted sends and ambiguous
+   acceptance are held for review. One recipient's SMTP error does not stop
+   other recipients. A QUIT failure cannot undo an already accepted message.
+
+   SMTP cannot guarantee exactly-once delivery across a network interruption
+   after acceptance. This patch does not pretend otherwise: uncertain messages
+   are NOT automatically resent. Inspect provider logs using the stored key /
+   Message-ID, then record accepted, not-accepted, or cancelled with a reason.
+   A held delivery also pauses additional digests for that user until resolved.
+   'sent' means SMTP accepted the message, not proof of inbox delivery. Provider
+   bounce/webhook integration is not included in this provider-neutral patch.
+
+3. User controls
+   Existing saved-search and watchlist URLs keep their layouts and gain small
+   pause/resume controls and an email-preferences link. Pausing does not delete
+   searches or follows. Resuming starts from newly imported filings and does
+   not send the paused backlog. A global preference controls filing emails only.
+   The body unsubscribe link works without login and requires confirmation via
+   a CSRF-protected POST; fetching the link does not unsubscribe the recipient.
+   A separate token-authorized, POST-only one-click endpoint supports mailbox
+   provider unsubscribe requests. It cannot opt anyone in. Tokens are rotated
+   on re-enabling global emails, so an old message cannot undo new consent.
+   Preferences and sending share a database lock. Unsubscribing suppresses
+   queued mail; an already in-flight accepted message cannot be recalled.
+
+   New routes are within existing private/noindex URL prefixes and use
+   no-store/referrer protections. Public SEO, canonical URLs, sitemaps, shared
+   CSS, navigation and public page templates are unchanged.
+
+4. Fail-closed operation and monitoring
+   No command sends by default. process_filing_alerts, send_saved_search_alerts
+   and send_watchlist_alerts default to read-only previews. --enqueue-only
+   writes queue records but sends nothing. --send additionally requires the
+   explicit environment switch, configured encrypted SMTP and an HTTPS origin.
+   Console/file/in-memory backends cannot mark customer messages as sent.
+   The production sender requires healthy Form D ingestion; operational health
+   checks report missing/stale worker runs, held/interrupted deliveries, invalid
+   searches and aged queued or unbatched work. Logs do not expose recipients,
+   unsubscribe tokens, message bodies or SMTP error payloads.
+
+Review/test evidence
+
+- Full isolated PostgreSQL suite: 218 tests passed, no skips.
+- Includes concurrent claim winners, advisory lock exclusion, unsubscribe/send
+  serialization and interruption after possible SMTP acceptance.
+- Includes a real Django SMTP transport against a loopback-only SMTP sink:
+  one accepted message; repeat suppressed; explicit 451 rejection followed
+  by one accepted retry. The sink cannot relay customer mail.
+- Unit coverage includes more than 100 matches, late imports/commits, legacy
+  initialization, overlapping subscriptions, opt-outs, token rotation,
+  ownership/CSRF/noindex, disabled delivery, permanent/ambiguous errors,
+  bounded overflow, multiple recipients, monitoring and manual resolution.
+- Existing access/export, search, data repair, ingestion and SEO tests passed.
+- Browser inspection with synthetic local data verified saved-search pause,
+  global email pause and watchlist controls using the existing design system.
+- Full migration chain passed on the disposable database; final migration
+  state, SQL and whitespace checks are stored alongside the patch.
+
+Review artifacts (workspace-relative)
+  outputs/alert-reliability/review.patch
+  outputs/alert-reliability/scope.json
+  outputs/alert-reliability/postgres-tests.log
+  outputs/alert-reliability/preferences-preview.png
+
+Future rollout — requires separate approval
+
+1. Review the patch, initialization policy and digest cadence. Take a fresh
+   production backup. Apply additive filings.0016 (four operational tables,
+   two match join tables, preference fields and a filing import-time index).
+   Review index-build locking for the production database during deployment.
+2. Deploy with ALERT_EMAIL_ENABLED=False. Configure SMTP via Railway secrets
+   using the existing EMAIL_HOST/EMAIL_PORT/EMAIL_HOST_USER/EMAIL_HOST_PASSWORD,
+   EMAIL_USE_TLS=True, DEFAULT_FROM_EMAIL and HTTPS SITE_URL.
+   No provider or paid plan has been selected or provisioned by this patch.
+3. Verify sender/domain authentication and provider handling of the
+   List-Unsubscribe and List-Unsubscribe-Post headers. RFC 8058 requires these
+   headers to be covered by DKIM; the SMTP provider must supply that signing.
+   Perform a separately approved test-recipient delivery before customer mail.
+4. Run a read-only preview, then a reviewed enqueue-only pass. Inspect counts,
+   errors and recipients before enabling sends. Do not reset every delivery or
+   baseline to clear an error. Keep original delivery evidence.
+5. Only after approval, enable ALERT_EMAIL_ENABLED and schedule the combined
+   command independently after ingestion (suggested 00:45/06:45/12:45/18:45 UTC).
+   Schedule check_filing_alerts after the worker with provider failure alerts.
+   Both services should follow the reviewed release. Configure native Railway
+   service settings, not a new legacy JSON configuration file.
+6. Verify real inbox receipt, opt-out and duplicate suppression, then observe
+   queue age and adjust the reviewed cadence/batch size to actual volume.
+
+Commands
+  python manage.py process_filing_alerts                  # read-only preview
+  python manage.py process_filing_alerts --enqueue-only    # queue only
+  python manage.py process_filing_alerts --send            # gated customer send
+  python manage.py check_filing_alerts                    # read-only, nonzero if unhealthy
+  python manage.py resolve_alert_delivery ID --outcome accepted --note 'Provider evidence...'
+  python manage.py resolve_alert_delivery ID --outcome not-accepted --note 'Provider evidence...'
+  python manage.py resolve_alert_delivery ID --outcome cancel --note 'Review reason...'
+
+Rollback / stop
+  Disable ALERT_EMAIL_ENABLED and stop the alert schedule. Retain outbox and
+  source associations for deduplication and investigation. Older alert commands
+  must not be reactivated: they lack these protections. The additive schema can
+  remain while the previously deployed web release runs. Do not drop the ledger
+  or automatically retry deliveries whose SMTP acceptance is unknown.
+
+References
+  Django email transport: https://docs.djangoproject.com/en/5.2/topics/email/
+  One-click unsubscribe: https://www.rfc-editor.org/rfc/rfc8058

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h1 class="text-2xl font-bold tracking-tight text-slate-900">Watchlist</h1>
-<p class="mt-1 text-sm text-slate-500">Issuers you follow. New filings trigger an email alert.</p>
+<p class="mt-1 text-sm text-slate-500">Issuers you follow. Email digests cover newly imported Form D filings. <a href="{% url 'filings:alert_preferences' %}" class="link">Email preferences</a>.</p>
 
 <ul class="card-list mt-6">
   {% for w in watches %}
@@ -10,9 +10,12 @@
       <a href="/issuer/{{ w.issuer.url_slug }}/" class="font-medium text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">{{ w.issuer.name }}</a>
       <div class="mt-1 text-sm text-slate-500">CIK {{ w.issuer.cik }} · following since {{ w.created_at|date:"M j, Y" }}</div>
     </div>
+    <div class="flex flex-wrap items-center gap-2">
+    <form method="post" action="{% url 'filings:watch_alert_toggle' w.pk %}">{% csrf_token %}<button type="submit" class="btn-secondary btn-sm">{% if w.alerts_enabled %}Pause emails{% else %}Resume emails{% endif %}</button></form>
     <form method="post" action="{% url 'filings:issuer_watch_toggle' w.issuer.cik %}">{% csrf_token %}
       <button type="submit" class="btn-secondary btn-sm shrink-0">Unfollow</button>
     </form>
+    </div>
   </li>
   {% empty %}
   <li class="p-10 text-center">

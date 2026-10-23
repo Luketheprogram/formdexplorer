@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold tracking-tight text-slate-900">Filing email preferences</h1>
+<p class="mt-1 text-sm text-slate-500">Control emails from your saved Form D searches and followed issuers. Your saved searches and watchlist stay available when emails are paused.</p>
+<div class="card mt-6 p-6">
+  <p class="text-sm text-slate-700">Filing emails are {% if preference.email_enabled %}enabled{% else %}paused{% endif %}.</p>
+  <form method="post" class="mt-4">{% csrf_token %}
+    <input type="hidden" name="enabled" value="{% if preference.email_enabled %}0{% else %}1{% endif %}">
+    <button class="btn-primary btn-sm" type="submit">{% if preference.email_enabled %}Pause all filing emails{% else %}Enable filing emails{% endif %}</button>
+  </form>
+  <p class="mt-4 text-xs text-slate-500">Resuming emails starts with newly imported filings; paused matches are not sent later. This setting does not change billing or other account emails.</p>
+</div>
+<div class="mt-6 flex gap-4"><a class="link" href="{% url 'filings:saved_search_list' %}">Saved searches</a><a class="link" href="{% url 'filings:watchlist' %}">Watchlist</a></div>
+{% endblock %}
