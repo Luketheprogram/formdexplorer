@@ -96,7 +96,7 @@ class IngestPipeline:
         cik = pf.issuer.cik.strip()
         if not cik:
             raise ValueError(f"Missing CIK for {pf.accession_number}")
-        issuer = upsert_issuer(pf.issuer, pf.filing_date)
+        issuer = upsert_issuer(pf.issuer, pf.filing_date, pf.accession_number)
         filing, _ = Filing.objects.update_or_create(
             accession_number=pf.accession_number,
             defaults={

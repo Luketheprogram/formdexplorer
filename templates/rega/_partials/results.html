@@ -23,7 +23,14 @@
           {{ f.form_type }} &middot; {{ f.filing_date|date:"M j, Y" }}
           {% if f.tier %} &middot; {{ f.tier }}{% endif %}
           {% if f.issuer.state %} &middot; {{ f.issuer.state }}{% endif %}
+          {% if f.review %}<span class="ml-2 font-medium text-amber-800">{{ f.review.get_status_display }} · {{ f.review.withdrawal_filed_date|date:"M j, Y" }}</span>{% endif %}
         </div>
+        {% if f.issuer.identity_review %}
+        <details class="mt-2 text-sm text-slate-600"><summary class="cursor-pointer">Historical issuer identity</summary>
+          <p class="mt-1">{{ f.issuer.identity_review.note }}</p>
+          <a class="link" href="/issuer/{{ f.issuer.url_slug }}/">Identity sources</a>
+        </details>
+        {% endif %}
       </div>
       <div class="shrink-0 text-right text-sm">
         {% if f.total_offering_amount != None %}<div class="amount font-semibold text-slate-900">{{ f.total_offering_amount|dollars }}</div>{% endif %}

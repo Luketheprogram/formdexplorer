@@ -1,0 +1,213 @@
+{
+  "generated_at": "2026-10-23T01:17:17.397786+00:00",
+  "mode": "dry_run_only",
+  "production_write_authorized": false,
+  "release_reference": "a10298b6509dd361dcc27a224c48ec4e0fc87a16",
+  "recommended_bundle": {
+    "existing_field_updates": [
+      {
+        "model": "filings.Issuer",
+        "pk": 24219,
+        "cik": "1827424",
+        "before": {
+          "name": "CIK 1827424",
+          "normalized_name": "cik 1827424"
+        },
+        "after": {
+          "name": "C3 Capital, Inc.",
+          "normalized_name": "c3"
+        },
+        "url_before": "https://formdexplorer.com/issuer/cik-1827424-1827424/",
+        "url_after": "https://formdexplorer.com/issuer/cik-1827424-1827424/",
+        "name_slug_preserved": "cik-1827424"
+      }
+    ],
+    "new_review_records": [
+      {
+        "model": "proposed IssuerIdentityReview",
+        "key": "c3-1827424-historical-identity-v1",
+        "issuer_id": 24219,
+        "kind": "historical_identity",
+        "historical_name": "C3 Capital, Inc.",
+        "sec_profile_name": "C3 Bullion, Inc.",
+        "related_distinct_issuer_id": 24218,
+        "note": "Historical issuer: C3 Capital, Inc. (Colorado), which used the C3 Bullion trade name. Its original filings identify CIK 1827424. Later C3 Bullion disclosures distinguish it from C3 Bullion, Inc. (Delaware), CIK 1981779, and report that the Colorado entity dissolved on March 8, 2024. The current SEC profile for CIK 1827424 uses C3 Bullion, Inc.; that conflicting label is preserved in the review evidence. These records are kept separate.",
+        "sources": [
+          {
+            "url": "https://www.sec.gov/Archives/edgar/data/1827424/000182742420000002/certifiedarticlescgs.htm",
+            "file": "sources/0001827424-20-000002-certifiedarticlescgs.htm",
+            "status": 200,
+            "bytes": 61681,
+            "sha256": "7d6dfd7422f2aca21d94a2eba0567b71a70f82aa330bbeff5ab959a4285cea1f",
+            "fetched_at": "2026-10-23T01:13:23.657375+00:00"
+          },
+          {
+            "url": "https://www.sec.gov/Archives/edgar/data/1827424/000182742420000002/primary_doc.xml",
+            "file": "sources/0001827424-20-000002-primary_doc.xml",
+            "status": 200,
+            "bytes": 8464,
+            "sha256": "aeb02b07547f111c6b77bee5a5328e9c3244bfcda1c532dc5b7be6f95ad4af94",
+            "fetched_at": "2026-10-23T01:11:31.200986+00:00"
+          },
+          {
+            "url": "https://www.sec.gov/Archives/edgar/data/1827424/000182742421000007/1aw100121.txt",
+            "file": "sources/0001827424-21-000007-1aw100121.txt",
+            "status": 200,
+            "bytes": 1441,
+            "sha256": "238091867dc190df7ac653b8031f0e84bcd3c6fb7061415d5388234ce5b6c92c",
+            "fetched_at": "2026-10-23T01:11:35.139296+00:00"
+          },
+          {
+            "url": "https://www.sec.gov/Archives/edgar/data/1827424/000182742423000007/primary_doc.xml",
+            "file": "sources/0001827424-23-000007-primary_doc.xml",
+            "status": 200,
+            "bytes": 11197,
+            "sha256": "4699c019b9b080dce396e2cf5084ff003656aca766bf86eb9fca6aa3d73124fc",
+            "fetched_at": "2026-10-23T01:11:26.147507+00:00"
+          },
+          {
+            "url": "https://www.sec.gov/Archives/edgar/data/1981779/000198177924000022/f1ac3bamend5.htm",
+            "file": "sources/0001981779-24-000022-f1ac3bamend5.htm",
+            "status": 200,
+            "bytes": 804269,
+            "sha256": "ec75f97d1d068073cd18f6336e00cea0ac855f31b9540d7102fabab30f635eaa",
+            "fetched_at": "2026-10-23T01:13:25.160362+00:00"
+          },
+          {
+            "url": "https://www.sec.gov/Archives/edgar/data/1981779/000198177925000008/c3b253g1.htm",
+            "file": "sources/0001981779-25-000008-c3b253g1.htm",
+            "status": 200,
+            "bytes": 892603,
+            "sha256": "f6485eca67751a8469bc1a9e1c5527c834a3c9f6a17cdaf8bb0b19d9011e3923",
+            "fetched_at": "2026-10-23T01:13:22.466807+00:00"
+          },
+          {
+            "url": "https://data.sec.gov/submissions/CIK0001827424.json",
+            "file": "sources/1827424-submissions.json",
+            "status": 200,
+            "bytes": 5093,
+            "sha256": "40782c9c16276f31b28867e2263ce7daeac60e69a6bbf9a0a561215eeb5f9f5f",
+            "fetched_at": "2026-10-23T01:10:28.613503+00:00"
+          }
+        ]
+      },
+      {
+        "model": "proposed RegAFilingReview",
+        "key": "withdrawal-0001827424-23-000011",
+        "filing_id": 1159,
+        "target_accession": "0001827424-23-000007",
+        "target_cik": "1827424",
+        "offering_file_number": "024-12366",
+        "status": "withdrawal_filed",
+        "label": "Withdrawal filed",
+        "withdrawal_accession": "0001827424-23-000011",
+        "withdrawal_filed_date": "2023-12-05",
+        "source_reported_only": true,
+        "note": "Withdrawal filed December 5, 2023. The issuer withdrew offering file 024-12366, stating that the offering statement was filed under the incorrect CIK name. The Part I issuer name and offering-circular name conflict. This historical filing remains attached to its original CIK; the recorded amounts are not evidence of an active offering or completed raise.",
+        "sources": [
+          {
+            "url": "https://www.sec.gov/Archives/edgar/data/1827424/000182742423000011/1aw9102021.txt",
+            "file": "sources/0001827424-23-000011-1aw9102021.txt",
+            "status": 200,
+            "bytes": 896,
+            "sha256": "2d9909953db7a488aeb0be6ba150866acece584bb75158c6f44b6da5e266a8dd",
+            "fetched_at": "2026-10-23T01:11:27.798838+00:00"
+          },
+          {
+            "url": "https://www.sec.gov/Archives/edgar/data/1827424/000182742423000011/0001827424-23-000011.hdr.sgml",
+            "file": "sources/0001827424-23-000011.hdr.sgml",
+            "status": 200,
+            "bytes": 912,
+            "sha256": "2b15c7b14e7bbc03634c8e8aefc3ce466ec800d42cc534a626677dcf753b4b1f",
+            "fetched_at": "2026-10-23T01:11:28.659842+00:00"
+          },
+          {
+            "url": "https://data.sec.gov/submissions/CIK0001827424.json",
+            "file": "sources/1827424-submissions.json",
+            "status": 200,
+            "bytes": 5093,
+            "sha256": "40782c9c16276f31b28867e2263ce7daeac60e69a6bbf9a0a561215eeb5f9f5f",
+            "fetched_at": "2026-10-23T01:10:28.613503+00:00"
+          }
+        ]
+      }
+    ],
+    "atomic_requirement": "The historical name, identity explanation, and withdrawal notice must ship together; do not run a name-only update."
+  },
+  "additional_reviewed_option": {
+    "description": "Separate, optional notice on the second mistaken filing discovered under the existing Bullion issuer. No Bullion identity change.",
+    "existing_field_updates": [],
+    "new_review_records": [
+      {
+        "model": "proposed RegAFilingReview",
+        "key": "withdrawal-0001981779-24-000003",
+        "filing_id": 1218,
+        "target_accession": "0001981779-24-000001",
+        "target_cik": "1981779",
+        "offering_file_number": "024-12387",
+        "status": "withdrawal_filed",
+        "label": "Withdrawal filed",
+        "withdrawal_accession": "0001981779-24-000003",
+        "withdrawal_filed_date": "2024-01-17",
+        "source_reported_only": true,
+        "note": "Withdrawal filed January 17, 2024. The issuer explicitly identified this accession and offering file 024-12387 as filed by mistake, while continuing its separate offering file 024-12367.",
+        "sources": [
+          {
+            "url": "https://www.sec.gov/Archives/edgar/data/1981779/000198177924000003/withdraw10924.txt",
+            "file": "sources/0001981779-24-000003-withdraw10924.txt",
+            "status": 200,
+            "bytes": 1004,
+            "sha256": "b9478dd38657a4c7ff2d1ccf7a384655e1623aeda72598c1d6d267ded782309f",
+            "fetched_at": "2026-10-23T01:11:43.045303+00:00"
+          },
+          {
+            "url": "https://www.sec.gov/Archives/edgar/data/1981779/000198177924000003/0001981779-24-000003.hdr.sgml",
+            "file": "sources/0001981779-24-000003.hdr.sgml",
+            "status": 200,
+            "bytes": 926,
+            "sha256": "cd22b54e6f939ecd8b199bdef808a812859120bb722cf16f80439fc3756563e9",
+            "fetched_at": "2026-10-23T01:11:44.049233+00:00"
+          },
+          {
+            "url": "https://data.sec.gov/submissions/CIK0001981779.json",
+            "file": "sources/1981779-submissions.json",
+            "status": 200,
+            "bytes": 9583,
+            "sha256": "e35bbbd21c338a1dd7dcd6d1c5f61efa757b43ab8e24297b47ec8883d6021e92",
+            "fetched_at": "2026-10-23T01:10:29.707534+00:00"
+          }
+        ]
+      }
+    ]
+  },
+  "preserved": {
+    "issuer_ids": [
+      24218,
+      24219
+    ],
+    "all_existing_urls": true,
+    "all_filing_foreign_keys": true,
+    "all_original_form_types": true,
+    "all_financial_fields": true,
+    "all_existing_raw_xml": true,
+    "all_other_issuer_fields": true,
+    "earlier_held_fields": true
+  },
+  "requirements_before_apply": [
+    "Fresh backup and exact-state preflight against this immutable review.",
+    "Add supplemental identity and filing-review persistence; production currently has neither these models nor a withdrawal-status column.",
+    "Show identity explanation and historical-name context on issuer/detail/search; append withdrawal status, date, source and identity-review context to exports without replacing reported numbers.",
+    "Keep the original form type 1-A. A withdrawal is a separate event, not a replacement accession or issuer-level flag.",
+    "Use explicit accession and offering-file matching; never infer withdrawal for every filing under a CIK.",
+    "Preserve reviewed historical identity during future ingestion; conflicting source labels must remain evidence rather than silently replacing the approved identity.",
+    "Test and review the migration, UI/search/export integration, transaction guards, and rollback before deployment. This local rehearsal does not validate an unbuilt migration."
+  ],
+  "held": [
+    "Do not merge CIK 1827424 with CIK 1981779 or reassign any filing.",
+    "Do not change jurisdiction, incorporation year, address, EIN-derived fields, source_filing_date or any earlier held field.",
+    "Do not equate latest SEC profile name with verified legal continuity.",
+    "Do not infer current offering activity from historical qualification notices.",
+    "Do not apply 2024 or 2025 withdrawal codes to all of offering 024-12367; the January 2024 event targets one amendment, and the May 2025 requests were later retracted/disregarded.",
+    "No historical filing backfill, financial-value repair, raw XML restoration, or new SEC-filing rows is included."
+  ]
+}

@@ -1,0 +1,11 @@
+{% if issuer.identity_review %}
+<aside class="card mt-4 border-amber-200 bg-amber-50 p-4 text-sm text-slate-700" aria-label="Historical issuer identity">
+  <h2 class="font-semibold text-slate-900">Historical issuer identity</h2>
+  <p class="mt-2">{{ issuer.identity_review.note }}</p>
+  <details class="mt-2"><summary class="cursor-pointer font-medium">Original SEC sources</summary>
+    <ul class="mt-2 space-y-1">{% for source in issuer.identity_review.sources %}
+      <li><a class="link break-all" href="{{ source.url }}" rel="nofollow noopener">{{ source.url }}</a></li>
+    {% endfor %}</ul>
+  </details>
+</aside>
+{% endif %}

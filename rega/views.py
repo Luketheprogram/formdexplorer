@@ -27,7 +27,7 @@ def _is_postgres() -> bool:
 
 def _build_qs(params):
     params = normalize_search_params(params)
-    qs = Form1AFiling.objects.select_related("issuer").defer("raw_xml").all()
+    qs = Form1AFiling.objects.select_related("issuer", "issuer__identity_review", "review").defer("raw_xml").all()
     q = (params.get("q") or "").strip()
     if q:
         if _is_postgres():
@@ -98,7 +98,7 @@ def search_partial(request):
 
 def detail(request, accession_number: str):
     filing = get_object_or_404(
-        Form1AFiling.objects.select_related("issuer").defer("raw_xml"),
+        Form1AFiling.objects.select_related("issuer", "issuer__identity_review", "review").defer("raw_xml"),
         accession_number=accession_number,
     )
     form_d_filings = list(filing.issuer.filings.defer("raw_xml").order_by("-filing_date")[:10])
@@ -141,9 +141,13 @@ def export_xlsx(request):
         headers = [
             "Issuer", "Website", "Filing date", "Amount sold ($)", "Total offering ($)",
             "Tier", "Security type",
+            "Accession", "CIK", "Offering file number", "Filing status", "Status filed date",
+            "Status source", "Status note", "Identity note", "Identity sources",
         ]
         rows = []
         for f in qs:
+            review = getattr(f, "review", None)
+            identity = getattr(f.issuer, "identity_review", None)
             rows.append([
                 f.issuer.name,
                 f.issuer.website or "",
@@ -152,6 +156,14 @@ def export_xlsx(request):
                 f.total_offering_amount,
                 f.tier or "",
                 f.security_type or "",
+                f.accession_number, f.issuer.cik,
+                review.offering_file_number if review else "",
+                review.get_status_display() if review else "",
+                review.withdrawal_filed_date.isoformat() if review else "",
+                review.source_url if review else "",
+                review.note if review else "",
+                identity.note if identity else "",
+                "\n".join(source["url"] for source in identity.sources) if identity else "",
             ])
         filename = f"form-1a-filings-{timezone.now().date().isoformat()}.xlsx"
         response = xlsx_response(filename, rows, headers)

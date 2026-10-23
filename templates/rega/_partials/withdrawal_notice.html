@@ -1,0 +1,7 @@
+{% if filing.review %}
+<aside class="card mt-4 border-amber-200 bg-amber-50 p-4 text-sm text-slate-700" aria-label="Filing withdrawal notice">
+  <h2 class="font-semibold text-amber-900">{{ filing.review.get_status_display }} · {{ filing.review.withdrawal_filed_date|date:"F j, Y" }}</h2>
+  <p class="mt-2">{{ filing.review.note }}</p>
+  <p class="mt-2"><a class="link" href="{{ filing.review.source_url }}" rel="nofollow noopener">Original SEC withdrawal filing</a> · {{ filing.review.withdrawal_accession }}</p>
+</aside>
+{% endif %}

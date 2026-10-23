@@ -40,6 +40,7 @@
   <a href="{% url 'accounts:signup' %}" class="btn-primary shrink-0">Sign up to follow</a>
   {% endif %}
 </header>
+{% include "_partials/issuer_identity_review.html" %}
 
 <section class="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
   <div class="card p-4">
@@ -117,6 +118,7 @@
       <a href="/1a/{{ f.accession_number }}/" class="truncate text-slate-900 underline-offset-2 hover:text-indigo-700 hover:underline">
         Form {{ f.form_type }} &middot; {{ f.filing_date|date:"M j, Y" }}
         {% if f.tier %}&middot; {{ f.tier }}{% endif %}
+        {% if f.review %}<span class="ml-2 text-amber-800">{{ f.review.get_status_display }} · {{ f.review.withdrawal_filed_date|date:"M j, Y" }}</span>{% endif %}
       </a>
       <span class="amount shrink-0 font-medium text-slate-700">{% if f.total_offering_amount != None %}{{ f.total_offering_amount|dollars }}{% endif %}</span>
     </li>

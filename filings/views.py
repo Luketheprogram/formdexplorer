@@ -116,7 +116,7 @@ def issuer_detail(request, slug_cik: str):
     slug, _, cik = slug_cik.rpartition("-")
     if not cik.isdigit():
         raise Http404
-    issuer = get_object_or_404(Issuer, cik=cik)
+    issuer = get_object_or_404(Issuer.objects.select_related("identity_review"), cik=cik)
     if slug_cik != issuer.url_slug:
         query = request.GET.urlencode()
         return redirect(f"/issuer/{issuer.url_slug}/" + (f"?{query}" if query else ""), permanent=True)
@@ -152,7 +152,7 @@ def issuer_detail(request, slug_cik: str):
     rega_filings: list = []
     try:
         rega_filings = list(
-            issuer.rega_filings.defer("raw_xml").order_by("-filing_date")[:10]
+            issuer.rega_filings.select_related("review").defer("raw_xml").order_by("-filing_date")[:10]
         )
     except Exception:
         rega_filings = []

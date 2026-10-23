@@ -1,18 +1,37 @@
 """Conservative shared-issuer updates across the three filing pipelines."""
+import hashlib
+import json
+
 from django.db import transaction
 from django.db.models import Max
 
-from filings.models import Issuer
+from filings.models import Issuer, IssuerIdentityReview, IssuerIdentityObservation
 
 
 @transaction.atomic
-def upsert_issuer(parsed, filing_date):
+def upsert_issuer(parsed, filing_date, accession_number=""):
     cik = parsed.cik.strip().lstrip("0")
     if not cik or not cik.isascii() or not cik.isdigit() or len(cik) > 10:
         raise ValueError("Missing or invalid issuer CIK")
     issuer, created = Issuer.objects.select_for_update().get_or_create(
         cik=cik, defaults={"name": (parsed.name.strip() or f"CIK {cik}")[:255]},
     )
+    review = IssuerIdentityReview.objects.filter(issuer=issuer).first()
+    if review:
+        # The issuer row lock serializes this check with review application.
+        # Keep all reviewed identity columns and URL components stable. Retain
+        # incoming values separately, including blanks, without changing sources.
+        values = {field: getattr(parsed, field) for field in (
+            "cik", "name", "entity_type", "jurisdiction", "year_of_incorporation",
+            "street", "city", "state", "zip_code", "phone",
+        )}
+        payload = json.dumps([issuer.pk, accession_number, str(filing_date), values], sort_keys=True)
+        IssuerIdentityObservation.objects.get_or_create(
+            fingerprint=hashlib.sha256(payload.encode()).hexdigest(),
+            defaults={"review": review, "accession_number": accession_number,
+                      "filing_date": filing_date, "source_values": values},
+        )
+        return issuer
     # For pre-migration records, derive a conservative baseline from existing
     # filings instead of letting the first historical replay become current.
     latest = issuer.source_filing_date

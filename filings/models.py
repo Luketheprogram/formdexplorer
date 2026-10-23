@@ -190,3 +190,27 @@ class RelatedPerson(models.Model):
         if not self.name_slug and self.name:
             self.name_slug = slugify(self.name)[:195] or "person"
         super().save(*args, **kwargs)
+
+
+class IssuerIdentityReview(models.Model):
+    """An explicit historical-identity decision; never an entity merge."""
+    key = models.CharField(max_length=128, unique=True)
+    issuer = models.OneToOneField(Issuer, on_delete=models.PROTECT, related_name="identity_review")
+    historical_name = models.CharField(max_length=255)
+    sec_profile_name = models.CharField(max_length=255)
+    related_distinct_issuer = models.ForeignKey(
+        Issuer, on_delete=models.PROTECT, related_name="distinct_identity_reviews"
+    )
+    note = models.TextField()
+    sources = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class IssuerIdentityObservation(models.Model):
+    """Source identity encountered after review, retained without overwriting it."""
+    review = models.ForeignKey(IssuerIdentityReview, on_delete=models.PROTECT, related_name="observations")
+    fingerprint = models.CharField(max_length=64, unique=True)
+    accession_number = models.CharField(max_length=32, blank=True)
+    filing_date = models.DateField(null=True)
+    source_values = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
