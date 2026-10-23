@@ -247,3 +247,6 @@ class IssuerFieldObservation(models.Model):
     filing_date = models.DateField(null=True)
     source_value = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+# Imported here so Django discovers the operational models with the filings app.
+from filings.ingest.models import IngestionJob, IngestionRun, IngestionSource  # noqa: E402,F401

@@ -18,6 +18,12 @@ class Form1AFiling(models.Model):
         ("1-U/A", "1-U/A"),
         ("1-Z", "1-Z"),
         ("1-Z/A", "1-Z/A"),
+        ("1-SA", "1-SA"),
+        ("1-SA/A", "1-SA/A"),
+        ("1-A-W", "1-A-W"),
+        ("1-Z-W", "1-Z-W"),
+        ("1-A-W/A", "1-A-W/A"),
+        ("1-Z-W/A", "1-Z-W/A"),
     ]
 
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False)

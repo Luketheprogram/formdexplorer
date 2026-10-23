@@ -5,12 +5,18 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 
 _ROW = re.compile(
-    r"^\s*(?P<form>\S+)\s{2,}"
+    r"^\s*(?P<form>\S+(?: \S+)*)\s{2,}"
     r"(?P<company>.+?)\s{2,}"
     r"(?P<cik>\d+)\s+"
     r"(?P<date>\d{4}-?\d{2}-?\d{2})\s+"
     r"(?P<filename>edgar/\S+)\s*$"
 )
+
+
+class SourceCIKMismatch(ValueError):
+    def __init__(self, accession, source_cik):
+        self.source_cik = source_cik.lstrip("0")
+        super().__init__(f"Source/index CIK mismatch for {accession}")
 
 
 @dataclass
@@ -38,24 +44,28 @@ def iter_business_days(start: date, end: date):
         cur += timedelta(days=1)
 
 
-def parse_form_idx(text: str, form_types: tuple[str, ...] = ("D", "D/A")) -> list[IndexEntry]:
+def parse_form_idx(text: str, form_types: tuple[str, ...] = ("D", "D/A"), *, strict=False) -> list[IndexEntry]:
     """Parse a form.idx file. Regex-based because EDGAR's column widths drift.
 
     Pass `form_types` to filter to a specific form family — Form D uses
     ('D','D/A'); Form C uses ('C','C/A','C-U','C-AR','C-AR/A','C-TR')."""
     lines = text.splitlines()
-    data_start = 0
+    data_start = None
     for i, line in enumerate(lines):
         if line.startswith("----"):
             data_start = i + 1
             break
+    if strict and (data_start is None or "Form Type" not in text or "File Name" not in text):
+        raise ValueError("Invalid SEC daily index: missing header")
     entries: list[IndexEntry] = []
     accepted = set(form_types)
-    for line in lines[data_start:]:
+    for line in lines[data_start or 0:]:
         if not line.strip():
             continue
         m = _ROW.match(line)
         if not m:
+            if strict:
+                raise ValueError("Unrecognized SEC index row; refusing incomplete coverage")
             continue
         form_type = m.group("form")
         if form_type not in accepted:

@@ -19,6 +19,8 @@ class Command(BaseCommand):
         parser.add_argument("--no-raw-xml", action="store_true")
 
     def handle(self, *args, **opts):
+        if opts.get("days") is not None and (opts["days"] < 1 or opts.get("start") or opts.get("end")):
+            raise CommandError("Use positive --days alone, or --start/--end")
         if opts.get("days"):
             end = date.today()
             start = end - timedelta(days=opts["days"] - 1)
@@ -33,4 +35,6 @@ class Command(BaseCommand):
         self.stdout.write(f"Ingesting Form C: {start} -> {end}")
         pipeline = FormCPipeline(store_raw_xml=not opts.get("no_raw_xml"))
         stats = pipeline.run(start, end)
-        self.stdout.write(self.style.SUCCESS(f"Done: {stats}"))
+        self.stdout.write(f"Done: {stats}")
+        if stats.get("errors") or stats.get("backlog"):
+            raise CommandError("Unresolved ingestion work remains in the durable queue")

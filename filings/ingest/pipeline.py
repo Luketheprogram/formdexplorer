@@ -1,16 +1,15 @@
-import logging
+from rega.ingest.documents import validate_xml
 from datetime import date, datetime
 
-from django.db import OperationalError, connection, transaction
+from django.db import transaction
 from filings.ingest.issuers import upsert_issuer
 
 from ..models import Filing, RelatedPerson
 from .edgar_client import EdgarClient
 from .index_parser import (
-    IndexEntry,
+    IndexEntry, SourceCIKMismatch,
     accession_from_filename,
     daily_index_paths,
-    iter_business_days,
     parse_form_idx,
     primary_doc_url,
 )
@@ -25,57 +24,32 @@ def _parse_index_date(raw: str) -> date | None:
             continue
     return None
 
-log = logging.getLogger(__name__)
-
 
 class IngestPipeline:
     def __init__(self, client: EdgarClient | None = None, store_raw_xml: bool = True):
         self.client = client or EdgarClient()
         self.store_raw_xml = store_raw_xml
 
-    def run(self, start: date, end: date) -> dict:
-        stats = {"days": 0, "entries": 0, "parsed": 0, "upserted": 0, "errors": 0, "skipped": 0}
-        for day in iter_business_days(start, end):
-            stats["days"] += 1
-            entries = self._fetch_day_index(day)
-            stats["entries"] += len(entries)
-            for e in entries:
-                try:
-                    parsed = self._fetch_and_parse(e)
-                    if parsed is None:
-                        stats["skipped"] += 1
-                        continue
-                    stats["parsed"] += 1
-                    try:
-                        self._upsert(parsed)
-                    except OperationalError as db_exc:
-                        log.warning("DB connection dropped: %s; reconnecting", db_exc)
-                        connection.close()
-                        self._upsert(parsed)
-                    stats["upserted"] += 1
-                except Exception as exc:  # noqa: BLE001
-                    stats["errors"] += 1
-                    log.exception("Failed to ingest %s: %s", e.filename, exc)
-        return stats
+    dataset = "d"
+    filing_model = Filing
+
+    def run(self, start: date, end: date, **kwargs) -> dict:
+        from filings.ingest.reliability import run_pipeline
+        return run_pipeline(self, start, end, **kwargs)
 
     def _fetch_day_index(self, day: date):
-        for path in daily_index_paths(day):
-            try:
-                text = self.client.get_text(path)
-            except Exception as exc:  # noqa: BLE001
-                log.warning("No index at %s: %s", path, exc)
-                continue
-            return parse_form_idx(text)
-        return []
+        # A missing or malformed index is durable failed work, never an empty day.
+        text = self.client.get_text(daily_index_paths(day)[0])
+        return parse_form_idx(text, form_types=("D", "D/A"), strict=True)
 
     def _fetch_and_parse(self, entry: IndexEntry) -> ParsedFiling | None:
         url = primary_doc_url(entry.filename)
         accession = accession_from_filename(entry.filename)
         xml_bytes = self.client.get_bytes(url)
-        pf = parse_primary_doc(xml_bytes, accession)
+        pf = parse_primary_doc(validate_xml(xml_bytes, required_tag="primaryIssuer", expected_form=entry.form_type), accession)
         index_cik = entry.cik.lstrip("0")
         if pf.issuer.cik and pf.issuer.cik.lstrip("0") != index_cik:
-            raise ValueError(f"Source/index CIK mismatch for {accession}")
+            raise SourceCIKMismatch(accession, pf.issuer.cik)
         pf.issuer.cik = index_cik
         if not pf.issuer.name:
             pf.issuer.name = entry.company.strip()
@@ -114,7 +88,7 @@ class IngestPipeline:
                 "industry_group": pf.industry_group,
                 "banker_count": pf.banker_count,
                 "banker_names": pf.banker_names,
-                "raw_xml": pf.raw_xml,
+                **({"raw_xml": pf.raw_xml} if pf.raw_xml else {}),
             },
         )
         filing.related_persons.all().delete()

@@ -98,11 +98,13 @@ class ParserAccuracyTests(SimpleTestCase):
         with self.assertRaises(HTTPError):
             primary_xml(client, entry)
 
+
+class IngestionFailureTests(TestCase):
     def test_failed_download_counts_as_error_not_success(self):
         client = Mock(); client.get_bytes.side_effect = RuntimeError("download failed")
         pipeline = IngestPipeline(client=client)
         pipeline._fetch_day_index = Mock(return_value=[IndexEntry("D", "Example", "123", "2026-01-01", "edgar/data/123/0000000123-26-000001.txt")])
-        with self.assertLogs("filings.ingest.pipeline", level="ERROR"):
+        with self.assertLogs("filings.ingest.reliability", level="ERROR"):
             stats = pipeline.run(date(2026, 1, 1), date(2026, 1, 1))
         self.assertEqual(stats["errors"], 1)
         self.assertEqual(stats["upserted"], 0)

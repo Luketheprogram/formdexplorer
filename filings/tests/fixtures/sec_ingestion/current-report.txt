@@ -1,0 +1,125 @@
+<SEC-DOCUMENT>0001062993-26-004190.txt : 20260811
+<SEC-HEADER>0001062993-26-004190.hdr.sgml : 20260811
+<ACCEPTANCE-DATETIME>20260811172013
+ACCESSION NUMBER:		0001062993-26-004190
+CONFORMED SUBMISSION TYPE:	1-U
+PUBLIC DOCUMENT COUNT:		1
+CONFORMED PERIOD OF REPORT:	20260811
+ITEM INFORMATION:		Changes in Control of Issuer
+ITEM INFORMATION:		Other Events
+FILED AS OF DATE:		20260811
+
+FILER:
+
+	COMPANY DATA:	
+		COMPANY CONFORMED NAME:			C3 Bullion, Inc.
+		CENTRAL INDEX KEY:			0001981779
+		STANDARD INDUSTRIAL CLASSIFICATION:	SERVICES-MANAGEMENT CONSULTING SERVICES [8742]
+		ORGANIZATION NAME:           	07 Trade & Services
+		EIN:				931423077
+		STATE OF INCORPORATION:			DE
+		FISCAL YEAR END:			1231
+
+	FILING VALUES:
+		FORM TYPE:		1-U
+		SEC ACT:		1933 Act
+		SEC FILE NUMBER:	24R-00989
+		FILM NUMBER:		261264472
+
+	BUSINESS ADDRESS:	
+		STREET 1:		875 N. MICHIGAN AVE.
+		STREET 2:		SUITE 3100
+		CITY:			CHICAGO
+		STATE:			IL
+		ZIP:			60611
+		BUSINESS PHONE:		9202070100
+
+	MAIL ADDRESS:	
+		STREET 1:		875 N. MICHIGAN AVE.
+		STREET 2:		SUITE 3100
+		CITY:			CHICAGO
+		STATE:			IL
+		ZIP:			60611
+
+	FORMER COMPANY:	
+		FORMER CONFORMED NAME:	C3 Bullion Fund, LP
+		DATE OF NAME CHANGE:	20230615
+</SEC-HEADER>
+<DOCUMENT>
+<TYPE>1-U
+<SEQUENCE>1
+<FILENAME>form1u.htm
+<DESCRIPTION>FORM 1-U
+<TEXT>
+<html>
+
+<head>
+    <title>Hess Legal Counsel: Form 1-U - Filed by newsfilecorp.com</title>
+</head>
+
+<body style="font-size:10pt; font-family:'Times New Roman';">
+    <hr width="100%" size="3" color="black" noshade="noshade"><a name="page_1"></a>
+    <p style="margin-bottom: 0pt; text-align: center; margin-top: 10pt;"><font style="font-size: 18pt;"><b>UNITED STATES</b></font></p>
+    <p style="margin-top: 0pt; margin-bottom: 0pt; text-align: center;"><font style="font-size: 18pt;"><b>SECURITIES AND EXCHANGE COMMISSION</b></font></p>
+    <p style="margin-top: 0pt; text-align: center; margin-bottom: 10pt;">Washington, D.C. 20549</p>
+    <p style="text-align: center; margin-top: 10pt; margin-bottom: 10pt;"><font style="font-size: 18pt;"><b>FORM 1-U</b></font></p>
+    <p style="margin-bottom: 0pt; text-align: center; margin-top: 10pt;"><b>CURRENT REPORT</b></p>
+    <p style="margin-top: 0pt; text-align: center; margin-bottom: 10pt;">Pursuant to Regulation A of the Securities Act of 1933</p>
+    <p style="margin-bottom: 0pt; text-align: center; margin-top: 10pt;"><b><u>August 11, 2026</u></b></p>
+    <p style="margin-top: 0pt; text-align: center; margin-bottom: 10pt;">(Date of Report (Date of earliest event reported))</p>
+    <p style="margin-bottom: 0pt; text-align: center; margin-top: 10pt;"><font style="font-size: 18pt;"><b><u>C3 Bullion, Inc.</u></b></font></p>
+    <p style="margin-top: 0pt; text-align: center; margin-bottom: 10pt;">(Exact name of issuer as specified in its charter)</p>
+    <table style="width: 100%; border-collapse: collapse; font-size: 10pt;" cellspacing="0" cellpadding="0">
+        <tr>
+            <td style="width: 50%; padding-right: 0.5pt; padding-left: 0.5pt; vertical-align: top;">
+                <p style="margin-bottom: 0pt; text-align: center; margin-top: 0pt;"><b><u>Delaware</u></b></p>
+                <p style="margin-top: 0pt; text-align: center; margin-bottom: 0pt;">(State or other jurisdiction of incorporation)</p>
+            </td>
+            <td style="width: 50%; padding-right: 0.5pt; padding-left: 0.5pt; vertical-align: top;">
+                <p style="margin-bottom: 0pt; text-align: center; margin-top: 0pt;"><b><u>93-1423077</u></b></p>
+                <p style="margin-top: 0pt; text-align: center; margin-bottom: 0pt;">(IRS Employer Identification No.)</p>
+            </td>
+        </tr>
+    </table>
+    <p style="margin-bottom: 0pt; text-align: center; margin-top: 10pt;"><b>12349 Glenn Hollow Drive</b></p>
+    <p style="margin-top: 0pt; margin-bottom: 0pt; text-align: center;"><u><b>Jacksonville, Florida 32226</b></u></p>
+    <p style="margin-top: 0pt; text-align: center; margin-bottom: 10pt;">(Address of principal executive offices) and (ZIP Code)</p>
+    <p style="margin-bottom: 0pt; text-align: center; margin-top: 10pt;"><b><u>(904) 329-7237</u></b></p>
+    <p style="margin-top: 0pt; text-align: center; margin-bottom: 10pt;">(Registrant's telephone number, including area code)</p>
+    <p style="margin-bottom: 0pt; text-align: center; margin-top: 10pt;"><b><u>Common Shares</u></b></p>
+    <p style="margin-top: 0pt; text-align: center; margin-bottom: 10pt;">(Title of each class of securities issued pursuant to Regulation A)</p>
+    <hr style="page-break-after: always;" width="100%" size="5" color="black" noshade="noshade"><a name="page_2"></a>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;"><b>Item 6. Changes in Control of Issuer</b></p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;">As a result of the share surrenders described under Item 9 below, Solomon Capital Management, which is controlled by Luciano Duque, the Company's Chief Executive Officer and Director, holds 3,500,000 Common Shares, representing approximately 64.05% of the 5,464,050 Common Shares issued and outstanding as of the date of this report. Immediately prior to the surrenders, Solomon Capital Management held the same 3,500,000 Common Shares, representing approximately 33.6% of the 10,414,050 Common Shares then issued and outstanding.</p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;">Solomon Capital Management acquired no Common Shares and paid no consideration in connection with the surrenders, and its holdings did not change. The change in its percentage ownership results solely from the reduction in the number of Common Shares outstanding. No change in the composition of the Board of Directors or in the Company's officers occurred as a result of the surrenders.</p>
+    <hr style="page-break-after: always; text-align: center;" width="100%" size="5" color="black" noshade="noshade"><a name="page_3"></a>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;"><b>Item 9. Other Events</b></p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;"><i>Settlement Agreement and Release of Claims</i></p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;">On July 30, 2026 (the "Effective Date"), the Company entered into a Settlement Agreement and Release of Claims with Christopher Werner, the Company's former Chief Executive Officer and Director, and Emerging Securities Group LLC ("ESG"). Mr. Werner resigned as Chief Executive Officer and Director of the Company effective October 2, 2025, as previously reported on the Company's Current Report on Form 1-U filed October 8, 2025.</p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;">Under the agreement, Mr. Werner surrendered and relinquished 3,500,000 Common Shares and ESG surrendered and relinquished 1,450,000 Common Shares, 4,950,000 Common Shares in the aggregate. The surrendered Common Shares reverted to the Company as treasury shares, unconditionally and irrevocably, as of the Effective Date. No share certificates had been issued, and the surrender was effected solely through the Company's capitalization records.</p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;">In consideration of the surrenders and the mutual releases, the Company paid Mr. Werner $20,000 in cash, forgave $30,000 of indebtedness owed to the Company by a non-core subsidiary, transferred to Mr. Werner the Company's remaining interest in that subsidiary, and terminated a promissory note dated August 15, 2023 between the Company and ESG. The parties exchanged mutual releases of claims, subject to a carve-out preserving each party's ability to communicate with, cooperate with, or provide information to any governmental, regulatory, or law enforcement authority.</p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;"><i>Resulting Capitalization</i></p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;">Following the surrenders, the Company has 5,464,050 Common Shares issued and outstanding and 5,150,000 Common Shares held in treasury, out of 20,000,000 Common Shares authorized. Treasury shares are issued but are not outstanding, and are not entitled to vote or to receive dividends.</p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;"><b>Safe Harbor Statement</b></p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;">This Current Report on Form 1-U contains forward-looking statements within the meaning of the federal securities laws. You can identify these forward-looking statements by the use of words such as "anticipates," "expects," "intends," "plans," "believes," "will," or similar expressions. Forward-looking statements are subject to known and unknown risks and uncertainties, and actual results may differ materially from those expressed or implied by such statements. The Company undertakes no obligation to update any forward-looking statement, whether as a result of new information, future events, or otherwise, except as required by law.</p>
+    <hr style="page-break-after: always; text-align: center;" width="100%" size="5" color="black" noshade="noshade"><a name="page_4"></a>
+    <p style="text-align: center; margin-top: 10pt; margin-bottom: 10pt;"><b>SIGNATURES</b></p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;">Pursuant to the requirements of Regulation A, the issuer has duly caused this report to be signed on its behalf by the undersigned, thereunto duly authorized.</p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;"><b>C3 BULLION, INC.</b></p>
+    <p style="margin-bottom: 0pt; text-align: justify; margin-top: 10pt;">By: /s/ Luciano Duque</p>
+    <p style="margin-top: 0pt; margin-bottom: 0pt; text-align: justify;">Luciano Duque</p>
+    <p style="margin-top: 0pt; text-align: justify; margin-bottom: 10pt;">Chief Executive Officer and Director</p>
+    <p style="text-align: justify; margin-top: 10pt; margin-bottom: 10pt;">This 1-U, Current Report has been signed by the following persons in the capacities indicated below on August 11th, 2026.</p>
+    <p style="margin-bottom: 0pt; text-align: justify; margin-top: 10pt;">By: /s/ Luciano Duque</p>
+    <p style="margin-top: 0pt; margin-bottom: 0pt; text-align: justify;">Luciano Duque</p>
+    <p style="margin-top: 0pt; text-align: justify; margin-bottom: 10pt;">Chief Executive Officer and Director</p>
+    <p style="margin-bottom: 0pt; text-align: justify; margin-top: 10pt;">By: /s/ Judith Doens</p>
+    <p style="margin-top: 0pt; margin-bottom: 0pt; text-align: justify;">Judith Doens</p>
+    <p style="margin-top: 0pt; text-align: justify; margin-bottom: 10pt;">Chief Financial Officer</p>
+    <hr width="100%" size="5" color="black" noshade="noshade">
+</body>
+
+</html>
+</TEXT>
+</DOCUMENT>
+</SEC-DOCUMENT>

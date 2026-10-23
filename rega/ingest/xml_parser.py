@@ -15,6 +15,7 @@ from filings.ingest.xml_parser import ParsedIssuer, ParsedRelatedPerson, _first_
 
 @dataclass
 class ParsedRegAFiling:
+    metadata_only: bool = False
     accession_number: str = ""
     filing_date: date | None = None
     form_type: str = "1-A"

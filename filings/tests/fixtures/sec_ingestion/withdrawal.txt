@@ -1,0 +1,83 @@
+<SEC-DOCUMENT>0001827424-23-000011.txt : 20231205
+<SEC-HEADER>0001827424-23-000011.hdr.sgml : 20231205
+<ACCEPTANCE-DATETIME>20231205165838
+ACCESSION NUMBER:		0001827424-23-000011
+CONFORMED SUBMISSION TYPE:	1-A-W
+PUBLIC DOCUMENT COUNT:		1
+FILED AS OF DATE:		20231205
+DATE AS OF CHANGE:		20231205
+
+FILER:
+
+	COMPANY DATA:	
+		COMPANY CONFORMED NAME:			C3 Bullion, Inc.
+		CENTRAL INDEX KEY:			0001827424
+		STANDARD INDUSTRIAL CLASSIFICATION:	MINERAL ROYALTY TRADERS [6795]
+		IRS NUMBER:				934450812
+		STATE OF INCORPORATION:			DE
+		FISCAL YEAR END:			1231
+
+	FILING VALUES:
+		FORM TYPE:		1-A-W
+		SEC ACT:		1933 Act
+		SEC FILE NUMBER:	024-12366
+		FILM NUMBER:		231467390
+
+	BUSINESS ADDRESS:	
+		STREET 1:		C/O SIMMONS ASSOCIATES, LTD.
+		STREET 2:		155 MAIN STREET, SUITE 301
+		CITY:			PROVIDENCE
+		STATE:			RI
+		ZIP:			02903
+		BUSINESS PHONE:		9202070100
+
+	MAIL ADDRESS:	
+		STREET 1:		875 N. MICHIGAN AVE.
+		STREET 2:		SUITE 3100
+		CITY:			CHICAGO
+		STATE:			IL
+		ZIP:			60611
+
+	FORMER COMPANY:	
+		FORMER CONFORMED NAME:	C3 Capital, Inc.
+		DATE OF NAME CHANGE:	20201006
+</SEC-HEADER>
+<DOCUMENT>
+<TYPE>1-A-W
+<SEQUENCE>1
+<FILENAME>1aw9102021.txt
+<DESCRIPTION>CORRESPONDENCE
+<TEXT>
+Christopher Werner, CEO
+C3 Capital, Inc.
+December 5, 2023
+Page 1
+
+December 5, 2023
+CONFIDENTIAL
+VIA EDGAR FILING
+
+United States Securities and Exchange Commission
+Division of Corporation Finance
+Washington, D.C. 20549
+Re: C3 Capital, Inc. Withdrawal of  Offering Circular on Form 1-A, File No.
+024-12366
+
+Dear Ladies/Sirs:
+
+This correspondence informs the Commission that the issuer, C3 Capital, Inc.
+is formally withdrawing on this Form 1-A-W, the Form 1-A dated and filed under
+File No. 024-12366. The issuer filed this Offering Statement under the
+incorrect CIK name.
+
+If we can be of further assistance, please do not hesitate to contact us at
+719-440-0333.
+
+Sincerely,
+Christopher Werner
+Christopher Werner, Chairman and CEO
+cc James R. Simmons, Esq.
+Simmons Associates, Ltd.
+</TEXT>
+</DOCUMENT>
+</SEC-DOCUMENT>

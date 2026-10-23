@@ -1,24 +1,20 @@
-import logging
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
-from django.db import OperationalError, connection, transaction
+from django.db import transaction
 from filings.ingest.issuers import upsert_issuer
 
 from filings.ingest.edgar_client import EdgarClient
 from filings.ingest.index_parser import (
-    IndexEntry,
+    IndexEntry, SourceCIKMismatch,
     accession_from_filename,
     daily_index_paths,
-    iter_business_days,
     parse_form_idx,
 )
-from rega.ingest.xml_parser import parse_form_1a
-from rega.ingest.documents import UnsupportedDocument, primary_xml
+from rega.ingest.xml_parser import parse_form_1a, ParsedRegAFiling
+from rega.ingest.documents import primary_document, validate_xml
 from rega.models import Form1AFiling
 
-log = logging.getLogger(__name__)
-
-FORM_1A_TYPES = ("1-A", "1-A/A", "1-A POS", "1-K", "1-K/A", "1-U", "1-U/A", "1-Z", "1-Z/A")
+FORM_1A_TYPES = ("1-A", "1-A/A", "1-A POS", "1-K", "1-K/A", "1-U", "1-U/A", "1-Z", "1-Z/A", "1-SA", "1-SA/A", "1-A-W", "1-Z-W", "1-A-W/A", "1-Z-W/A")
 
 
 def _parse_index_date(raw: str) -> date | None:
@@ -35,57 +31,35 @@ class Form1APipeline:
         self.client = client or EdgarClient()
         self.store_raw_xml = store_raw_xml
 
-    def run(self, start: date, end: date) -> dict:
-        stats = {"days": 0, "entries": 0, "parsed": 0, "upserted": 0, "errors": 0, "skipped": 0}
-        for day in iter_business_days(start, end):
-            stats["days"] += 1
-            for entry in self._fetch_day_index(day):
-                stats["entries"] += 1
-                try:
-                    parsed = self._fetch_and_parse(entry)
-                    if parsed is None:
-                        stats["skipped"] += 1
-                        continue
-                    stats["parsed"] += 1
-                    try:
-                        self._upsert(parsed)
-                    except OperationalError as db_exc:
-                        log.warning("DB connection dropped: %s; reconnecting", db_exc)
-                        connection.close()
-                        self._upsert(parsed)
-                    stats["upserted"] += 1
-                except UnsupportedDocument as exc:
-                    stats["skipped"] += 1
-                    log.warning("Unsupported document: %s", exc)
-                except Exception as exc:  # noqa: BLE001
-                    stats["errors"] += 1
-                    log.exception("Failed to ingest %s: %s", entry.filename, exc)
-        return stats
+    dataset = "a"
+    filing_model = Form1AFiling
+
+    def run(self, start: date, end: date, **kwargs) -> dict:
+        from filings.ingest.reliability import run_pipeline
+        return run_pipeline(self, start, end, **kwargs)
 
     def _fetch_day_index(self, day: date):
-        for path in daily_index_paths(day):
-            try:
-                text = self.client.get_text(path)
-            except Exception as exc:  # noqa: BLE001
-                log.warning("No index at %s: %s", path, exc)
-                continue
-            return parse_form_idx(text, form_types=FORM_1A_TYPES)
-        return []
+        # A missing or malformed index is durable failed work, never an empty day.
+        text = self.client.get_text(daily_index_paths(day)[0])
+        return parse_form_idx(text, form_types=FORM_1A_TYPES, strict=True)
 
     def _fetch_and_parse(self, entry: IndexEntry):
         accession = accession_from_filename(entry.filename)
-        xml_bytes = primary_xml(self.client, entry)
-        pf = parse_form_1a(xml_bytes, accession)
+        document = primary_document(self.client, entry)
+        if document.structured:
+            pf = parse_form_1a(validate_xml(document.content, required_tag="formData", expected_form=entry.form_type), accession)
+        else:
+            pf = ParsedRegAFiling(accession_number=accession, metadata_only=True)
         index_cik = entry.cik.lstrip("0")
         if pf.issuer.cik and pf.issuer.cik.lstrip("0") != index_cik:
-            raise ValueError(f"Source/index CIK mismatch for {accession}")
+            raise SourceCIKMismatch(accession, pf.issuer.cik)
         pf.issuer.cik = index_cik
         if not pf.issuer.name:
             pf.issuer.name = entry.company.strip()
         if pf.filing_date is None:
             pf.filing_date = _parse_index_date(entry.filing_date)
         pf.form_type = entry.form_type
-        pf.is_amendment = "/A" in pf.form_type
+        pf.is_amendment = "/A" in pf.form_type or pf.form_type == "1-A POS"
         if not self.store_raw_xml:
             pf.raw_xml = ""
         return pf
@@ -95,6 +69,17 @@ class Form1APipeline:
         cik = pf.issuer.cik.strip()
         if not cik:
             raise ValueError(f"Missing CIK for {pf.accession_number}")
+        if pf.metadata_only:
+            from filings.models import Issuer
+            # A validated HTML filing can add coverage without changing any known
+            # issuer values or the freshness baseline for its structured identity.
+            issuer, _ = Issuer.objects.select_for_update().get_or_create(
+                cik=cik, defaults={"name": pf.issuer.name[:255] or f"CIK {cik}"})
+            Form1AFiling.objects.get_or_create(
+                accession_number=pf.accession_number,
+                defaults={"issuer": issuer, "filing_date": pf.filing_date,
+                          "form_type": pf.form_type, "is_amendment": pf.is_amendment})
+            return
         issuer = upsert_issuer(pf.issuer, pf.filing_date, pf.accession_number)
         Form1AFiling.objects.update_or_create(
             accession_number=pf.accession_number,
@@ -115,6 +100,6 @@ class Form1APipeline:
                 "total_revenues": pf.total_revenues,
                 "net_income": pf.net_income,
                 "cash_equivalents": pf.cash_equivalents,
-                "raw_xml": pf.raw_xml,
+                **({"raw_xml": pf.raw_xml} if pf.raw_xml else {}),
             },
         )

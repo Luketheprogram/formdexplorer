@@ -1,0 +1,10 @@
+{
+  "withdrawal.txt": {
+    "url": "https://www.sec.gov/Archives/edgar/data/1827424/0001827424-23-000011.txt",
+    "sha256": "3524865252bf465b9f0df58c7bf708120a6ad143aae84688860917ef6874048c"
+  },
+  "current-report.txt": {
+    "url": "https://www.sec.gov/Archives/edgar/data/1981779/0001062993-26-004190.txt",
+    "sha256": "6924dd7291553096e1648a222f569be6ba275b0bb0699765eabef1ee8d8c502f"
+  }
+}
