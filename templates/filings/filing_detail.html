@@ -39,10 +39,11 @@
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">CIK</dt><dd class="text-right font-medium">{{ filing.issuer.cik }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Entity</dt><dd class="text-right font-medium">{{ filing.issuer.entity_type|default:"—" }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Jurisdiction</dt><dd class="text-right font-medium">{{ filing.issuer.jurisdiction|default:"—" }}</dd></div>
-      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Year incorporated</dt><dd class="text-right font-medium">{{ filing.issuer.year_of_incorporation|default:"—" }}</dd></div>
+      <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Year incorporated{% if filing.issuer.incorporation_year_review %} (reviewed){% endif %}</dt><dd class="text-right font-medium">{{ filing.issuer.year_of_incorporation|default:"—" }}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Address</dt><dd class="text-right font-medium">{{ filing.issuer.street }}{% if filing.issuer.city %}<br>{{ filing.issuer.city }}, {{ filing.issuer.state }} {{ filing.issuer.zip_code }}{% endif %}</dd></div>
       <div class="flex justify-between gap-4 py-2"><dt class="text-slate-500">Phone</dt><dd class="text-right font-medium">{{ filing.issuer.phone|default:"—" }}</dd></div>
     </dl>
+    {% include "_partials/issuer_year_review.html" with issuer=filing.issuer %}
   </div>
 </section>
 

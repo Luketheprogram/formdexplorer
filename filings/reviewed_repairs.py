@@ -106,3 +106,52 @@ def apply_c3_review(plan, snapshots):
     if {f.pk: filing_snapshot(f) for f in Form1AFiling.objects.filter(pk__in=filings)} != original_filings:
         raise ValueError("Original filing changed")
     return {"issuer_fields_updated": 2, "identity_reviews_created": 1, "withdrawal_reviews_created": 2}
+
+
+@transaction.atomic
+def apply_ym_year_review(plan, expected_issuer, expected_sources):
+    """Apply the approved year only; caller verifies backup and full source manifest."""
+    from filings.models import Filing, IssuerFieldReview, IssuerFieldObservation
+    from filings.ingest.xml_parser import parse_primary_doc
+
+    if (plan['issuer_id'], plan['cik'], plan['field_name'], plan['previous_value'],
+        plan['reviewed_value'], plan['key']) != (
+        9998, '1416299', 'year_of_incorporation', '2025', '2006', 'ym-incorporation-year-2026-10-22'):
+        raise ValueError('Unexpected YM repair scope')
+    issuer = Issuer.objects.select_for_update().get(pk=9998)
+    if issuer_snapshot(issuer) != expected_issuer or issuer.cik != '1416299' or issuer.name_slug != 'ym-corp':
+        raise ValueError('YM issuer drift')
+    if issuer.year_of_incorporation != '2025' or issuer.field_reviews.exists() or IssuerIdentityReview.objects.filter(issuer=issuer).exists():
+        raise ValueError('Repeated or conflicting review')
+    records = list(Filing.objects.select_for_update().filter(issuer=issuer).order_by('accession_number'))
+    rega_records = list(Form1AFiling.objects.select_for_update().filter(issuer=issuer).order_by('accession_number'))
+    actual_sources = {f.accession_number: hashlib.sha256(f.raw_xml.encode()).hexdigest()
+                      for f in records + rega_records}
+    if actual_sources != expected_sources:
+        raise ValueError('YM source drift')
+    review = IssuerFieldReview(
+        issuer=issuer, **{k: plan[k] for k in ('key', 'field_name', 'previous_value', 'reviewed_value', 'note')},
+        sources=_sources(plan['sources']),
+    )
+    review.full_clean();review.save(force_insert=True)
+    observed = 0
+    for filing in records:
+        # Older metadata-only filings have no source XML. Do not invent a year.
+        if not filing.raw_xml.strip():
+            continue
+        parsed = parse_primary_doc(filing.raw_xml.encode(), filing.accession_number)
+        if parsed.issuer.cik.lstrip('0') != issuer.cik:
+            raise ValueError('Source issuer mismatch')
+        value = parsed.issuer.year_of_incorporation
+        payload = json.dumps([review.pk, filing.accession_number, str(filing.filing_date), value])
+        IssuerFieldObservation.objects.create(
+            review=review, fingerprint=hashlib.sha256(payload.encode()).hexdigest(),
+            accession_number=filing.accession_number, filing_date=filing.filing_date, source_value=value,
+        )
+        observed += 1
+    if Issuer.objects.filter(pk=issuer.pk, year_of_incorporation='2025').update(year_of_incorporation='2006') != 1:
+        raise ValueError('YM before-value drift')
+    issuer.refresh_from_db()
+    if issuer_snapshot(issuer) != {**expected_issuer, 'year_of_incorporation': '2006'}:
+        raise ValueError('Unexpected issuer field changed')
+    return {'issuer_fields_updated': 1, 'field_reviews_created': 1, 'source_observations_created': observed}

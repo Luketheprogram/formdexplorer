@@ -1,0 +1,13 @@
+{% with review=issuer.incorporation_year_review %}
+{% if review %}
+<aside class="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700" aria-label="Reviewed incorporation year">
+  <h3 class="font-semibold text-slate-900">Reviewed incorporation year: {{ review.reviewed_value }}</h3>
+  <p class="mt-2">{{ review.note }}</p>
+  <details class="mt-2"><summary class="cursor-pointer text-indigo-700">Original SEC evidence</summary>
+    <ul class="mt-2 space-y-1">
+      {% for source in review.sources %}<li><a class="link" href="{{ source.url }}" rel="noopener">{{ source.label }}</a>{% if source.value %} — reported year: {{ source.value }}{% endif %}</li>{% endfor %}
+    </ul>
+  </details>
+</aside>
+{% endif %}
+{% endwith %}

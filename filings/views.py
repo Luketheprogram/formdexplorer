@@ -116,7 +116,7 @@ def issuer_detail(request, slug_cik: str):
     slug, _, cik = slug_cik.rpartition("-")
     if not cik.isdigit():
         raise Http404
-    issuer = get_object_or_404(Issuer.objects.select_related("identity_review"), cik=cik)
+    issuer = get_object_or_404(Issuer.objects.select_related("identity_review").prefetch_related("field_reviews"), cik=cik)
     if slug_cik != issuer.url_slug:
         query = request.GET.urlencode()
         return redirect(f"/issuer/{issuer.url_slug}/" + (f"?{query}" if query else ""), permanent=True)
@@ -296,7 +296,7 @@ def watchlist(request):
 
 def filing_detail(request, accession_number: str):
     filing = get_object_or_404(
-        Filing.objects.select_related("issuer").defer("raw_xml").prefetch_related("related_persons"),
+        Filing.objects.select_related("issuer").defer("raw_xml").prefetch_related("related_persons", "issuer__field_reviews"),
         accession_number=accession_number,
     )
     if not filing.issuer.name.strip():

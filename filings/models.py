@@ -62,6 +62,11 @@ class Issuer(models.Model):
         super().save(*args, **kwargs)
 
     @property
+    def incorporation_year_review(self):
+        return next((r for r in self.field_reviews.all()
+                     if r.field_name == "year_of_incorporation"), None)
+
+    @property
     def url_slug(self) -> str:
         return f"{self.name_slug}-{self.cik}"
 
@@ -213,4 +218,32 @@ class IssuerIdentityObservation(models.Model):
     accession_number = models.CharField(max_length=32, blank=True)
     filing_date = models.DateField(null=True)
     source_values = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class IssuerFieldReview(models.Model):
+    """A reviewed issuer value, separate from immutable source disclosures."""
+    key = models.CharField(max_length=128, unique=True)
+    issuer = models.ForeignKey(Issuer, on_delete=models.PROTECT, related_name="field_reviews")
+    field_name = models.CharField(max_length=64, choices=[("year_of_incorporation", "Year incorporated")])
+    previous_value = models.CharField(max_length=16)
+    reviewed_value = models.CharField(max_length=16)
+    note = models.TextField()
+    sources = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["issuer", "field_name"], name="unique_issuer_field_review"),
+            models.CheckConstraint(condition=models.Q(field_name="year_of_incorporation"), name="review_supported_issuer_field"),
+        ]
+
+
+class IssuerFieldObservation(models.Model):
+    """Keep each incoming reviewed-field value, including blanks, exactly as parsed."""
+    review = models.ForeignKey(IssuerFieldReview, on_delete=models.PROTECT, related_name="observations")
+    fingerprint = models.CharField(max_length=64, unique=True)
+    accession_number = models.CharField(max_length=32, blank=True)
+    filing_date = models.DateField(null=True)
+    source_value = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

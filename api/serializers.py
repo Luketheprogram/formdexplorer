@@ -2,7 +2,7 @@ from filings.models import Filing, Issuer
 
 
 def issuer_dict(i: Issuer) -> dict:
-    return {
+    data = {
         "cik": i.cik,
         "name": i.name,
         "slug": i.url_slug,
@@ -17,6 +17,14 @@ def issuer_dict(i: Issuer) -> dict:
         },
         "phone": i.phone,
     }
+    review = i.incorporation_year_review
+    if review:
+        data["field_reviews"] = {review.field_name: {
+            "basis": "reviewed_issuer_value", "value": review.reviewed_value,
+            "previous_value": review.previous_value, "note": review.note,
+            "sources": review.sources,
+        }}
+    return data
 
 
 def filing_dict(f: Filing, include_related: bool = False) -> dict:

@@ -1,0 +1,81 @@
+{
+  "issuer_id": 9998,
+  "cik": "1416299",
+  "field_name": "year_of_incorporation",
+  "previous_value": "2025",
+  "reviewed_value": "2006",
+  "key": "ym-incorporation-year-2026-10-22",
+  "note": "Reviewed incorporation year: 2006. Original registration and offering documents establish the same Nevada entity before the 2025 revival and name amendment. September 2026 Form D filings report 2025; those source values are preserved. This review corrects only the shared issuer year, not the original filings.",
+  "sources": [
+    {
+      "url": "https://www.sec.gov/Archives/edgar/data/1416299/000182912626007092/primary_doc.xml",
+      "file": "sources/0001829126-26-007092-primary_doc.xml",
+      "sha256": "fa7b30ba99ac201c2ea3ca6aaa3a3e168524fa72a0df6cb59dcfa2879ec0d701",
+      "accession": "0001829126-26-007092",
+      "value": "2006",
+      "paths": [
+        "/edgarSubmission/formData/employeesInfo/yearIncorporation"
+      ],
+      "production_raw_xml_identical": true,
+      "issuer_cik_verified": true,
+      "status": 200,
+      "label": "2026 Form 1-A structured disclosure"
+    },
+    {
+      "url": "https://www.sec.gov/Archives/edgar/data/1416299/000141629926000001/primary_doc.xml",
+      "file": "sources/0001416299-26-000001-primary_doc.xml",
+      "sha256": "3644859387fc34f723162a50d92bc679c137c7401ad859f88c6c7e1863c75eee",
+      "accession": "0001416299-26-000001",
+      "value": "2025",
+      "paths": [
+        "/edgarSubmission/primaryIssuer/yearOfInc/value"
+      ],
+      "production_raw_xml_identical": true,
+      "issuer_cik_verified": true,
+      "status": 200,
+      "label": "September 18, 2026 Form D"
+    },
+    {
+      "url": "https://www.sec.gov/Archives/edgar/data/1416299/000141629926000002/primary_doc.xml",
+      "file": "sources/0001416299-26-000002-primary_doc.xml",
+      "sha256": "19e74fae9d290fe0382d529f60355acf5b54ec02763f47410914fb059e796dca",
+      "accession": "0001416299-26-000002",
+      "value": "2025",
+      "paths": [
+        "/edgarSubmission/primaryIssuer/yearOfInc/value"
+      ],
+      "production_raw_xml_identical": true,
+      "issuer_cik_verified": true,
+      "status": 200,
+      "label": "September 28, 2026 Form D"
+    },
+    {
+      "url": "https://www.sec.gov/Archives/edgar/data/1416299/000141629907000001/avatarsb2.htm",
+      "file": "sources/0001416299-07-000001-avatarsb2.htm",
+      "sha256": "c5a818da9ed9ac951bd3f7237d341609d1022fe74b4b0f4a201ef15e83930e86",
+      "status": 200,
+      "label": "2007 original registration statement"
+    },
+    {
+      "url": "https://www.sec.gov/Archives/edgar/data/1416299/000182912626007092/ymcorp_1a.htm",
+      "file": "sources/0001829126-26-007092-ymcorp_1a.htm",
+      "sha256": "1fdcf9318e17b68757f490e061302bc54d0c54705308234486d66dfee701be5d",
+      "status": 200,
+      "label": "2026 offering circular and company history"
+    },
+    {
+      "url": "https://www.sec.gov/Archives/edgar/data/1416299/000182912626007092/ymcorp_ex2-2.htm",
+      "file": "sources/0001829126-26-007092-ymcorp_ex2-2.htm",
+      "sha256": "0376d3a3577daf931fb861ed55ce9cb39fafca112bee4904975120d0d75835f6",
+      "status": 200,
+      "label": "2025 certificate of revival"
+    },
+    {
+      "url": "https://www.sec.gov/Archives/edgar/data/1416299/000182912626007092/ymcorp_ex2-5.htm",
+      "file": "sources/0001829126-26-007092-ymcorp_ex2-5.htm",
+      "sha256": "d6576a463e1ebdd629b08f4eb3193120eb28ece8fd0de1831a21ae482a0ac6a0",
+      "status": 200,
+      "label": "2025 name amendment"
+    }
+  ]
+}

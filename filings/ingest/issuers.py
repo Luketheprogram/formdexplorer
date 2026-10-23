@@ -5,7 +5,7 @@ import json
 from django.db import transaction
 from django.db.models import Max
 
-from filings.models import Issuer, IssuerIdentityReview, IssuerIdentityObservation
+from filings.models import Issuer, IssuerIdentityReview, IssuerIdentityObservation, IssuerFieldReview, IssuerFieldObservation
 
 
 @transaction.atomic
@@ -32,6 +32,16 @@ def upsert_issuer(parsed, filing_date, accession_number=""):
                       "filing_date": filing_date, "source_values": values},
         )
         return issuer
+    field_reviews = {r.field_name: r for r in IssuerFieldReview.objects.filter(issuer=issuer)}
+    for field, field_review in field_reviews.items():
+        value = getattr(parsed, field)
+        payload = json.dumps([field_review.pk, accession_number, str(filing_date), value])
+        IssuerFieldObservation.objects.get_or_create(
+            fingerprint=hashlib.sha256(payload.encode()).hexdigest(),
+            defaults={"review": field_review, "accession_number": accession_number,
+                      "filing_date": filing_date, "source_value": value},
+        )
+        setattr(issuer, field, field_review.reviewed_value)
     # For pre-migration records, derive a conservative baseline from existing
     # filings instead of letting the first historical replay become current.
     latest = issuer.source_filing_date
@@ -42,6 +52,8 @@ def upsert_issuer(parsed, filing_date, accession_number=""):
     incoming_is_current = filing_date is not None and (latest is None or filing_date >= latest)
     for field in ("name", "entity_type", "jurisdiction", "year_of_incorporation",
                   "street", "city", "state", "zip_code", "phone"):
+        if field in field_reviews:
+            continue
         value = getattr(parsed, field).strip()
         if not value or (field == "name" and value.upper().startswith("CIK ")):
             continue

@@ -26,7 +26,7 @@ def filings_list(request):
     except SearchValidationError as exc:
         return JsonResponse({"error": "invalid_filters", "fields": exc.errors}, status=400)
     total = qs.count()
-    items = list(qs[offset : offset + limit])
+    items = list(qs.prefetch_related("issuer__field_reviews")[offset : offset + limit])
     return JsonResponse(
         {
             "count": total,
@@ -40,7 +40,7 @@ def filings_list(request):
 @api_key_required
 def filing_detail(request, accession_number: str):
     f = get_object_or_404(
-        Filing.objects.select_related("issuer").prefetch_related("related_persons"),
+        Filing.objects.select_related("issuer").prefetch_related("related_persons", "issuer__field_reviews"),
         accession_number=accession_number,
     )
     return JsonResponse(filing_dict(f, include_related=True))
@@ -50,8 +50,8 @@ def filing_detail(request, accession_number: str):
 def issuer_detail(request, cik: str):
     if not cik.isdigit():
         raise Http404
-    i = get_object_or_404(Issuer, cik=cik)
-    recent = list(i.filings.order_by("-filing_date")[:25])
+    i = get_object_or_404(Issuer.objects.prefetch_related("field_reviews"), cik=cik)
+    recent = list(i.filings.select_related("issuer").prefetch_related("issuer__field_reviews").order_by("-filing_date")[:25])
     return JsonResponse(
         {
             **issuer_dict(i),
