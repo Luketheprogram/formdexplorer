@@ -2,7 +2,7 @@
 import hashlib
 import logging
 import uuid
-from dataclasses import asdict
+from dataclasses import asdict, fields
 from collections import defaultdict
 from datetime import date, timedelta
 
@@ -13,11 +13,16 @@ from django.utils import timezone
 from filings.models import IngestionJob, IngestionRun, IngestionSource
 from .calendar import expected_closure
 from .edgar_client import retry_after_seconds
+from .health import METADATA_REVIEW_ERROR, review_only_jobs
 from .index_parser import IndexEntry, SourceCIKMismatch, accession_from_filename, iter_business_days
 
 log = logging.getLogger(__name__)
 MAX_ATTEMPTS = 8
 LEASE_TIME = timedelta(minutes=15)
+
+
+def primary_entry(payload):
+    return {field.name: payload[field.name] for field in fields(IndexEntry)}
 
 
 class LostLease(Exception):
@@ -112,7 +117,8 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
     if start > end or retry_limit < 1 or filing_limit < 1:
         raise ValueError("Invalid ingestion range or work limit")
     run = IngestionRun.objects.create(dataset=pipeline.dataset, start_date=start, end_date=end)
-    stats = dict(days=0, entries=0, parsed=0, upserted=0, errors=0, skipped=0, existing=0, metadata=0)
+    stats = dict(days=0, entries=0, parsed=0, upserted=0, errors=0, skipped=0,
+                 existing=0, metadata=0, new_review_items=0)
     original_client = pipeline.client
     try:
         # Re-fetch successful recent indexes to discover additions; never reset failures,
@@ -157,18 +163,30 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
                             dataset=pipeline.dataset, kind="filing", key=accession,
                             defaults={"source_date": date.fromisoformat(selected["filing_date"]), "entry": payload})
                         if not created:
-                            primary = {k: v for k, v in queued.entry.items() if k != "index_candidates"}
+                            primary = primary_entry(queued.entry)
                             if primary not in candidates:
                                 # Isolate an actual correction to its accession. Do
                                 # not discard all other discoveries from this day.
+                                observed = queued.entry.get("metadata_conflicts", [])
+                                new_candidates = [entry for entry in candidates if entry not in observed]
+                                newly_held = queued.state != "held"
+                                # Keep these separate from co-issuer candidates;
+                                # an operator retry must not adopt a disputed value.
+                                queued.entry = {**queued.entry, "metadata_conflicts": observed + new_candidates}
+                                if queued.state != "held" or queued.last_error == METADATA_REVIEW_ERROR:
+                                    queued.last_error = METADATA_REVIEW_ERROR
                                 queued.state = "held"
-                                queued.last_error = "SEC index metadata changed; review required"
-                                queued.save(update_fields=["state", "last_error", "updated_at"])
-                                stats["errors"] += 1
+                                queued.save(update_fields=["entry", "state", "last_error", "updated_at"])
+                                if newly_held or new_candidates:
+                                    stats["new_review_items"] += 1
+                                    log.warning("SEC metadata review required: dataset=%s accession=%s candidates=%s",
+                                                pipeline.dataset, accession, candidates)
+                                if not IngestionJob.objects.filter(pk=queued.pk).filter(review_only_jobs()).exists():
+                                    stats["errors"] += 1
                             else:
                                 observed = queued.entry.get("index_candidates", [primary])
                                 observed += [entry for entry in candidates if entry not in observed]
-                                queued.entry = {**primary, "index_candidates": observed}
+                                queued.entry = {**queued.entry, "index_candidates": observed}
                                 queued.save(update_fields=["entry", "updated_at"])
                     archive(job, recorder.sources)
                     job.discovered_count = len(entries)
@@ -200,7 +218,7 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
             pipeline.client = recorder
             try:
                 job = IngestionJob.objects.get(pk=pk)
-                primary = {k: v for k, v in job.entry.items() if k != "index_candidates"}
+                primary = primary_entry(job.entry)
                 candidates = job.entry.get("index_candidates", [primary])
                 entry = IndexEntry(**primary)
                 # Existing data (including reviewed historical repairs) is immutable
@@ -230,7 +248,7 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
                     else:
                         pipeline._upsert(parsed)
                         outcome = "metadata" if getattr(parsed, "metadata_only", False) else "structured"
-                    job.entry = {**asdict(entry), "index_candidates": candidates}
+                    job.entry = {**job.entry, **asdict(entry), "index_candidates": candidates}
                     archive(job, recorder.sources)
                     complete(job, outcome)
                 stats["existing" if existing else "upserted"] += 1
@@ -242,7 +260,10 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
                 failed(pk, token, exc, recorder.sources)
                 stats["errors"] += 1
                 log.exception("Failed to ingest accession %s", job.key)
-        stats["backlog"] = IngestionJob.objects.filter(dataset=pipeline.dataset).exclude(state="succeeded").count()
+        unresolved = IngestionJob.objects.filter(dataset=pipeline.dataset).exclude(state="succeeded")
+        stats["backlog"] = unresolved.count()
+        stats["review_items"] = unresolved.filter(review_only_jobs()).count()
+        stats["failure_backlog"] = unresolved.exclude(review_only_jobs()).count()
         return stats
     except Exception:
         stats["errors"] += 1

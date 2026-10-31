@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 from django.core.management.base import BaseCommand, CommandError
 
 from crowdfunding.ingest.pipeline import FormCPipeline
+from filings.ingest.health import has_ingestion_failures
 
 
 def _parse(d: str) -> date:
@@ -36,5 +37,5 @@ class Command(BaseCommand):
         pipeline = FormCPipeline(store_raw_xml=not opts.get("no_raw_xml"))
         stats = pipeline.run(start, end)
         self.stdout.write(f"Done: {stats}")
-        if stats.get("errors") or stats.get("backlog"):
+        if has_ingestion_failures(stats):
             raise CommandError("Unresolved ingestion work remains in the durable queue")

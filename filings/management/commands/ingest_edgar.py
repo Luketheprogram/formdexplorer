@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from crowdfunding.ingest.pipeline import FormCPipeline
 from filings.ingest.edgar_client import EdgarClient
+from filings.ingest.health import has_ingestion_failures
 from filings.ingest.pipeline import IngestPipeline
 from rega.ingest.pipeline import Form1APipeline
 
@@ -35,5 +36,5 @@ class Command(BaseCommand):
             except Exception as exc:
                 results[pipeline.dataset] = {"errors": 1, "error": f"{type(exc).__name__}: {exc}"}
         self.stdout.write(json.dumps(results, sort_keys=True))
-        if any(result.get("errors") or result.get("backlog") for result in results.values()):
+        if any(has_ingestion_failures(result) for result in results.values()):
             raise CommandError("Ingestion has unresolved work; all datasets were attempted")

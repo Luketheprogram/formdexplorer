@@ -1,7 +1,7 @@
 import hashlib
 import json
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import date, timedelta
 from io import StringIO
 from pathlib import Path
@@ -20,6 +20,7 @@ from filings.ingest.calendar import expected_closure
 from filings.ingest.edgar_client import EdgarClient, retry_after_seconds
 from filings.ingest.index_parser import IndexEntry, parse_form_idx, primary_doc_url
 from filings.ingest.monitoring import freshness_report
+from filings.ingest.health import METADATA_REVIEW_ERROR
 from filings.ingest.pipeline import IngestPipeline
 from filings.ingest.reliability import claim, complete, locked_job, LostLease, failed
 from filings.models import Filing, Issuer, IngestionJob, IngestionRun, IngestionSource
@@ -288,7 +289,7 @@ class DurablePipelineTests(TestCase):
         client = FakeSEC()
         client.get_bytes = Mock(side_effect=lambda path: (index_bytes(changed) + index_bytes(new).split(b'-----------------\n')[1]) if path.endswith('.idx') else D_XML)
         stats = self.run_pipeline(client)
-        self.assertEqual((stats['errors'], stats['upserted']), (1, 1))
+        self.assertEqual((stats['errors'], stats['upserted'], stats['review_items'], stats['failure_backlog']), (0, 1, 1, 0))
         self.assertEqual(IngestionJob.objects.get(kind='index').state, 'succeeded')
         self.assertEqual(IngestionJob.objects.get(kind='filing', key=ACC).state, 'held')
         self.assertEqual(Filing.objects.count(), 2)
@@ -297,8 +298,54 @@ class DurablePipelineTests(TestCase):
         self.run_pipeline()
         changed = IndexEntry('D', 'Another', '456', '20261020', ENTRY.filename)
         before = list(Filing.objects.values())
-        self.assertEqual(self.run_pipeline(FakeSEC(changed))['errors'], 1)
+        self.assertEqual(self.run_pipeline(FakeSEC(changed))['new_review_items'], 1)
         self.assertEqual(before, list(Filing.objects.values()))
+
+    def test_repeated_date_conflict_stays_visible_without_failing_or_rewriting(self):
+        self.run_pipeline()
+        before = list(Filing.objects.values())
+        changed = replace(ENTRY, filing_date='20260421')
+        with self.assertLogs('filings.ingest.reliability', level='WARNING'):
+            first = self.run_pipeline(FakeSEC(changed))
+        self.assertEqual((first['errors'], first['backlog'], first['failure_backlog'],
+                          first['review_items'], first['new_review_items']), (0, 1, 0, 1, 1))
+        with patch('filings.ingest.reliability.log.warning') as warning:
+            repeated = self.run_pipeline(FakeSEC(changed))
+            warning.assert_not_called()
+        self.assertEqual((repeated['errors'], repeated['new_review_items'], repeated['review_items']), (0, 0, 1))
+        job = IngestionJob.objects.get(kind='filing')
+        self.assertEqual(job.state, 'held')
+        self.assertEqual(job.entry['filing_date'], ENTRY.filing_date)
+        self.assertEqual(job.entry['index_candidates'], [asdict(ENTRY)])
+        self.assertEqual(job.entry['metadata_conflicts'], [asdict(changed)])
+        self.assertEqual(before, list(Filing.objects.values()))
+        self.assertEqual(set(bytes(s.content) for s in IngestionSource.objects.filter(job__kind='index')),
+                         {index_bytes(ENTRY), index_bytes(changed)})
+        # Re-reading an older/original index does not silently resolve a hold.
+        self.assertEqual(self.run_pipeline()['review_items'], 1)
+        with self.assertLogs('filings.ingest.reliability', level='WARNING'):
+            updated = self.run_pipeline(FakeSEC(replace(changed, filing_date='20260422')))
+        self.assertEqual(updated['new_review_items'], 1)
+        self.assertEqual(before, list(Filing.objects.values()))
+
+    def test_legacy_successful_metadata_hold_needs_no_data_migration(self):
+        self.run_pipeline()
+        IngestionJob.objects.filter(kind='filing').update(state='held', last_error=METADATA_REVIEW_ERROR)
+        stats = self.run_pipeline()
+        self.assertEqual((stats['errors'], stats['review_items'], stats['failure_backlog']), (0, 1, 0))
+
+    def test_metadata_conflict_on_unimported_filing_remains_a_failure(self):
+        self.run_pipeline(FakeSEC(document=Timeout('offline')))
+        stats = self.run_pipeline(FakeSEC(replace(ENTRY, filing_date='20260421')))
+        self.assertEqual((stats['errors'], stats['review_items'], stats['failure_backlog']), (1, 0, 1))
+        self.assertFalse(Filing.objects.exists())
+
+    def test_metadata_conflict_cannot_mask_existing_operational_hold(self):
+        self.run_pipeline()
+        IngestionJob.objects.filter(kind='filing').update(state='held', last_error='Retry budget exhausted')
+        stats = self.run_pipeline(FakeSEC(replace(ENTRY, filing_date='20260421')))
+        self.assertEqual((stats['review_items'], stats['failure_backlog']), (0, 1))
+        self.assertEqual(IngestionJob.objects.get(kind='filing').last_error, 'Retry budget exhausted')
 
     def test_scheduler_gap_queues_missing_days_but_limits_downloads(self):
         IngestionJob.objects.create(dataset='d', kind='index', key='2026-09-01', source_date=date(2026,9,1),
@@ -418,6 +465,47 @@ class MonitoringTests(TestCase):
         self.assertIn('held_jobs', report['datasets']['a']['issues'])
         self.assertIn('aged_backlog', report['datasets']['a']['issues'])
 
+    def test_successful_metadata_hold_is_warning_even_when_old(self):
+        now = timezone.make_aware(__import__('datetime').datetime(2026,10,21,15))
+        self.healthy_state(now)
+        job = IngestionJob.objects.create(dataset='c', kind='filing', key=ACC, source_date=DAY,
+            state='held', created_at=now-timedelta(days=2), last_error=METADATA_REVIEW_ERROR,
+            last_success_at=now-timedelta(days=2), outcome='structured')
+        report = freshness_report(now=now)
+        self.assertTrue(report['healthy'])
+        cf = report['datasets']['c']
+        self.assertEqual(cf['issues'], [])
+        self.assertEqual(cf['warnings'], ['held_metadata_review'])
+        self.assertEqual((cf['review_items'], cf['failure_backlog']), (1, 0))
+        self.assertEqual(cf['oldest_unresolved']['id'], job.pk)
+        with patch('filings.ingest.monitoring.timezone.now', return_value=now):
+            call_command('check_ingestion_freshness', stdout=StringIO())
+        # A metadata conflict that prevented any import is still a failure.
+        IngestionJob.objects.filter(pk=job.pk).update(last_success_at=None)
+        self.assertIn('held_jobs', freshness_report(now=now)['datasets']['c']['issues'])
+
+    def test_review_warning_does_not_hide_operational_failures(self):
+        now = timezone.make_aware(__import__('datetime').datetime(2026,10,21,15))
+        self.healthy_state(now)
+        IngestionJob.objects.create(dataset='c', kind='filing', key=ACC, source_date=DAY,
+            state='held', last_error=METADATA_REVIEW_ERROR, last_success_at=now, outcome='structured')
+        failed_job = IngestionJob.objects.create(dataset='c', kind='filing', key='failed', source_date=DAY,
+            state='running', lease_until=now-timedelta(minutes=1), created_at=now-timedelta(days=2))
+        report = freshness_report(now=now)
+        self.assertFalse(report['healthy'])
+        self.assertIn('expired_leases', report['datasets']['c']['issues'])
+        self.assertIn('aged_backlog', report['datasets']['c']['issues'])
+        self.assertEqual(report['datasets']['c']['oldest_failure']['id'], failed_job.pk)
+        with patch('filings.ingest.monitoring.timezone.now', return_value=now):
+            with self.assertRaises(CommandError):
+                call_command('check_ingestion_freshness', stdout=StringIO())
+        IngestionJob.objects.filter(pk=failed_job.pk).delete()
+        IngestionRun.objects.filter(dataset='c').update(stats={'errors':1})
+        self.assertIn('latest_run_errors', freshness_report(now=now)['datasets']['c']['issues'])
+        IngestionRun.objects.filter(dataset='c').update(stats={'errors':0})
+        IngestionJob.objects.filter(dataset='c', kind='index').update(source_date=DAY-timedelta(days=7))
+        self.assertIn('stale_index_coverage', freshness_report(now=now)['datasets']['c']['issues'])
+
     def test_orchestrator_continues_other_datasets_after_failure(self):
         with patch.object(IngestPipeline, 'run', side_effect=RuntimeError('broken')), \
              patch.object(FormCPipeline, 'run', return_value={'errors':0}) as cf, \
@@ -426,6 +514,29 @@ class MonitoringTests(TestCase):
             with self.assertRaises(CommandError): call_command('ingest_edgar', stdout=out)
             cf.assert_called_once(); rega.assert_called_once()
             self.assertEqual(json.loads(out.getvalue())['d']['errors'], 1)
+
+
+class IngestionExitStatusTests(SimpleTestCase):
+    def test_all_commands_accept_review_only_and_fail_on_actual_errors(self):
+        review = {'errors':0, 'backlog':1, 'review_items':1, 'failure_backlog':0}
+        cases = (
+            (review, False),
+            ({**review, 'errors':1}, True),
+            ({**review, 'fatal_error':True}, True),
+            ({**review, 'failure_backlog':1}, True),
+            ({'errors':0, 'backlog':1}, True),  # Old result format fails closed.
+        )
+        for stats, fails in cases:
+            with patch.object(IngestPipeline, 'run', return_value=stats), \
+                 patch.object(FormCPipeline, 'run', return_value=stats), \
+                 patch.object(Form1APipeline, 'run', return_value=stats):
+                for command in ('ingest_edgar', 'ingest_form_d', 'ingest_form_c', 'ingest_form_1a'):
+                    with self.subTest(command=command, stats=stats):
+                        if fails:
+                            with self.assertRaises(CommandError):
+                                call_command(command, days=7, stdout=StringIO())
+                        else:
+                            call_command(command, days=7, stdout=StringIO())
 
 
 class PostgreSQLLeaseTests(TransactionTestCase):

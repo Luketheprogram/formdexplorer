@@ -3,6 +3,7 @@ from datetime import timedelta
 from zoneinfo import ZoneInfo
 
 from .calendar import expected_closure
+from .health import review_only_jobs
 
 from django.db.models import Count, Max, Q
 from django.utils import timezone
@@ -20,6 +21,9 @@ def freshness_report(*, now=None, max_age_hours=36, backlog_age_hours=24):
         completed = runs.filter(finished_at__isnull=False).aggregate(value=Max("finished_at"))["value"]
         jobs = IngestionJob.objects.filter(dataset=dataset)
         unresolved = jobs.exclude(state="succeeded")
+        review = unresolved.filter(review_only_jobs())
+        failures = unresolved.exclude(review_only_jobs())
+        review_count = review.count()
         counts = dict(jobs.values_list("state").annotate(count=Count("pk")))
         index_date = jobs.filter(kind="index", last_success_at__isnull=False, outcome="indexed").aggregate(value=Max("source_date"))["value"]
         issues = []
@@ -30,11 +34,11 @@ def freshness_report(*, now=None, max_age_hours=36, backlog_age_hours=24):
         # Completion alone isn't success: recent failures/backlog remain visible.
         if latest and latest.stats.get("errors", 0):
             issues.append("latest_run_errors")
-        if unresolved.filter(state="held").exists():
+        if failures.filter(state="held").exists():
             issues.append("held_jobs")
-        if unresolved.filter(created_at__lt=now - timedelta(hours=backlog_age_hours)).exists():
+        if failures.filter(created_at__lt=now - timedelta(hours=backlog_age_hours)).exists():
             issues.append("aged_backlog")
-        if unresolved.filter(state="running", lease_until__lte=now).exists():
+        if failures.filter(state="running", lease_until__lte=now).exists():
             issues.append("expired_leases")
         # Two publication days of tolerance, evaluated in SEC local time. A run
         # containing zero relevant filings still proves that its index was read.
@@ -53,6 +57,10 @@ def freshness_report(*, now=None, max_age_hours=36, backlog_age_hours=24):
             "states": counts,
             "outcomes": dict(jobs.filter(kind="filing", state="succeeded").values_list("outcome").annotate(count=Count("pk"))),
             "issues": issues,
+            "warnings": ["held_metadata_review"] if review_count else [],
+            "review_items": review_count,
+            "failure_backlog": failures.count(),
+            "oldest_failure": failures.order_by("source_date", "pk").values("id", "kind", "key", "state", "last_error").first(),
             "oldest_unresolved": unresolved.order_by("source_date").values("id", "kind", "key", "state", "last_error").first(),
         }
         report["healthy"] &= not issues
