@@ -158,6 +158,9 @@ LOGIN_REDIRECT_URL = "/account/"
 LOGOUT_REDIRECT_URL = "/"
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Google consent messages need the public origin. Cross-origin requests still
+# omit paths and query strings, and HTTPS-to-HTTP requests omit the referrer.
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True

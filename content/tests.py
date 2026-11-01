@@ -92,6 +92,7 @@ class AdvertisingTests(TestCase):
     @override_settings(ADSENSE_ENABLED=False)
     def test_published_consent_preferences_cannot_enable_advertising(self):
         response = self.client.get("/privacy/")
+        self.assertEqual(response["Referrer-Policy"], "strict-origin-when-cross-origin")
         self.assertContains(response, 'id="consent-config"')
         self.assertContains(response, '"preferencesOnly": true')
         self.assertContains(response, '"allowAds": false')

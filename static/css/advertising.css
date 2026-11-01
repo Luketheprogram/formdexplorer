@@ -8,5 +8,5 @@
 #advertising-choices p { margin-top: 1rem; line-height: 1.6; }
 .ad-choice-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem; }
 .ad-choice-actions button { white-space: normal; }
-[data-ad-container][hidden], [data-ad-note][hidden], [data-ad-choices][hidden], [data-ad-partners][hidden] { display: none !important; }
+[data-ad-container][hidden], [data-ad-note][hidden], [data-ad-choices][hidden], [data-ad-partners][hidden], [data-ad-allow][hidden] { display: none !important; }
 @media (max-width: 639px) { .editorial-ad { min-height: 140px; } .editorial-ad ins { min-height: 100px; } }

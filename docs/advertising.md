@@ -22,6 +22,9 @@ no Google CMP request; visitors must explicitly open Google consent settings.
 This action does not store a local advertising opt-in. Footer links expose the
 settings from other pages without adding provider scripts to utility screens.
 GPC prevents Google CMP/ad requests. A blocked CMP leaves advertising off.
+The response referrer policy is `strict-origin-when-cross-origin`: Google can
+identify the published site's public origin without receiving cross-origin
+paths or query strings. The previous `same-origin` policy prevented delivery.
 
 Validation: 252 tests passed against disposable PostgreSQL, with no skips, plus
 four pure JavaScript consent-boundary tests. The release still requires a live
