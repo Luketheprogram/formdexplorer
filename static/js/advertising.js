@@ -13,14 +13,33 @@
   const status = dialog.querySelector('[data-ad-status]');
   const allowButton = dialog.querySelector('[data-ad-allow]');
   const partnersButton = dialog.querySelector('[data-ad-partners]');
+  const providerStatus = document.querySelector('[data-consent-status]');
+  const debug = /(?:[?&])fc=alwaysshow(?:&|$)/.test(window.location.search || '');
   if (config?.preferencesOnly) partnersButton.hidden = false;
   let choice = readChoice();
   let cmpStarted = false;
   let adStarted = false;
   let tcfAllowed = false;
   let usAllowed = false;
+  let apiReady = false;
+  let gdprApplies;
+  let usStatus;
+  let cmpUiShown = false;
+  let preferencesRequested = false;
   let observer;
   const gpc = () => navigator.globalPrivacyControl === true;
+
+  function report(phase, details = {}) {
+    if (debug) console.info('[FormD consent]', JSON.stringify({phase, ...details}));
+    if (!providerStatus) return;
+    providerStatus.dataset.phase = phase;
+    if (phase === 'loading') providerStatus.textContent = 'Loading Google privacy controls. Advertising remains off.';
+    if (phase === 'unavailable') providerStatus.textContent = 'Google privacy controls could not be loaded. Advertising remains off. Please try again or contact us using the email in this policy.';
+    if (phase === 'ui-shown') providerStatus.textContent = 'Google privacy controls are open. Reviewing them cannot turn advertising on.';
+    if (phase === 'decision') providerStatus.textContent = 'Your Google privacy decision has been received. This does not enable advertising.';
+    if (gdprApplies === false && usStatus === 1) providerStatus.textContent = 'Google reports that no regional privacy message applies to this browser. Advertising remains off.';
+    else if (usStatus === 2 || usStatus === 3) providerStatus.textContent = 'Use Google’s “Do Not Sell or Share My Personal Information” control below to review your US privacy choices. Advertising remains off.';
+  }
 
   function readChoice() {
     try {
@@ -101,14 +120,24 @@
   function startCmp(preferences = false) {
     if (!config || cmpStarted || gpc() || (!preferences && (choice !== 'allow' || config.preferencesOnly))) return;
     cmpStarted = true;
+    report('loading');
     window.googlefc = window.googlefc || {};
     window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
     window.googlefc.callbackQueue.push({CONSENT_API_READY: () => {
+      apiReady = true;
+      report('api-ready');
       partnersButton.hidden = typeof window.googlefc.showRevocationMessage !== 'function';
       if (typeof window.__tcfapi === 'function') {
         window.__tcfapi('addEventListener', 2, (data, success) => {
+          gdprApplies = data?.gdprApplies;
+          report('tcf', {success, cmpStatus: data?.cmpStatus, eventStatus: data?.eventStatus, gdprApplies});
           // Opening preferences is not itself a new consent decision.
-          if (success && data?.eventStatus === 'cmpuishown') return;
+          if (success && data?.eventStatus === 'cmpuishown') {
+            cmpUiShown = true;
+            report('ui-shown');
+            return;
+          }
+          if (success && data?.eventStatus === 'useractioncomplete') report('decision');
           const settled = data && ['tcloaded', 'useractioncomplete'].includes(data.eventStatus);
           tcfAllowed = Boolean(success && data && data.cmpStatus === 'loaded' && (
             data.gdprApplies === false || (data.gdprApplies === true && settled &&
@@ -125,10 +154,23 @@
         });
       }
     }});
+    window.googlefc.callbackQueue.push({CONSENT_DATA_READY: () => {
+      report('data-ready', {gdprApplies});
+      // Fresh visitors get Google's initial message. Only reopen an existing
+      // European decision, after data is ready, without restarting initialization.
+      if (preferencesRequested && !cmpUiShown && gdprApplies === true) {
+        preferencesRequested = false;
+        window.googlefc.callbackQueue.push({CONSENT_API_READY: () => {
+          if (typeof window.googlefc.showRevocationMessage === 'function') window.googlefc.showRevocationMessage();
+        }});
+      }
+    }});
     window.googlefc.callbackQueue.push({INITIAL_US_STATES_OPT_OUT_DATA_READY: () => {
       const api = window.googlefc.usstatesoptout;
       if (!api || typeof api.getInitialUsStatesOptOutStatus !== 'function') return;
       const value = api.getInitialUsStatesOptOutStatus();
+      usStatus = value;
+      report('us-status', {value});
       // Google's documented enum: 1 = does not apply; 2 = not opted out.
       usAllowed = value === 1 || value === 2;
       maybeShowAd();
@@ -148,11 +190,15 @@
     script.onerror = () => {
       if (container) container.hidden = true;
       cmpStarted = false;
+      report('unavailable');
       updateControls();
       status.textContent = 'Google privacy settings could not load. Advertising remains off. Please try again or contact us using the privacy policy.';
       if (!dialog.open) dialog.showModal();
     };
     document.head.appendChild(script);
+    window.setTimeout(() => {
+      if (!apiReady || (gdprApplies === undefined && usStatus === undefined)) report('unavailable');
+    }, 12000);
     // Missing, blocked, or incomplete CMP callbacks never unlock ad requests.
   }
 
@@ -172,10 +218,13 @@
   partnersButton.addEventListener('click', () => {
     if (gpc() || !config) return;
     dialog.close();
+    preferencesRequested = true;
+    if (apiReady && gdprApplies === true) {
+      preferencesRequested = false;
+      window.googlefc.callbackQueue.push({CONSENT_API_READY: () => window.googlefc.showRevocationMessage()});
+      return;
+    }
     startCmp(true);
-    window.googlefc.callbackQueue.push({CONSENT_API_READY: () => {
-      if (typeof window.googlefc.showRevocationMessage === 'function') window.googlefc.showRevocationMessage();
-    }});
   });
   window.addEventListener('storage', event => {
     if (event.key !== key && event.key !== null) return;
@@ -188,7 +237,7 @@
   });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible') return;
-    if (gpc() || readChoice() !== 'allow') {
+    if (gpc() || (!config?.preferencesOnly && readChoice() !== 'allow')) {
       if (cmpStarted) disable();
     }
   });

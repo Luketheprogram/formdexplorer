@@ -6,29 +6,34 @@ const fs = require('node:fs');
 const source = fs.readFileSync('static/js/advertising.js', 'utf8');
 
 function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false}={}) {
-  const events = new Map(), scripts = [], frames = [];
+  const events = new Map(), scripts = [], frames = [], timers = [];
+  let reloads = 0, revocations = 0;
   const control = id => ({hidden:true, addEventListener(event, callback) { events.set(id+':'+event, callback); }});
   const controls = Object.fromEntries(['status','allow','partners','close','deny'].map(x => [x,control(x)]));
   const dialog = {dataset:{adServing:String(serving)}, querySelector: selector => controls[selector.match(/data-ad-(\w+)/)[1]], close(){}, showModal(){}};
   const config = {client:'ca-pub-1234567890123456',cmpUrl:'https://fundingchoicesmessages.google.com/i/pub-1234567890123456?ers=1',allowAds:serving,preferencesOnly};
   const container = {hidden:true,getBoundingClientRect:()=>({width:900})};
+  const providerStatus = {dataset:{},textContent:''};
   let stored = choice ? JSON.stringify({value:choice,expires:Date.now()+60000}) : null;
   const document = {
     getElementById: id => id==='advertising-choices' ? dialog : id==='consent-config' ? {textContent:JSON.stringify(config)} : null,
-    querySelector: selector => selector==='[data-ad-container]' ? container : null,
-    querySelectorAll:()=>[],addEventListener(){},
+    querySelector: selector => selector==='[data-ad-container]' ? container : selector==='[data-consent-status]' ? providerStatus : null,
+    querySelectorAll:()=>[],addEventListener:(name,fn)=>events.set('document:'+name,fn),visibilityState:'visible',
     createElement: tag => ({tag,style:{}}),
     head:{appendChild: script => scripts.push(script)}, body:{appendChild: frame=>frames.push(frame)},
   };
-  const window = {frames:{},addEventListener(){},location:{reload(){}}};
+  const window = {frames:{},setTimeout:fn=>timers.push(fn),addEventListener:(name,fn)=>events.set('window:'+name,fn),location:{reload(){reloads++;}}};
   vm.runInNewContext(source, {document,window,navigator:{globalPrivacyControl:gpc},localStorage:{getItem:()=>stored,setItem:(_,value)=>{stored=value;}},console});
-  function settle({tcf=true,us=1}={}) {
-    window.__tcfapi=(_,version,cb)=>cb({cmpStatus:'loaded',gdprApplies:tcf,eventStatus:'useractioncomplete',purpose:{consents:{1:true}},vendor:{consents:{755:true}}},true);
+  function settle({tcf=true,us=1,existing=false}={}) {
+    window.__tcfapi=(_,version,cb)=>{
+      if (tcf && !existing) cb({cmpStatus:'loaded',gdprApplies:true,eventStatus:'cmpuishown'},true);
+      cb({cmpStatus:'loaded',gdprApplies:tcf,eventStatus:existing?'tcloaded':'useractioncomplete',purpose:{consents:{1:true}},vendor:{consents:{755:true}}},true);
+    };
     window.googlefc.usstatesoptout={getInitialUsStatesOptOutStatus:()=>us};
-    window.googlefc.showRevocationMessage=()=>{};
-    for (const item of window.googlefc.callbackQueue.splice(0)) Object.values(item).forEach(fn=>fn());
+    window.googlefc.showRevocationMessage=()=>{revocations++;};
+    while(window.googlefc.callbackQueue.length) for (const item of window.googlefc.callbackQueue.splice(0)) Object.values(item).forEach(fn=>fn());
   }
-  return {scripts,frames,settle,stored:()=>stored,click: id=>events.get(id+':click')()};
+  return {scripts,frames,settle,providerStatus,stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
 }
 
 test('opening Google preferences does not opt into ads, including fully granted provider consent',()=>{
@@ -43,6 +48,37 @@ test('opening Google preferences does not opt into ads, including fully granted 
   f.settle();
   assert.equal(f.scripts.length,1);
   assert.equal(f.stored(),null);
+  assert.equal(f.revocations(),0);
+});
+
+test('explicit privacy settings survive a return to the tab without advertising permission',()=>{
+  const f=fixture({choice:'deny'});
+  f.click('partners'); f.visible();
+  assert.equal(f.reloads(),0);
+  assert.equal(f.scripts.length,1);
+});
+
+test('an existing European decision is reopened only after consent data is ready',()=>{
+  const f=fixture(); f.click('partners');
+  assert.equal(f.revocations(),0);
+  f.settle({existing:true});
+  assert.equal(f.revocations(),1);
+  assert.equal(f.scripts.length,1);
+});
+
+test('an unavailable provider produces clear feedback and never unlocks ads',()=>{
+  const f=fixture(); f.click('partners'); f.timeout();
+  assert.equal(f.providerStatus.dataset.phase,'unavailable');
+  assert.match(f.providerStatus.textContent,/Advertising remains off/);
+  assert.equal(f.scripts.length,1);
+});
+
+test('explicit non-applicability is shown without implying a consent grant',()=>{
+  const f=fixture(); f.click('partners'); f.settle({tcf:false,us:1});
+  assert.match(f.providerStatus.textContent,/no regional privacy message applies/);
+  assert.equal(f.revocations(),0);
+  assert.equal(f.stored(),null);
+  assert.equal(f.scripts.length,1);
 });
 
 test('existing advertising permission cannot auto-load the privacy-page CMP or enable ads while the site is off',()=>{
