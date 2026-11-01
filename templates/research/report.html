@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "research/_breadcrumb.html" %}
+<h1 class="text-3xl font-bold">{{ report_heading }}</h1>
+{% if report_slug == 'filing-activity' %}
+<p class="mt-4 max-w-3xl text-slate-600">This report separates submission activity from financing outcomes. An issuer can submit more than one notice, and an amendment can repeat an earlier amount. Counts measure records available here, rather than completed rounds or dollars raised.</p>
+{% include "research/_coverage.html" %}
+{% include "research/_period.html" %}
+{% include "research/_monthly.html" %}
+<section class="mt-8"><h2 class="text-xl font-semibold">How to use this comparison</h2><p class="mt-3 text-sm">If total filings change, inspect initial notices and amendments separately before attributing the difference to new offerings. Compare distinct issuer counts with filing counts to see whether repeated submissions are contributing. Import changes can also change the observed series; confirm coverage in EDGAR before drawing a market-wide conclusion.</p><p class="mt-3"><a class="link" href="/research/compare/">Compare two categories using the same periods</a> · <a class="link" href="/research/amendments/">Inspect amendment and missing-field coverage</a></p></section>
+{% else %}
+<p class="mt-4 max-w-3xl text-slate-600">Amendments update disclosures; they are not independent evidence of another raise. This report quantifies their presence and the availability of numeric fields so researchers can assess a dataset before calculating with it.</p>
+{% include "research/_coverage.html" %}
+<section class="card mt-6 p-5"><h2 class="text-xl font-semibold">Amendment share</h2><p class="mt-3">{{ report.stats.amendments }} of {{ report.stats.filings }} stored filings are classified as amendments{% if report.amendment_share != None %} ({{ report.amendment_share }}%){% endif %}.</p><p class="mt-3 text-sm">A record is counted once as an amendment if its form type is D/A or its extracted amendment flag is true. The share is amendment accessions ÷ all eligible accessions × 100. This is a submission mix, not the proportion of offerings that were amended.</p></section>
+{% include "research/_availability.html" %}
+<section class="mt-8"><h2 class="text-xl font-semibold">Why a naive total fails</h2><p class="mt-3 text-sm">In a hypothetical example, an initial notice reports $2 million sold and an amendment for the same offering reports $3 million sold. Adding them produces $5 million, duplicating earlier sales. Even a $1 million difference is not necessarily cash received during the interval: corrections and commitments require checking the documents.</p><p class="mt-3 text-sm">Missing offering amounts may represent an indefinite amount or an extraction limitation. They cannot be used as zero or inferred from other fields. No sold-dollar sum or market-size estimate is produced here.</p><p class="mt-3"><a class="link" href="/research/filing-changes/">Inspect differences between two source disclosures</a> · <a class="link" href="/learn/form-d-offering-amount-vs-amount-sold/">Worked amount interpretation</a></p></section>
+{% endif %}
+<p class="mt-8 text-sm text-slate-600">Field definitions: <a class="link" href="https://www.sec.gov/files/formd.pdf">SEC Form D and instructions</a>. Data are issuer-reported; a filing does not establish SEC approval, investment merit or cash receipt.</p>
+{% endblock %}

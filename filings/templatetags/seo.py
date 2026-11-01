@@ -54,6 +54,10 @@ def seo_structured_data(context):
                        (f"Form {filing.form_type} — {filing.accession_number}", url)])
     elif context.get("directory_label"):
         crumbs.append((context["directory_label"] + " directory", url))
+    elif context.get("research_page"):
+        crumbs.append(("Research", origin + "/research/"))
+        if context["research_page"] != "Research":
+            crumbs.append((context["research_page"], url))
     elif context.get("industry"):
         crumbs.extend([("Industries", origin + "/industries/"), (context["industry"], url)])
     elif context.get("state"):

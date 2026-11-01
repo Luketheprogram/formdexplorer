@@ -1,0 +1,11 @@
+<section class="mt-8" aria-labelledby="monthly-heading">
+  <h2 id="monthly-heading" class="text-xl font-semibold">Monthly submission history</h2>
+  <p class="mt-2 text-sm text-slate-600">One observation per accession number. Issuers are distinct CIKs within each month; do not add monthly issuer counts to get a unique annual count. The current month is partial. A zero means no stored records in that bucket.</p>
+  <div class="research-table-wrap mt-4" role="region" aria-label="Monthly filing data" tabindex="0">
+    <table class="research-table">
+      <caption>Twelve months of available records; calendar months may have incomplete import coverage.</caption>
+      <thead><tr><th scope="col">Month</th><th scope="col">Filings</th><th scope="col">Issuer CIKs</th><th scope="col">Initial notices</th><th scope="col">Amendments</th></tr></thead>
+      <tbody>{% for row in report.months %}<tr><th scope="row">{{ row.month|date:"M Y" }}{% if row.partial %} (partial){% endif %}</th><td><span class="research-bar" style="width:{{ row.bar_percent }}%" aria-hidden="true"></span>{{ row.filings }}</td><td>{{ row.issuers }}</td><td>{{ row.originals }}</td><td>{{ row.amendments }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</section>

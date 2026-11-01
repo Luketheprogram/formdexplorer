@@ -118,3 +118,31 @@ python manage.py test
 ## Technical SEO
 
 See [the SEO audit and rollout guide](docs/seo.md) for indexing policy, Railway settings, Google Search Console verification/sitemap submission, and organic-traffic measurement. `/sitemap.xml` is an index of bounded canonical sitemap sections. Keep `SEO_INDEXING_ENABLED=False` on local/staging deployments; production uses `SITE_URL=https://formdexplorer.com`.
+
+## Original research and quality audits
+
+`/research/` links to two computed reports, live dataset coverage, a state/industry
+comparison tool, and a filing-change viewer. Issuer profiles compare their two
+latest disclosures; category pages add twelve-month histories and comparisons
+of the preceding two completed calendar months. Reports count stored disclosures,
+not completed financings, and never sum amendments into amounts raised.
+
+Public aggregates cache for 15 minutes; no SEC request is made by these new views.
+Comparison tools remain usable but noindex. Empty computed reports and category
+pages with only blank issuer identities are noindex; their utility URLs remain
+available. Populated canonical reports are included in the sitemap.
+
+```bash
+python manage.py audit_content_quality       # read-only JSON
+python manage.py audit_adsense_readiness     # local checks; not account certification
+python scripts/preview_research.py           # disposable local synthetic preview
+python scripts/benchmark_research.py         # disposable 2,000-filing SQLite benchmark
+python scripts/audit_public_quality.py       # read-only live public-page observations
+```
+
+The existing `seed_articles` release step updates the ten built-in educational
+guides and methodology without changing original publication dates. Review and
+back up existing authored article bodies before that step. See
+[the November 2026 readiness report](docs/adsense-readiness-report.md) for evidence,
+validation limits, manual release actions and rollback guidance. This work does
+not enable advertising or submit a Google review.

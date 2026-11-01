@@ -43,7 +43,7 @@ def main():
 
         call_command('migrate', verbosity=0, stdout=StringIO())
         call_command('seed_articles', stdout=StringIO())
-        issuers = [Issuer.objects.create(cik=str(9000000+i), name=f'Research fixture {i}', state='CA') for i in range(100)]
+        issuers = [Issuer.objects.create(cik=str(9000000+i), name=f'Research fixture {i}', state='CA' if i % 2 else 'NY') for i in range(100)]
         Filing.objects.bulk_create([
             Filing(issuer=issuers[i % 100], accession_number=f'fixture-{i}',
                    filing_date=date(2026, 10, 21)-timedelta(days=i % 730), industry_group='Biotechnology',
@@ -54,7 +54,10 @@ def main():
         client = Client()
         rows = []
         for path in ['/', '/state/CA/', '/industry/biotechnology/',
-                     '/issuer/research-fixture-0-9000000/', '/filing/fixture-0/']:
+                     '/issuer/research-fixture-0-9000000/', '/filing/fixture-0/',
+                     '/research/', '/research/filing-activity/', '/research/amendments/',
+                     '/research/coverage/', '/research/compare/?kind=state&left=CA&right=NY',
+                     '/research/filing-changes/?cik=9000000']:
             for mode in ['cold', 'warm']:
                 times, counts, xml = [], [], []
                 cache.clear()

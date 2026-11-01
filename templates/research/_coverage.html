@@ -1,0 +1,8 @@
+<aside class="research-note mt-6" aria-label="Dataset coverage">
+  <strong>Stored disclosures, not the entire private market.</strong>
+  {% if report.stats.filings %}<p>{{ report.stats.filings }} filings · {{ report.stats.issuers }} distinct issuer CIKs · available filing dates {{ report.stats.first|date:"M j, Y" }}–{{ report.stats.latest|date:"M j, Y" }}.</p>
+  <p>Latest available filing is {{ report.latest_age_days }} day{{ report.latest_age_days|pluralize }} before {{ report.today|date:"M j, Y" }}. This does not confirm that intervening dates are complete.</p>
+  {% else %}<p>No eligible Form D records are available in this dataset yet. No market conclusion can be drawn from an empty database.</p>{% endif %}
+  <p>Calculated {{ report.calculated_at|date:"M j, Y, H:i" }} UTC; public summaries cache for up to 15 minutes. Blank issuer names and future-dated records are excluded. Missing numeric values are unavailable, never zero.</p>
+  <p><a class="link" href="/research/coverage/">Coverage and field availability</a> · <a class="link" href="/learn/form-d-data-methodology/">Full methodology</a> · <a class="link" href="/editorial/">Corrections and editorial standards</a></p>
+</aside>

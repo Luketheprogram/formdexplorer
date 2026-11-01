@@ -101,6 +101,16 @@ We display extracted offering amounts separately from reported amounts sold. We 
 
 A dash means a numeric value is unavailable in our database. It can reflect an indefinite or absent source value, or an extraction limitation; do not infer which without opening the source. A reported zero remains zero. Extracted dollar values use whole-dollar storage, so the original document controls when exact precision or explanatory notes matter.
 
+## Computed research and comparisons
+
+The [research reports](/research/) count eligible stored accessions with a nonblank issuer name and a filing date no later than today. Financial-field availability counts nonnegative stored values; missing or invalid negative values remain unavailable. These analytical exclusions do not delete source records from search or filing histories.
+
+Monthly history includes twelve calendar months; the current month is labeled partial. Period comparisons use the two preceding completed calendar months. Calendar completion does not certify complete import coverage. Percentage change is `(later count - earlier count) / earlier count * 100`; it is unavailable when the earlier count is zero. Issuers are distinct CIKs within each displayed scope, so monthly issuer counts must not be added into a unique annual count.
+
+The [category comparison tool](/research/compare/) uses all eligible dataset filings in the same month as the denominator for dataset share. This is not national market share. Public aggregate results cache for up to fifteen minutes; their calculation time and available record range are disclosed. New imports and corrections can change a historical bucket. [Coverage and missing fields](/research/coverage/) describe the current scope.
+
+The [filing change viewer](/research/filing-changes/) subtracts earlier from later only when both numeric fields are usable and the filing dates differ. Same-day records have no reliable sequence in our stored date field, so directional differences are suppressed. The shared CIK does not establish a shared offering; no difference is automatically described as new cash or new investors.
+
 ## Reproduce and check a finding
 
 Record the accession number, CIK, filing date, form type, source link and date reviewed. Read amendments and explanatory text before comparing amounts. Our [issuer-history workflow](/learn/research-company-form-d-history/) explains how to keep a research log.

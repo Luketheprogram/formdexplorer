@@ -16,6 +16,7 @@ from content.models import Article
 from .industry import NAME_TO_SLUG
 from .models import Filing, Issuer
 from .research import directory_data
+from .intelligence import research_queryset
 
 
 class CanonicalSitemap(Sitemap):
@@ -29,6 +30,9 @@ class CanonicalSitemap(Sitemap):
 class StaticSitemap(CanonicalSitemap):
     def items(self):
         urls = ["/", "/recent/", "/learn/", "/learn/api/", "/pricing/", "/privacy/", "/terms/"]
+        urls += ["/about/", "/editorial/", "/research/coverage/"]
+        if research_queryset().exists():
+            urls += ["/research/", "/research/filing-activity/", "/research/amendments/"]
         urls += [f"/{kind}/" for kind, rows in directory_data().items() if rows]
         return urls
 
@@ -57,7 +61,7 @@ class FilingSitemap(CanonicalSitemap):
 
 class IndustrySitemap(CanonicalSitemap):
     def items(self):
-        present = set(Filing.objects.order_by().annotate(key=Lower("industry_group")).values_list("key", flat=True).distinct())
+        present = set(Filing.objects.alias(issuer_name=Trim("issuer__name")).exclude(issuer_name="").order_by().annotate(key=Lower("industry_group")).values_list("key", flat=True).distinct())
         return [f"/industry/{slug}/" for name, slug in NAME_TO_SLUG.items() if name.lower() in present]
 
     def location(self, item):
@@ -68,7 +72,7 @@ class StateSitemap(CanonicalSitemap):
     def items(self):
         states = Issuer.objects.filter(
             Exists(Filing.objects.filter(issuer_id=OuterRef("pk")))
-        ).exclude(state="").order_by("state").values_list("state", flat=True).distinct()
+        ).alias(issuer_name=Trim("name")).exclude(issuer_name="").exclude(state="").order_by("state").values_list("state", flat=True).distinct()
         # The state view uses uppercase SEC codes; don't advertise invalid aliases.
         return [f"/state/{state}/" for state in states if state.isalpha() and state == state.upper()]
 

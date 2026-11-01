@@ -1,5 +1,14 @@
 # Advertising setup and release guide
 
+**November 1, 2026 status:** the available AdSense rejection screenshot shows
+ownership verified and a **Low value content** rejection. A fresh public audit
+confirms the publisher-verification meta tag and matching ads.txt are present.
+The pending-verification notes below are historical October 21 observations;
+reinstalling verification is not the current remedy. See the
+[content-quality implementation and readiness report](adsense-readiness-report.md)
+before requesting another review. Advertising has not been enabled by this
+overhaul, and real account/consent validation remains necessary.
+
 ## Recommendation
 
 Start with manual Google AdSense display units on editorial content, alongside the existing paid exports. One horizontal responsive unit sits after each guide; an optional second unit ID serves the bottom of the About/guides listing. There is no in-article interruption, sticky ad, overlay ad, or ad beside a search form. Signed-in paid users and staff are excluded. Keep Auto ads, anchor ads, vignette ads, and automated placement experiments OFF in AdSense; remote Auto ads could otherwise override this layout on editorial pages.

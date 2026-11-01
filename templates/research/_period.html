@@ -1,0 +1,7 @@
+<section class="card mt-6 p-5">
+  <h2 class="text-xl font-semibold">Two completed calendar months</h2>
+  <p class="mt-3 text-sm">{{ report.current.month|date:"F Y" }}: <strong>{{ report.current.filings }} filings</strong> from {{ report.current.issuers }} issuer CIKs. {{ report.previous.month|date:"F Y" }}: {{ report.previous.filings }} filings from {{ report.previous.issuers }} issuer CIKs.</p>
+  {% if report.change_percent != None %}<p class="mt-2 text-sm">Filing count difference: {{ report.delta }} ({{ report.change_percent }}%). Calculation: (later month − earlier month) ÷ earlier month × 100.</p>{% else %}<p class="mt-2 text-sm">Percentage change is unavailable because the earlier month has no stored filings; division by zero is not meaningful.</p>{% endif %}
+  {% if report.dataset_share != None %}<p class="mt-2 text-sm">This category contains {{ report.dataset_share }}% of the {{ report.dataset_filings }} eligible dataset filings in {{ report.current.month|date:"F Y" }}. This is a share of stored records, not national market share.</p>{% endif %}
+  <p class="mt-2 text-sm text-slate-600">These are differences in stored submissions, not growth in funding. Completed calendar periods can still have incomplete imports. The partial current month is excluded from this comparison.</p>
+</section>

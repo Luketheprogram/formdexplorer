@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Max
-from django.db.models.functions import ExtractYear
+from django.db.models.functions import ExtractYear, Trim
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -22,6 +22,7 @@ from .search import active_filters, build_filing_query, search_persons
 from .search_params import SearchValidationError, normalize_search_params, validated_export
 from .states import US_STATES
 from .research import activity_stats, directory_data
+from .intelligence import category_report, filing_changes
 
 
 SEARCH_RESULT_LIMIT = 500
@@ -129,6 +130,8 @@ def issuer_detail(request, slug_cik: str):
     by_year = list(filings.annotate(year=ExtractYear("filing_date"))
                    .values("year").annotate(count=Count("id")).order_by("year"))
     latest_filing = filings.first()
+    recent_pair = list(filings.order_by("-filing_date", "-accession_number")[:2])
+    comparison = filing_changes(recent_pair[1], recent_pair[0]) if len(recent_pair) == 2 else None
     industry_slug = NAME_TO_SLUG.get(latest_filing.industry_group) if latest_filing else None
     related = []
     likely_advisers: list = []
@@ -167,6 +170,7 @@ def issuer_detail(request, slug_cik: str):
         "stats": agg,
         "by_year": by_year,
         "latest_filing": latest_filing,
+        "comparison": comparison,
         "industry_slug": industry_slug,
         "related_issuers": related,
         "likely_advisers": likely_advisers,
@@ -348,6 +352,8 @@ def industry_detail(request, slug: str):
     if not name:
         raise Http404
     qs = Filing.objects.filter(industry_group__iexact=name)
+    if not qs.alias(research_name=Trim("issuer__name")).exclude(research_name="").exists():
+        request.seo_noindex = True
     stats = activity_stats(qs)
     list_qs = qs.select_related("issuer").defer("raw_xml").order_by("-filing_date", "-id")
     top_issuers = _top_issuers(qs)
@@ -358,6 +364,7 @@ def industry_detail(request, slug: str):
         "page_obj": page,
         "stats": stats,
         "top_issuers": top_issuers,
+        "report": category_report(industry=name) if page.number == 1 else None,
         **metadata(
             f"{name} SEC Form D Filings",
             f"Browse {name} private placement filings. Review issuers, reported offering "
@@ -379,6 +386,8 @@ def state_detail(request, state: str):
     qs = Filing.objects.filter(issuer__state=state_up)
     if not qs.exists():
         raise Http404
+    if not qs.alias(research_name=Trim("issuer__name")).exclude(research_name="").exists():
+        request.seo_noindex = True
     stats = activity_stats(qs)
     list_qs = qs.select_related("issuer").defer("raw_xml").order_by("-filing_date", "-id")
     top_issuers = _top_issuers(qs)
@@ -398,6 +407,7 @@ def state_detail(request, state: str):
         "stats": stats,
         "top_issuers": top_issuers,
         "top_industries": top_industries,
+        "report": category_report(state=state_up) if page.number == 1 else None,
         **metadata(
             f"{state_name} SEC Form D Filings",
             f"Explore SEC Form D filings from issuers in {state_name}. "
@@ -416,8 +426,8 @@ def recent(request):
         "filings": qs,
         "viewed_ids": _viewed_issuer_ids(request.user, qs),
         **metadata(
-            "Recent SEC Form D Filings & Private Capital Raises",
-            "Research recent private capital raises through the latest 50 Form D filings in our database. "
+            "Recent SEC Form D Notices & Amendments",
+            "Research the latest 50 Form D notices and amendments in our database. "
             "View issuers, filing dates, and reported offering amounts.",
         ),
         "canonical_path": "/recent/",

@@ -1,11 +1,16 @@
 from django.urls import path
 
 from . import feeds, views
+from . import research_views
 from .alerts import views as alert_views
 
 app_name = "filings"
 
 urlpatterns = [
+    path("research/", research_views.hub, name="research"),
+    path("research/compare/", research_views.compare, name="research_compare"),
+    path("research/filing-changes/", research_views.changes, name="filing_changes"),
+    path("research/<slug:slug>/", research_views.report_detail, name="research_report"),
     path("saved-searches/alerts/", alert_views.preferences, name="alert_preferences"),
     path("saved-searches/alerts/unsubscribe/<uuid:token>/", alert_views.unsubscribe, name="alert_unsubscribe"),
     path("saved-searches/alerts/unsubscribe/<uuid:token>/one-click/", alert_views.unsubscribe_one_click, name="alert_unsubscribe_one_click"),

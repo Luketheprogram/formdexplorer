@@ -1,0 +1,24 @@
+/* Small additions to the existing visual system; no charting dependency. */
+.research-table-wrap { overflow-x: auto; border: 1px solid #cbd5e1; border-radius: .75rem; background: #fff; }
+.research-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .875rem; font-variant-numeric: tabular-nums; }
+.research-table caption { padding: 1rem; text-align: left; color: #475569; }
+.research-table th, .research-table td { padding: .75rem 1rem; border-top: 1px solid #e2e8f0; vertical-align: top; }
+.research-table thead th { background: #f1f5f9; color: #334155; }
+.research-table tbody th { font-weight: 500; }
+.research-table td { position: relative; }
+.research-bar { display: block; height: 3px; background: #a5b4fc; margin-bottom: .3rem; max-width: 100%; }
+.research-note { border-left: 3px solid #818cf8; background: #f1f5f9; padding: 1rem 1.25rem; font-size: .875rem; line-height: 1.65; color: #334155; }
+.research-note p + p { margin-top: .5rem; }
+.research-definitions dt { font-size: .8rem; color: #475569; margin-top: .8rem; }
+.research-definitions dd { font-variant-numeric: tabular-nums; font-weight: 500; }
+.skip-link { position: absolute; left: 1rem; top: -5rem; z-index: 100; padding: .75rem; background: white; color: #3730a3; border: 2px solid #4f46e5; }
+.skip-link:focus { top: .5rem; }
+.guide-body table { width: 100%; border-collapse: collapse; font-size: .875rem; margin-top: 1rem; }
+.guide-body th, .guide-body td { padding: .65rem; border: 1px solid #cbd5e1; text-align: left; vertical-align: top; }
+.guide-body { overflow-wrap: anywhere; }
+.guide-body table { display: block; overflow-x: auto; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Preserve the existing typography with readable small-text contrast. */
+.eyebrow { color: #475569; }
+footer .text-slate-400 { color: #64748b; }

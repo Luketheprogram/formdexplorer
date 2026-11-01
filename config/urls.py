@@ -4,10 +4,14 @@ from django.views.generic import TemplateView
 
 from filings.sitemaps import SITEMAPS, sitemap_index, sitemap_section
 from .advertising import ads_txt
+from content import trust_views
 
 _UPDATED = "2026-04-24"
 
 urlpatterns = [
+    path("about/", trust_views.about, name="about"),
+    path("editorial/", trust_views.editorial, name="editorial"),
+    path("research/coverage/", trust_views.coverage, name="data_coverage"),
     path("ads.txt", ads_txt, name="ads_txt"),
     path("admin/", admin.site.urls),
     path(

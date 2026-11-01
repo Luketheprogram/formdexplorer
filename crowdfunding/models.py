@@ -54,8 +54,8 @@ class CrowdfundingFiling(models.Model):
     class Meta:
         ordering = ["-filing_date", "-id"]
         indexes = [
-            models.Index(fields=["-filing_date"]),
-            models.Index(fields=["intermediary_cik", "-filing_date"]),
+            models.Index(fields=["-filing_date"], name="cf_filing_date_desc_idx"),
+            models.Index(fields=["intermediary_cik", "-filing_date"], name="cf_intermediary_idx"),
         ]
 
     def __str__(self) -> str:

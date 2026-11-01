@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "research/_breadcrumb.html" %}
+<h1 class="text-3xl font-bold tracking-tight text-slate-900">SEC private placement research</h1>
+<p class="mt-4 max-w-3xl text-slate-600">Move from individual notices to reproducible observations. Compare filing activity, separate original notices from amendments, and inspect differences between issuer disclosures. Every result uses records stored in Form D Explorer.</p>
+<div class="mt-8 grid gap-4 md:grid-cols-2">
+  <section class="card p-5"><h2 class="text-xl font-semibold"><a class="link" href="/research/filing-activity/">Monthly filing activity</a></h2><p class="mt-3 text-sm">A twelve-month history of notices, amendments and distinct CIKs, plus a comparison of two completed calendar months.</p></section>
+  <section class="card p-5"><h2 class="text-xl font-semibold"><a class="link" href="/research/amendments/">Amendments and disclosure coverage</a></h2><p class="mt-3 text-sm">See how much of the dataset consists of amendments and how often numeric fields are usable before building an analysis.</p></section>
+  <section class="card p-5"><h2 class="text-xl font-semibold"><a class="link" href="/research/compare/">Compare states or industries</a></h2><p class="mt-3 text-sm">Apply the same dates and definitions to two categories. Inspect issuer counts, amendment shares and each category's share of stored submissions.</p></section>
+  <section class="card p-5"><h2 class="text-xl font-semibold"><a class="link" href="/research/filing-changes/">Filing change viewer</a></h2><p class="mt-3 text-sm">Choose two filings for the same CIK and compare reported amounts and investor counts, with source links and missing-value safeguards.</p></section>
+</div>
+{% include "research/_coverage.html" %}
+<section class="mt-8"><h2 class="text-xl font-semibold">A practical research workflow</h2><ol class="mt-3 list-decimal space-y-2 pl-6 text-sm"><li>Start with <a class="link" href="/search/">issuer search</a>; confirm the legal name and CIK.</li><li>Open its profile and compare two source disclosures. A shared CIK does not establish a shared offering.</li><li>Use a <a class="link" href="/states/">state</a> or <a class="link" href="/industries/">industry</a> history to understand the surrounding dataset.</li><li>Keep accession numbers, dates, scope and source links in your research note. <a class="link" href="/learn/research-company-form-d-history/">Read the full workflow</a>.</li></ol></section>
+{% endblock %}

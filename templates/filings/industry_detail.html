@@ -9,6 +9,7 @@
 <h1 class="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">{{ industry }} — Form D filings</h1>
 
 {% include "_partials/stats.html" %}
+{% if report %}{% include "research/_coverage.html" %}{% include "research/_period.html" %}{% include "research/_monthly.html" %}<p class="mt-4 text-sm"><a class="link" href="/research/compare/?kind=industry&amp;left={{ slug }}">Compare this industry with another</a></p>{% endif %}
 <p class="mt-4"><a class="link" href="/learn/research-company-form-d-history/">How to research issuer filing history</a> · <a class="link" href="/search/">Search and export a filtered set</a></p>
 
 {% if top_issuers %}

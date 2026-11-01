@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "research/_breadcrumb.html" %}
+<h1 class="text-3xl font-bold">Filing change viewer</h1><p class="mt-4 text-slate-600">Choose two disclosures from the same issuer. Start with a CIK from an <a class="link" href="/search/">issuer search</a> or open this tool from an issuer profile.</p>
+{% if errors %}<div class="research-note mt-4" role="alert">{% for error in errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+<form method="get" class="card mt-6 space-y-4 p-5"><div><label for="cik" class="field-label">Issuer CIK (as displayed on the issuer profile)</label><input class="input" id="cik" name="cik" value="{{ cik }}" inputmode="numeric" pattern="[0-9]{1,10}" maxlength="10" required></div>
+{% if records|length > 1 %}<div class="grid gap-4 md:grid-cols-2"><div><label class="field-label" for="earlier">Earlier disclosure</label><select class="input" name="earlier" id="earlier">{% for f in records %}<option value="{{ f.accession_number }}"{% if f.accession_number == earlier_selected %} selected{% endif %}>{{ f.filing_date|date:"Y-m-d" }} · {{ f.form_type }} · {{ f.accession_number }}</option>{% endfor %}</select></div><div><label class="field-label" for="later">Later disclosure</label><select class="input" name="later" id="later">{% for f in records %}<option value="{{ f.accession_number }}"{% if f.accession_number == later_selected %} selected{% endif %}>{{ f.filing_date|date:"Y-m-d" }} · {{ f.form_type }} · {{ f.accession_number }}</option>{% endfor %}</select></div></div>{% endif %}
+<button class="btn-primary" type="submit">{% if records|length > 1 %}Compare disclosures{% else %}Load issuer filings{% endif %}</button></form>
+{% if change_issuer %}<p class="mt-4"><a class="link" href="/issuer/{{ change_issuer.url_slug }}/">{{ change_issuer.name }} · CIK {{ change_issuer.cik }}</a></p><p class="mt-2 text-sm text-slate-600">Selection is limited to the latest 200 stored Form D filings. View the full issuer history for older records. Changing the CIK loads a different issuer; select its records after loading.</p>{% if records|length < 2 %}<p class="research-note mt-4">At least two stored filings are needed for this comparison.</p>{% endif %}{% endif %}
+{% if comparison %}{% include "research/_changes.html" %}{% endif %}
+<p class="mt-6 text-sm"><a class="link" href="/learn/form-d-vs-form-d-a/">What an amendment means</a> · <a class="link" href="/learn/form-d-offering-amount-vs-amount-sold/">How to interpret amount differences</a></p>
+{% endblock %}
