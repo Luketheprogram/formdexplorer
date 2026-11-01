@@ -1,5 +1,7 @@
 # Form D Explorer — content quality and AdSense readiness
 
+> Release update — November 1, 2026: the overhaul is now deployed on production commit `a1c5cc361fcf10a002702cda4306981920f66473`; the new public routes and corrected guides returned HTTP 200. The reviewed release passed all 246 PostgreSQL tests without skips. Migration drift was resolved using metadata-only ID labels and the existing index names. Three curated October research editions and their frozen real-data snapshot were then prepared and passed a 250-test PostgreSQL suite. Advertising remains disabled; no AdSense review has been submitted. The original pre-release assessment below is retained as historical context; deployment and PostgreSQL validation are no longer outstanding.
+
 Assessment date: November 1, 2026. Implementation branch: `codex/adsense-content-quality`.
 
 **NEARLY READY — SPECIFIC ISSUES REMAIN.** The changes described here are implemented and locally validated. They have not been deployed, and no AdSense review was requested. Production must receive the reviewed changes and updated article bodies, then pass the release checks below. This assessment is not a prediction of Google's decision.

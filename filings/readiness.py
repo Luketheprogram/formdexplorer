@@ -11,6 +11,7 @@ from config.advertising import cmp_url, publisher_id
 from content.models import Article
 from content.reviewed_guides import ARTICLES
 from content.research_guides import RESEARCH_GUIDES
+from content.market_research import MARKET_RESEARCH
 from .intelligence import activity_report
 from .models import Filing, Issuer
 
@@ -19,7 +20,7 @@ def quality_audit():
     report = activity_report()
     missing = []
     outdated = []
-    for guide in ARTICLES + RESEARCH_GUIDES:
+    for guide in ARTICLES + RESEARCH_GUIDES + MARKET_RESEARCH:
         article = Article.objects.filter(slug=guide["slug"]).first()
         if not article or not article.is_published or not article.body.strip():
             missing.append(guide["slug"])

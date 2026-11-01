@@ -1,0 +1,337 @@
+{
+  "schema_version": 1,
+  "data_as_of": "2026-11-01T20:05:09.641805+00:00",
+  "scope": "Stored Form D accessions with nonblank issuer names; calendar completion does not certify complete SEC import coverage.",
+  "current": {
+    "filings": 5780,
+    "issuers": 5520,
+    "originals": 3677,
+    "amendments": 2103,
+    "offering_known": 3114,
+    "sold_known": 5780,
+    "investors_known": 5780,
+    "offering_zero": 11,
+    "sold_zero": 1106,
+    "investors_zero": 1098,
+    "repeat_issuer_ciks": 204,
+    "month": "2026-10-01",
+    "amendment_share": "36.4"
+  },
+  "previous": {
+    "filings": 5667,
+    "issuers": 5417,
+    "originals": 3508,
+    "amendments": 2159,
+    "offering_known": 2943,
+    "sold_known": 5667,
+    "investors_known": 5667,
+    "offering_zero": 2,
+    "sold_zero": 1068,
+    "investors_zero": 1064,
+    "repeat_issuer_ciks": 195,
+    "month": "2026-09-01",
+    "amendment_share": "38.1"
+  },
+  "filing_difference": 113,
+  "filing_change_percent": "2.0",
+  "industries": [
+    {
+      "industry_group": "Pooled Investment Fund",
+      "filings": 3840,
+      "issuers": 3755,
+      "originals": 2154,
+      "amendments": 1686,
+      "dataset_share": "66.4"
+    },
+    {
+      "industry_group": "Other Technology",
+      "filings": 406,
+      "issuers": 373,
+      "originals": 343,
+      "amendments": 63,
+      "dataset_share": "7.0"
+    },
+    {
+      "industry_group": "Other",
+      "filings": 389,
+      "issuers": 350,
+      "originals": 332,
+      "amendments": 57,
+      "dataset_share": "6.7"
+    },
+    {
+      "industry_group": "Other Real Estate",
+      "filings": 216,
+      "issuers": 195,
+      "originals": 135,
+      "amendments": 81,
+      "dataset_share": "3.7"
+    },
+    {
+      "industry_group": "Commercial",
+      "filings": 169,
+      "issuers": 160,
+      "originals": 134,
+      "amendments": 35,
+      "dataset_share": "2.9"
+    },
+    {
+      "industry_group": "Residential",
+      "filings": 100,
+      "issuers": 97,
+      "originals": 81,
+      "amendments": 19,
+      "dataset_share": "1.7"
+    },
+    {
+      "industry_group": "Other Health Care",
+      "filings": 85,
+      "issuers": 77,
+      "originals": 70,
+      "amendments": 15,
+      "dataset_share": "1.5"
+    },
+    {
+      "industry_group": "Biotechnology",
+      "filings": 70,
+      "issuers": 65,
+      "originals": 56,
+      "amendments": 14,
+      "dataset_share": "1.2"
+    },
+    {
+      "industry_group": "Other Banking and Financial Services",
+      "filings": 61,
+      "issuers": 54,
+      "originals": 39,
+      "amendments": 22,
+      "dataset_share": "1.1"
+    },
+    {
+      "industry_group": "Investing",
+      "filings": 58,
+      "issuers": 57,
+      "originals": 48,
+      "amendments": 10,
+      "dataset_share": "1.0"
+    },
+    {
+      "industry_group": "Business Services",
+      "filings": 56,
+      "issuers": 42,
+      "originals": 38,
+      "amendments": 18,
+      "dataset_share": "1.0"
+    },
+    {
+      "industry_group": "Oil and Gas",
+      "filings": 53,
+      "issuers": 46,
+      "originals": 38,
+      "amendments": 15,
+      "dataset_share": "0.9"
+    },
+    {
+      "industry_group": "Manufacturing",
+      "filings": 48,
+      "issuers": 43,
+      "originals": 36,
+      "amendments": 12,
+      "dataset_share": "0.8"
+    },
+    {
+      "industry_group": "Other Energy",
+      "filings": 37,
+      "issuers": 33,
+      "originals": 29,
+      "amendments": 8,
+      "dataset_share": "0.6"
+    },
+    {
+      "industry_group": "REITS and Finance",
+      "filings": 37,
+      "issuers": 36,
+      "originals": 18,
+      "amendments": 19,
+      "dataset_share": "0.6"
+    },
+    {
+      "industry_group": "Insurance",
+      "filings": 27,
+      "issuers": 23,
+      "originals": 14,
+      "amendments": 13,
+      "dataset_share": "0.5"
+    },
+    {
+      "industry_group": "Commercial Banking",
+      "filings": 18,
+      "issuers": 18,
+      "originals": 18,
+      "amendments": 0,
+      "dataset_share": "0.3"
+    },
+    {
+      "industry_group": "Retailing",
+      "filings": 18,
+      "issuers": 15,
+      "originals": 15,
+      "amendments": 3,
+      "dataset_share": "0.3"
+    },
+    {
+      "industry_group": "Restaurants",
+      "filings": 16,
+      "issuers": 15,
+      "originals": 14,
+      "amendments": 2,
+      "dataset_share": "0.3"
+    },
+    {
+      "industry_group": "Computers",
+      "filings": 14,
+      "issuers": 14,
+      "originals": 12,
+      "amendments": 2,
+      "dataset_share": "0.2"
+    },
+    {
+      "industry_group": "Construction",
+      "filings": 14,
+      "issuers": 11,
+      "originals": 12,
+      "amendments": 2,
+      "dataset_share": "0.2"
+    },
+    {
+      "industry_group": "Pharmaceuticals",
+      "filings": 11,
+      "issuers": 11,
+      "originals": 8,
+      "amendments": 3,
+      "dataset_share": "0.2"
+    },
+    {
+      "industry_group": "Agriculture",
+      "filings": 7,
+      "issuers": 6,
+      "originals": 6,
+      "amendments": 1,
+      "dataset_share": "0.1"
+    },
+    {
+      "industry_group": "Investment Banking",
+      "filings": 6,
+      "issuers": 3,
+      "originals": 6,
+      "amendments": 0,
+      "dataset_share": "0.1"
+    },
+    {
+      "industry_group": "Hospitals and Physicians",
+      "filings": 5,
+      "issuers": 4,
+      "originals": 4,
+      "amendments": 1,
+      "dataset_share": "0.1"
+    },
+    {
+      "industry_group": "Telecommunications",
+      "filings": 5,
+      "issuers": 5,
+      "originals": 5,
+      "amendments": 0,
+      "dataset_share": "0.1"
+    },
+    {
+      "industry_group": "Energy Conservation",
+      "filings": 4,
+      "issuers": 4,
+      "originals": 4,
+      "amendments": 0,
+      "dataset_share": "0.1"
+    },
+    {
+      "industry_group": "Lodging and Conventions",
+      "filings": 4,
+      "issuers": 4,
+      "originals": 4,
+      "amendments": 0,
+      "dataset_share": "0.1"
+    },
+    {
+      "industry_group": "Health Insurance",
+      "filings": 2,
+      "issuers": 2,
+      "originals": 2,
+      "amendments": 0,
+      "dataset_share": "0.0"
+    },
+    {
+      "industry_group": "Other Travel",
+      "filings": 2,
+      "issuers": 2,
+      "originals": 2,
+      "amendments": 0,
+      "dataset_share": "0.0"
+    },
+    {
+      "industry_group": "Tourism and Travel Services",
+      "filings": 2,
+      "issuers": 2,
+      "originals": 0,
+      "amendments": 2,
+      "dataset_share": "0.0"
+    }
+  ],
+  "availability_by_submission": [
+    {
+      "label": "Initial notices",
+      "filings": 3677,
+      "offering_known": 2477,
+      "sold_known": 3677,
+      "investors_known": 3677
+    },
+    {
+      "label": "Amendments",
+      "filings": 2103,
+      "offering_known": 637,
+      "sold_known": 2103,
+      "investors_known": 2103
+    }
+  ],
+  "definitions": {
+    "issuer": "Distinct stored CIK, not a brand, fund family, or offering.",
+    "amendment": "D/A submission type or extracted amendment flag; each accession counted once.",
+    "known": "Nonnegative stored numeric value, including zero; not independently certified completeness.",
+    "industry": "Issuer-reported classification on each filing; one CIK may appear in more than one category.",
+    "amounts": "No offering/sold amounts are summed. No financing, cash-receipt, investor-identity or national-market conclusion is inferred."
+  },
+  "source_examples": [
+    {
+      "accession": "0001231919-26-001499",
+      "cik": "1797256",
+      "name": "BigHat Biosciences, Inc.",
+      "form_type": "D",
+      "date": "2026-10-26",
+      "offering": 79999947,
+      "sold": 75141086,
+      "investors": 29,
+      "source": "https://www.sec.gov/Archives/edgar/data/1797256/000123191926001499/0001231919-26-001499-index.htm",
+      "sec_xml_sha256": "a7ce653eb0e0280c65244f8b02006d69801c83f9980d0b2438b8c41b556278f9"
+    },
+    {
+      "accession": "0001213900-26-114364",
+      "cik": "2151144",
+      "name": "Tenora Studios, LLC",
+      "form_type": "D/A",
+      "date": "2026-10-30",
+      "offering": 10000000,
+      "sold": 1500000,
+      "investors": 14,
+      "source": "https://www.sec.gov/Archives/edgar/data/2151144/000121390026114364/0001213900-26-114364-index.htm",
+      "sec_xml_sha256": "956cd0a292fce3bded3458ef7e13b83686e6e80598fa23fa9bbba0062ebc1d24"
+    }
+  ],
+  "source_verification": "Selected example fields matched direct SEC XML. This verifies extraction against disclosures, not the accuracy of issuer statements."
+}

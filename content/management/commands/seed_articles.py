@@ -4,6 +4,7 @@ from django.utils import timezone
 from content.models import Article
 from content.research_guides import RESEARCH_GUIDES
 from content.reviewed_guides import ARTICLES
+from content.market_research import MARKET_RESEARCH
 
 
 class Command(BaseCommand):
@@ -11,7 +12,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **opts):
         now = timezone.now()
-        for data in ARTICLES + RESEARCH_GUIDES:
+        for data in ARTICLES + RESEARCH_GUIDES + MARKET_RESEARCH:
             defaults = {key: data[key] for key in ("title", "meta_description", "body")}
             article, created = Article.objects.get_or_create(
                 slug=data["slug"], defaults={**defaults, "published_at": now}

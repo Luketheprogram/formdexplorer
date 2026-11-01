@@ -3,8 +3,11 @@ import re
 
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 
 from config.metadata import metadata
+from content.models import Article
+from content.market_research import MARKET_RESEARCH
 from .industry import SLUG_TO_NAME
 from .intelligence import activity_report, filing_changes, percent
 from .models import Issuer
@@ -22,6 +25,7 @@ def hub(request):
         request.seo_noindex = True
     return render(request, "research/hub.html", {
         "report": report, "canonical_path": "/research/", "research_page": "Research",
+        "research_notes": Article.objects.filter(slug__in=[a['slug'] for a in MARKET_RESEARCH], published_at__lte=timezone.now()).exclude(body='').only('slug', 'title', 'meta_description', 'published_at'),
         **metadata("SEC private placement research", "Analyze stored SEC Form D activity, compare states and industries, and inspect changes between issuer disclosures with transparent calculations."),
     })
 
