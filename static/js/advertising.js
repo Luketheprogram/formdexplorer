@@ -187,6 +187,18 @@
     const script = document.createElement('script');
     script.async = true;
     script.src = config.cmpUrl;
+    script.onload = () => {
+      // The account-issued standalone tag separates its inactive API bootstrap
+      // from message deployment. This hook is exported by that delivered tag.
+      // It starts privacy messages only; the ad library remains independently
+      // gated. Treat a missing hook as an unavailable provider, never consent.
+      const deploy = window.googlefc?.__executeManualDeployment;
+      report('tag-loaded', {manualDeploymentAvailable: typeof deploy === 'function'});
+      if (typeof deploy === 'function') {
+        report('message-deployment');
+        deploy();
+      }
+    };
     script.onerror = () => {
       if (container) container.hidden = true;
       cmpStarted = false;

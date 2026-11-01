@@ -33,7 +33,7 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false}={
     window.googlefc.showRevocationMessage=()=>{revocations++;};
     while(window.googlefc.callbackQueue.length) for (const item of window.googlefc.callbackQueue.splice(0)) Object.values(item).forEach(fn=>fn());
   }
-  return {scripts,frames,settle,providerStatus,stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
+  return {scripts,frames,settle,providerStatus,stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,loadProvider:fn=>{window.googlefc.__executeManualDeployment=fn;scripts[0].onload();},visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
 }
 
 test('opening Google preferences does not opt into ads, including fully granted provider consent',()=>{
@@ -56,6 +56,18 @@ test('explicit privacy settings survive a return to the tab without advertising 
   f.click('partners'); f.visible();
   assert.equal(f.reloads(),0);
   assert.equal(f.scripts.length,1);
+});
+
+test('standalone message initialization runs without loading advertising',()=>{
+  const f=fixture(); f.click('partners');
+  // The real account-issued Google tag exports this initializer after loading.
+  let deployed=0;
+  assert.equal(f.scripts.length,1);
+  assert.match(f.scripts[0].src,/fundingchoicesmessages/);
+  f.loadProvider(()=>{deployed++;});
+  assert.equal(deployed,1);
+  assert.equal(f.scripts.length,1);
+  assert.equal(f.stored(),null);
 });
 
 test('an existing European decision is reopened only after consent data is ready',()=>{
