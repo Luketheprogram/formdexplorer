@@ -28,7 +28,7 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false}={
     window.googlefc.showRevocationMessage=()=>{};
     for (const item of window.googlefc.callbackQueue.splice(0)) Object.values(item).forEach(fn=>fn());
   }
-  return {scripts,frames,settle,stored:()=>stored,click: id=>events.get(id+':click')()};
+  return {scripts,frames,settle,stored:()=>stored,paused:()=>window.adsbygoogle?.pauseAdRequests,units:()=>window.adsbygoogle?.length,click: id=>events.get(id+':click')()};
 }
 
 test('opening Google preferences does not opt into ads, including fully granted provider consent',()=>{
@@ -38,11 +38,14 @@ test('opening Google preferences does not opt into ads, including fully granted 
   assert.equal(f.scripts.length,0);
   f.click('partners');
   assert.equal(f.scripts.length,1);
-  assert.match(f.scripts[0].src,/^https:\/\/fundingchoicesmessages\.google\.com\//);
-  assert.equal(f.frames[0].name,'googlefcPresent');
+  assert.match(f.scripts[0].src,/^https:\/\/pagead2\.googlesyndication\.com\//);
+  assert.equal(f.paused(),1);
+  assert.equal(f.units(),0);
   f.settle();
   assert.equal(f.scripts.length,1);
   assert.equal(f.stored(),null);
+  assert.equal(f.paused(),1);
+  assert.equal(f.units(),0);
 });
 
 test('existing advertising permission cannot auto-load the privacy-page CMP or enable ads while the site is off',()=>{
@@ -50,7 +53,8 @@ test('existing advertising permission cannot auto-load the privacy-page CMP or e
   assert.equal(f.scripts.length,0);
   f.click('partners'); f.settle();
   assert.equal(f.scripts.length,1);
-  assert.ok(f.scripts.every(s=>!s.src.includes('googlesyndication')));
+  assert.equal(f.paused(),1);
+  assert.equal(f.units(),0);
 });
 
 test('GPC prevents both advertising and explicit CMP loading',()=>{

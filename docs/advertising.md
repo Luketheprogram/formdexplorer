@@ -32,16 +32,22 @@ four pure JavaScript consent-boundary tests and follow-up consent tests. Google
 accepted the new review request on November 1 and shows **Getting ready / Review
 requested**. Six public pages serve no ad placements or provider script tags.
 
-Live regional delivery is **not verified**: both published-message previews were
-attempted, and the standalone script initialized Google's consent API frames, but
-the regional message UI did not appear. Do not attribute that solely to
-propagation: Google's [preview instructions](https://support.google.com/adsense/answer/10924669?hl=en)
-also require the AdSense code on the page, which this ads-off release deliberately
-does not load. No live grant/reject/withdrawal or geographic certification is
-claimed. Keep `ADSENSE_CMP_READY=False` until genuine delivery and regional
-behavior have been verified. Keep `ADSENSE_ENABLED=False` pending approval and a
-validated serving release. Evidence is under `outputs/adsense-release/`. The
-October 21 instructions below are historical setup notes.
+The initial standalone previews initialized Google's consent API frames but did
+not show a regional UI. Google's [preview instructions](https://support.google.com/adsense/answer/10924669?hl=en)
+require the AdSense tag. Explicit privacy-settings requests now use that tag with
+Google's documented [`pauseAdRequests=1`](https://support.google.com/adsense/answer/7670312?hl=en)
+set **before** loading it. The privacy page has no ad unit and never pushes an ad
+request or unpauses the tag, even after consent is granted. Google can read
+existing Google cookies in this mode, as disclosed in the privacy notice. GPC
+still blocks the tag entirely. Reading the page never loads it.
+
+Live results for the final integration are recorded under
+`outputs/adsense-release/`. No geographic certification is claimed. Keep
+`ADSENSE_CMP_READY=False` until actual regional behavior has been verified, and
+keep `ADSENSE_ENABLED=False` pending approval and a validated serving release.
+The future editorial serving path still uses the standalone CMP and requires its
+own verification before either serving gate is enabled. The October 21
+instructions below are historical setup notes.
 
 ## Recommendation
 

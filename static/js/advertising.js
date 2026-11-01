@@ -133,18 +133,27 @@
       usAllowed = value === 1 || value === 2;
       maybeShowAd();
     }});
-    // Bootstrap from the publisher's actual Google message tag. This signals
-    // that the standalone CMP is present; it does not load an advertising tag.
-    if (!window.frames['googlefcPresent']) {
-      const iframe = document.createElement('iframe');
-      iframe.style.cssText = 'width: 0; height: 0; border: none; z-index: -1000; left: -1000px; top: -1000px;';
-      iframe.style.display = 'none';
-      iframe.name = 'googlefcPresent';
-      document.body.appendChild(iframe);
-    }
     const script = document.createElement('script');
     script.async = true;
-    script.src = config.cmpUrl;
+    if (config.preferencesOnly) {
+      // Google's supported on-demand messaging integration. Set the documented
+      // pause BEFORE loading the tag; this page never unpauses or pushes a unit.
+      // https://support.google.com/adsense/answer/7670312
+      const queue = window.adsbygoogle = window.adsbygoogle || [];
+      queue.pauseAdRequests = 1;
+      script.crossOrigin = 'anonymous';
+      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(config.client);
+    } else {
+      // Bootstrap copied from the publisher's standalone Google message tag.
+      if (!window.frames['googlefcPresent']) {
+        const iframe = document.createElement('iframe');
+        iframe.style.cssText = 'width: 0; height: 0; border: none; z-index: -1000; left: -1000px; top: -1000px;';
+        iframe.style.display = 'none';
+        iframe.name = 'googlefcPresent';
+        document.body.appendChild(iframe);
+      }
+      script.src = config.cmpUrl;
+    }
     script.onerror = () => {
       if (container) container.hidden = true;
       cmpStarted = false;
