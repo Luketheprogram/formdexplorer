@@ -89,7 +89,7 @@ class AdvertisingTests(TestCase):
         self.assertEqual(self.client.head("/ads.txt").status_code, 200)
         self.assertEqual(self.client.post("/ads.txt").status_code, 405)
 
-    @override_settings(ADSENSE_ENABLED=False)
+    @override_settings(ADSENSE_ENABLED=False, ADSENSE_CMP_READY=False, GOOGLE_PRIVACY_ENABLED=True)
     def test_published_consent_preferences_cannot_enable_advertising(self):
         response = self.client.get("/privacy/")
         self.assertEqual(response["Referrer-Policy"], "strict-origin-when-cross-origin")
@@ -107,6 +107,13 @@ class AdvertisingTests(TestCase):
                 self.assertNotContains(response, 'data-ad-slot=')
                 self.assertNotContains(response, 'advertising.js')
                 self.assertContains(response, '/privacy/#privacy-choices')
+
+    @override_settings(ADSENSE_CMP_READY=False, GOOGLE_PRIVACY_ENABLED=True)
+    def test_privacy_publication_does_not_assert_advertising_consent_readiness(self):
+        response = self.client.get("/learn/test-guide/")
+        self.assertNotContains(response, 'data-ad-slot=')
+        self.assertNotContains(response, 'id="advertising-config"')
+        self.assertContains(self.client.get("/privacy/"), 'id="consent-config"')
 
     @override_settings(ADSENSE_CMP_SCRIPT_URL="https://evil.example/tag.js")
     def test_invalid_consent_configuration_hides_preference_loader(self):

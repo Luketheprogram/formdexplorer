@@ -43,6 +43,7 @@ ADSENSE_ARTICLE_SLOT_ID = os.environ.get("ADSENSE_ARTICLE_SLOT_ID", "").strip()
 ADSENSE_GUIDES_SLOT_ID = os.environ.get("ADSENSE_GUIDES_SLOT_ID", "").strip()
 ADSENSE_CMP_SCRIPT_URL = os.environ.get("ADSENSE_CMP_SCRIPT_URL", "").strip()
 ADSENSE_CMP_READY = _bool(os.environ.get("ADSENSE_CMP_READY"))
+GOOGLE_PRIVACY_ENABLED = _bool(os.environ.get("GOOGLE_PRIVACY_ENABLED"))
 EDGAR_USER_AGENT = os.environ.get(
     "EDGAR_USER_AGENT", "Form D Explorer luke@dawncrestconsulting.com"
 )

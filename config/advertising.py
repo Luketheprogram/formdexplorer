@@ -31,8 +31,8 @@ def cmp_url():
 
 def context(request):
     client = publisher_id()
-    consent_ready = bool(settings.ADSENSE_CMP_READY and client and cmp_url())
-    ready = bool(settings.ADSENSE_ENABLED and consent_ready)
+    consent_ready = bool((settings.GOOGLE_PRIVACY_ENABLED or settings.ADSENSE_CMP_READY) and client and cmp_url())
+    ready = bool(settings.ADSENSE_ENABLED and settings.ADSENSE_CMP_READY and consent_ready)
     user = getattr(request, "user", None)
     eligible = not (user and user.is_authenticated and (user.is_paid or user.is_staff))
     return {

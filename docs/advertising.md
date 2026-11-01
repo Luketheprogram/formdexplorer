@@ -15,24 +15,33 @@ Its accompanying `googlefcPresent` iframe bootstrap is implemented in
 `static/js/advertising.js`. The optional ad blocker error-protection script is not
 installed. The Google advertising library is still gated separately.
 
-`ADSENSE_CMP_READY=True` now enables explicit access to Google privacy settings on
-`/privacy/`; it does **not** enable placements. `ADSENSE_ENABLED=False` remains the
-production setting. No unit IDs are configured. Reading the privacy policy makes
+`GOOGLE_PRIVACY_ENABLED=True` enables explicit access to Google privacy settings
+on `/privacy/`; it does **not** enable placements or assert successful regional
+consent delivery. Both `ADSENSE_ENABLED=False` and `ADSENSE_CMP_READY=False` remain
+the production settings. No unit IDs are configured. Reading the privacy policy makes
 no Google CMP request; visitors must explicitly open Google consent settings.
 This action does not store a local advertising opt-in. Footer links expose the
 settings from other pages without adding provider scripts to utility screens.
 GPC prevents Google CMP/ad requests. A blocked CMP leaves advertising off.
 The response referrer policy is `strict-origin-when-cross-origin`: Google can
 identify the published site's public origin without receiving cross-origin
-paths or query strings. The previous `same-origin` policy prevented delivery.
+paths or query strings. The previous `same-origin` policy withheld the origin required by Google.
 
 Validation: 252 tests passed against disposable PostgreSQL, with no skips, plus
-four pure JavaScript consent-boundary tests. The release still requires a live
-post-deployment check before review submission; evidence and the final account
-status are recorded under `outputs/adsense-release/`. Google preview parameters
-verify message delivery, not geographic detection or legal compliance. Keep ads
-off pending approval and additional regional validation before any serving
-release. The October 21 instructions below are historical setup notes.
+four pure JavaScript consent-boundary tests and follow-up consent tests. Google
+accepted the new review request on November 1 and shows **Getting ready / Review
+requested**. Six public pages serve no ad placements or provider script tags.
+
+Live regional delivery is **not verified**: both published-message previews were
+attempted, and the standalone script initialized Google's consent API frames, but
+the regional message UI did not appear. Do not attribute that solely to
+propagation: Google's [preview instructions](https://support.google.com/adsense/answer/10924669?hl=en)
+also require the AdSense code on the page, which this ads-off release deliberately
+does not load. No live grant/reject/withdrawal or geographic certification is
+claimed. Keep `ADSENSE_CMP_READY=False` until genuine delivery and regional
+behavior have been verified. Keep `ADSENSE_ENABLED=False` pending approval and a
+validated serving release. Evidence is under `outputs/adsense-release/`. The
+October 21 instructions below are historical setup notes.
 
 ## Recommendation
 
@@ -90,6 +99,7 @@ In AdSense, create responsive display ad units named, for example, `Guide footer
 | `ADSENSE_ARTICLE_SLOT_ID` | Actual 10-digit guide display unit ID |
 | `ADSENSE_GUIDES_SLOT_ID` | Optional actual 10-digit About display unit ID |
 | `ADSENSE_CMP_SCRIPT_URL` | Account-provided standalone Google message script URL |
+| `GOOGLE_PRIVACY_ENABLED` | Allows explicit privacy-settings access without asserting readiness to serve ads |
 | `ADSENSE_CMP_READY` | `False` until published messages and account-specific integration have been verified |
 | `ADSENSE_ENABLED` | `False` until approval, release review, and live consent validation |
 
