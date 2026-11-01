@@ -1,13 +1,35 @@
 # Advertising setup and release guide
 
-**November 1, 2026 status:** the available AdSense rejection screenshot shows
-ownership verified and a **Low value content** rejection. A fresh public audit
-confirms the publisher-verification meta tag and matching ads.txt are present.
-The pending-verification notes below are historical October 21 observations;
-reinstalling verification is not the current remedy. See the
-[content-quality implementation and readiness report](adsense-readiness-report.md)
-before requesting another review. Advertising has not been enabled by this
-overhaul, and real account/consent validation remains necessary.
+**November 1, 2026 consent release:** the owner authorized publishing the consent
+messages and resubmitting the site. Google now shows a published European message
+for `formdexplorer.com` with Consent, Do not consent in every supported European
+country, and Manage options. Revenue-based message optimization is off. A separate
+published US message covers all current and future Google-supported US states.
+The site name and `https://formdexplorer.com/privacy/` are configured in Google.
+No offerwall or ad blocking recovery message was created or enabled.
+
+The standalone account-issued message URL, copied from Privacy & messaging > Ad
+blocking recovery > Tagging, is
+`https://fundingchoicesmessages.google.com/i/pub-1796408580720090?ers=1`.
+Its accompanying `googlefcPresent` iframe bootstrap is implemented in
+`static/js/advertising.js`. The optional ad blocker error-protection script is not
+installed. The Google advertising library is still gated separately.
+
+`ADSENSE_CMP_READY=True` now enables explicit access to Google privacy settings on
+`/privacy/`; it does **not** enable placements. `ADSENSE_ENABLED=False` remains the
+production setting. No unit IDs are configured. Reading the privacy policy makes
+no Google CMP request; visitors must explicitly open Google consent settings.
+This action does not store a local advertising opt-in. Footer links expose the
+settings from other pages without adding provider scripts to utility screens.
+GPC prevents Google CMP/ad requests. A blocked CMP leaves advertising off.
+
+Validation: 252 tests passed against disposable PostgreSQL, with no skips, plus
+four pure JavaScript consent-boundary tests. The release still requires a live
+post-deployment check before review submission; evidence and the final account
+status are recorded under `outputs/adsense-release/`. Google preview parameters
+verify message delivery, not geographic detection or legal compliance. Keep ads
+off pending approval and additional regional validation before any serving
+release. The October 21 instructions below are historical setup notes.
 
 ## Recommendation
 
@@ -45,7 +67,7 @@ This implementation deliberately loads the consent platform separately from the 
 
 The local “Allow advertising” choice is an additional opt-in, **not a certified CMP**. It does not replace Google's regional consent flow. This conservative launch:
 
-- Makes no Google advertising/CMP request before local opt-in. Google Fonts/HTMX are pre-existing unrelated resources.
+- Makes no Google advertising/CMP request before local opt-in, except a visitor's explicit request to review Google privacy settings on `/privacy/`. Reviewing those settings cannot opt the visitor into advertising. Google Fonts/HTMX are pre-existing unrelated resources.
 - Requires a successfully loaded TCF API: either an explicit non-applicability result or settled consent for Google (vendor 755) and device storage (purpose 1). Google consumes the full TCF string for other required purposes.
 - Requires Google's initial US privacy status to be known and not opted out. Missing callbacks fail closed, even outside regulated regions.
 - Requests non-personalized ads; these still require appropriate consent and may use cookies.

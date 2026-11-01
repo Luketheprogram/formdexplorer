@@ -21,7 +21,7 @@ urlpatterns = [
             extra_context={
                 "page_title": "Privacy Policy | Form D Explorer",
                 "meta_description": "Read how Form D Explorer handles account information, usage data, cookies, advertising choices, and privacy requests.",
-                "canonical_path": "/privacy/", "updated": "2026-10-21",
+                "canonical_path": "/privacy/", "updated": "2026-11-01",
             },
         ),
         name="privacy",

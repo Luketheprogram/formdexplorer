@@ -5,13 +5,15 @@
   if (!dialog) return;
   const key = 'formd-advertising-v1';
   const lifetime = 180 * 24 * 60 * 60 * 1000;
-  const configNode = document.getElementById('advertising-config');
+  const configNode = document.getElementById('advertising-config') || document.getElementById('consent-config');
   const config = configNode ? JSON.parse(configNode.textContent) : null;
+  const servingEnabled = dialog.dataset.adServing === 'true';
   const container = document.querySelector('[data-ad-container]');
   const note = document.querySelector('[data-ad-note]');
   const status = dialog.querySelector('[data-ad-status]');
   const allowButton = dialog.querySelector('[data-ad-allow]');
   const partnersButton = dialog.querySelector('[data-ad-partners]');
+  if (config?.preferencesOnly) partnersButton.hidden = false;
   let choice = readChoice();
   let cmpStarted = false;
   let adStarted = false;
@@ -34,8 +36,10 @@
   }
 
   function updateControls() {
-    allowButton.disabled = gpc();
+    allowButton.disabled = gpc() || !servingEnabled;
+    partnersButton.disabled = gpc();
     status.textContent = gpc() ? 'Global Privacy Control is on. Advertising is disabled.' :
+      !servingEnabled ? 'Advertising is turned off for this site. Reviewing Google privacy choices cannot turn it on.' :
       choice === 'allow' ? 'Advertising is allowed on this browser, subject to your Google consent settings.' :
         'Advertising is off. This does not affect access to any site features.';
     if (note) note.hidden = choice === 'allow' || gpc();
@@ -52,7 +56,7 @@
     else { updateControls(); dialog.close(); }
   }
 
-  function permitted() { return choice === 'allow' && !gpc() && tcfAllowed && usAllowed; }
+  function permitted() { return servingEnabled && config?.allowAds === true && choice === 'allow' && !gpc() && tcfAllowed && usAllowed; }
 
   function requestAd() {
     if (adStarted || !permitted() || !container || container.getBoundingClientRect().width < 250) return;
@@ -94,8 +98,8 @@
     } else requestAd();
   }
 
-  function startCmp() {
-    if (!config || cmpStarted || choice !== 'allow' || gpc()) return;
+  function startCmp(preferences = false) {
+    if (!config || cmpStarted || gpc() || (!preferences && (choice !== 'allow' || config.preferencesOnly))) return;
     cmpStarted = true;
     window.googlefc = window.googlefc || {};
     window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
@@ -129,10 +133,25 @@
       usAllowed = value === 1 || value === 2;
       maybeShowAd();
     }});
+    // Bootstrap from the publisher's actual Google message tag. This signals
+    // that the standalone CMP is present; it does not load an advertising tag.
+    if (!window.frames['googlefcPresent']) {
+      const iframe = document.createElement('iframe');
+      iframe.style.cssText = 'width: 0; height: 0; border: none; z-index: -1000; left: -1000px; top: -1000px;';
+      iframe.style.display = 'none';
+      iframe.name = 'googlefcPresent';
+      document.body.appendChild(iframe);
+    }
     const script = document.createElement('script');
     script.async = true;
     script.src = config.cmpUrl;
-    script.onerror = () => { if (container) container.hidden = true; };
+    script.onerror = () => {
+      if (container) container.hidden = true;
+      cmpStarted = false;
+      updateControls();
+      status.textContent = 'Google privacy settings could not load. Advertising remains off. Please try again or contact us using the privacy policy.';
+      if (!dialog.open) dialog.showModal();
+    };
     document.head.appendChild(script);
     // Missing, blocked, or incomplete CMP callbacks never unlock ad requests.
   }
@@ -144,15 +163,19 @@
   dialog.querySelector('[data-ad-close]').addEventListener('click', () => dialog.close());
   dialog.querySelector('[data-ad-deny]').addEventListener('click', disable);
   allowButton.addEventListener('click', () => {
-    if (gpc()) return;
+    if (gpc() || !servingEnabled) return;
     saveChoice('allow');
     updateControls();
     dialog.close();
     startCmp();
   });
   partnersButton.addEventListener('click', () => {
+    if (gpc() || !config) return;
     dialog.close();
-    window.googlefc.callbackQueue.push({CONSENT_API_READY: () => window.googlefc.showRevocationMessage()});
+    startCmp(true);
+    window.googlefc.callbackQueue.push({CONSENT_API_READY: () => {
+      if (typeof window.googlefc.showRevocationMessage === 'function') window.googlefc.showRevocationMessage();
+    }});
   });
   window.addEventListener('storage', event => {
     if (event.key !== key && event.key !== null) return;

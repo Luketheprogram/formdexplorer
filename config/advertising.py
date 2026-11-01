@@ -31,13 +31,20 @@ def cmp_url():
 
 def context(request):
     client = publisher_id()
-    ready = bool(settings.ADSENSE_ENABLED and settings.ADSENSE_CMP_READY and client and cmp_url())
+    consent_ready = bool(settings.ADSENSE_CMP_READY and client and cmp_url())
+    ready = bool(settings.ADSENSE_ENABLED and consent_ready)
     user = getattr(request, "user", None)
     eligible = not (user and user.is_authenticated and (user.is_paid or user.is_staff))
     return {
         "adsense_client": client,
         "advertising_ready": ready,
         "advertising_eligible": ready and eligible,
+        "consent_ready": consent_ready,
+        # Explicit preference access does not opt the visitor into advertising.
+        # No Google request occurs just by opening the privacy policy.
+        "consent_config": {"cmpUrl": cmp_url(), "preferencesOnly": True, "allowAds": False}
+        if consent_ready and getattr(getattr(request, "resolver_match", None), "url_name", "") == "privacy"
+        else None,
     }
 
 
@@ -46,7 +53,7 @@ def placement(request, name):
     slot = getattr(settings, f"ADSENSE_{name.upper()}_SLOT_ID", "")
     if not context(request)["advertising_eligible"] or not re.fullmatch(r"[0-9]{10}", slot):
         return {}
-    return {"ad_slot": slot, "ad_config": {"client": publisher_id(), "cmpUrl": cmp_url()}}
+    return {"ad_slot": slot, "ad_config": {"client": publisher_id(), "cmpUrl": cmp_url(), "allowAds": True}}
 
 
 @require_safe

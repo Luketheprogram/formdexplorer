@@ -79,7 +79,7 @@ class AdvertisingTests(TestCase):
             with self.subTest(settings=settings), override_settings(**settings):
                 self.assertNotContains(self.client.get("/learn/test-guide/"), '"advertising-config"')
 
-    @override_settings(ADSENSE_ENABLED=False)
+    @override_settings(ADSENSE_ENABLED=False, ADSENSE_CMP_READY=False)
     def test_verification_works_without_ads_or_cmp(self):
         self.assertContains(self.client.get("/"), 'name="google-adsense-account" content="ca-pub-1234567890123456"')
         self.assertNotContains(self.client.get("/learn/"), 'advertising.js')
@@ -88,6 +88,30 @@ class AdvertisingTests(TestCase):
         self.assertEqual(response.content, b"google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0\n")
         self.assertEqual(self.client.head("/ads.txt").status_code, 200)
         self.assertEqual(self.client.post("/ads.txt").status_code, 405)
+
+    @override_settings(ADSENSE_ENABLED=False)
+    def test_published_consent_preferences_cannot_enable_advertising(self):
+        response = self.client.get("/privacy/")
+        self.assertContains(response, 'id="consent-config"')
+        self.assertContains(response, '"preferencesOnly": true')
+        self.assertContains(response, '"allowAds": false')
+        self.assertContains(response, 'data-ad-serving="false"')
+        self.assertNotContains(response, 'data-ad-slot=')
+        self.assertNotContains(response, 'pagead2.googlesyndication.com')
+        for path in ["/", "/learn/", "/learn/test-guide/", "/search/", "/login/"]:
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertNotContains(response, 'id="consent-config"')
+                self.assertNotContains(response, 'id="advertising-config"')
+                self.assertNotContains(response, 'data-ad-slot=')
+                self.assertNotContains(response, 'advertising.js')
+                self.assertContains(response, '/privacy/#privacy-choices')
+
+    @override_settings(ADSENSE_CMP_SCRIPT_URL="https://evil.example/tag.js")
+    def test_invalid_consent_configuration_hides_preference_loader(self):
+        response = self.client.get("/privacy/")
+        self.assertNotContains(response, 'id="consent-config"')
+        self.assertNotContains(response, 'advertising.js')
 
     @override_settings(ADSENSE_CLIENT_ID="")
     def test_no_fake_publisher_is_served(self):
