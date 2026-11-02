@@ -1,56 +1,61 @@
 # Advertising setup and release guide
 
-**November 1, 2026 consent release:** the owner authorized publishing the consent
-messages and resubmitting the site. Google now shows a published European message
-for `formdexplorer.com` with Consent, Do not consent in every supported European
-country, and Manage options. Revenue-based message optimization is off. A separate
-published US message covers all current and future Google-supported US states.
-The site name and `https://formdexplorer.com/privacy/` are configured in Google.
-No offerwall or ad blocking recovery message was created or enabled.
+**November 1, 2026 status:** Google’s CMP remains the selected provider. The owner
+explicitly declined a provider switch. Google accepted the site review request;
+the account shows **Getting ready / Review requested**, with **Authorized**
+ads.txt. Approval has not been granted.
 
-The standalone account-issued message URL, copied from Privacy & messaging > Ad
-blocking recovery > Tagging, is
-`https://fundingchoicesmessages.google.com/i/pub-1796408580720090?ers=1`.
-Its accompanying `googlefcPresent` iframe bootstrap is implemented in
-`static/js/advertising.js`. The optional ad blocker error-protection script is not
-installed. The Google advertising library is still gated separately.
+The European message is published for `formdexplorer.com`, with Consent, Do not
+consent throughout the supported European countries, and Manage options.
+Revenue-based optimization is off. The published US message covers all current
+and future Google-supported US states. The configured site name is Form D
+Explorer, with privacy URL `https://formdexplorer.com/privacy/`. No offerwall or
+ad-blocking recovery campaign is enabled.
 
-`GOOGLE_PRIVACY_ENABLED=True` enables explicit access to Google privacy settings
-on `/privacy/`; it does **not** enable placements or assert successful regional
-consent delivery. Both `ADSENSE_ENABLED=False` and `ADSENSE_CMP_READY=False` remain
-the production settings. No unit IDs are configured. Reading the privacy policy makes
-no Google CMP request; visitors must explicitly open Google consent settings.
-This action does not store a local advertising opt-in. Footer links expose the
-settings from other pages without adding provider scripts to utility screens.
-GPC prevents Google CMP/ad requests. A blocked CMP leaves advertising off.
-The response referrer policy is `strict-origin-when-cross-origin`: Google can
-identify the published site's public origin without receiving cross-origin
-paths or query strings. The previous `same-origin` policy withheld the origin required by Google.
+Production keeps `ADSENSE_ENABLED=False` and `ADSENSE_CMP_READY=False`, with no ad
+unit IDs. `GOOGLE_PRIVACY_ENABLED=True` enables explicit privacy-settings access
+on `/privacy/`; it neither enables advertising nor certifies message delivery.
+Reading the policy makes no CMP request. Opening Google settings does not save a
+local advertising opt-in. GPC blocks both CMP and advertising requests. Utility
+pages link to the policy without loading provider code. The response referrer
+policy is `strict-origin-when-cross-origin`.
 
-Validation: 252 tests passed against disposable PostgreSQL, with no skips, plus
-four pure JavaScript consent-boundary tests and follow-up consent tests. Google
-accepted the new review request on November 1 and shows **Getting ready / Review
-requested**. Six public pages serve no ad placements or provider script tags.
+The current message URL is
+`https://fundingchoicesmessages.google.com/i/ca-pub-1796408580720090?ers=2`, matching
+the full publisher identifier and request mode used by Google’s public AdSense
+loader. The original account-issued ad-blocking tag used the legacy matching
+`/i/pub-1796408580720090?ers=1` form; the validator accepts both matching publisher
+paths. Google’s documented `fc=alwaysshow` preview flag and allowlisted privacy
+`fctype` values are forwarded to the message request. Other page parameters and
+monetization previews are not forwarded. No undocumented deployment API is used.
+The standalone tag remains separate from the advertising library.
 
-Live regional delivery is **not verified**: both published-message previews were
-attempted, and the standalone script initialized Google's consent API frames, but
-the regional message UI did not appear. Do not attribute that solely to
-propagation: Google's [preview instructions](https://support.google.com/adsense/answer/10924669?hl=en)
-also require the AdSense code on the page, which this ads-off release deliberately
-does not load. No live grant/reject/withdrawal or geographic certification is
-claimed. Keep `ADSENSE_CMP_READY=False` until genuine delivery and regional
-behavior have been verified. Keep `ADSENSE_ENABLED=False` pending approval and a
-validated serving release. Evidence is under `outputs/adsense-release/`. The
-October 21 instructions below are historical setup notes.
+Delivery repairs prevent a return to the tab from cancelling an explicitly
+opened privacy session while local advertising is denied. Initial API readiness
+is not treated as an existing consent decision: reopening waits for both consent
+data readiness and a settled European `tcloaded` event. Missing UI or callbacks
+produce a visible failure message rather than an indefinite loading state.
+Preview-only diagnostics contain callback phases, not consent strings.
 
-A further live attempt used Google's documented paused AdSense tag after an
-explicit privacy-settings request. It also failed to show the regional UI and
-created a zero-size Google probe (no slot, no iframe, no visible ad). That
-experiment was reverted. The final release uses only the standalone message tag
-for explicit privacy settings and cannot load the advertising library while ads
-are disabled. Consent-message publication is confirmed; live regional delivery
-remains unverified. Do not enable either advertising gate on the strength of
-publication or synthetic tests alone.
+Validation: **254 PostgreSQL application tests and 10 JavaScript consent tests
+pass**. Live checks confirm that the corrected European preview reaches the
+Google TCF path with `gdprApplies=true`. However, Google returns an explicit
+inactive/error bundle and renders no regional message. Published status alone is
+not successful delivery. Google accepted a refresh using **Publish changes**
+without unpublishing the message; its dialog warns propagation can take up to an
+hour. Automatic review rejected a proposed temporary unpublish; that action was
+cancelled. No publication interruption occurred.
+
+**Regional delivery remains blocked and unverified.** Do not claim successful
+live accept/reject/withdrawal, US opt-out, or geographic validation. The precise
+provider-side cause is not established; pending site approval is an observed
+account state, not a proven explanation. Google’s
+[preview instructions](https://support.google.com/adsense/answer/10924669?hl=en)
+also require its AdSense tag. A prior documented paused-tag experiment likewise
+failed to render the message and was reverted; production does not load the ad
+library with advertising disabled. Keep both advertising gates false until
+approval and genuine regional delivery have been verified. Evidence and the
+remaining validation steps are under `outputs/adsense-release/`.
 
 ## Recommendation
 
@@ -84,7 +89,7 @@ References: [Connect your site](https://support.google.com/adsense/answer/758426
 
 In AdSense **Privacy & messaging**, publish European regulations and applicable US state privacy messages for the domain. Include the privacy URL `https://formdexplorer.com/privacy/`, the actual operator details, and appropriate ad partners. Offer **Consent**, **Do not consent**, and **Manage options**. Keep Google's regional opt-out links enabled. Review the privacy text against actual operations before release, including the existing hosting, email, retention, and error-monitoring claims.
 
-This implementation deliberately loads the consent platform separately from the advertising library. Copy the Google consent message tag's **script URL** from your account into `ADSENSE_CMP_SCRIPT_URL`. It must use HTTPS, the exact host `fundingchoicesmessages.google.com`, and path `/i/pub-<your publisher digits>`. Copy any query string exactly. This setting takes a URL, not HTML. If your account only supplies the combined AdSense loader, do not substitute that URL or enable ads: obtain and validate the standalone Google message tag or adapt the integration to another certified CMP. If the generated tag includes additional required bootstrap code, compare it with this loader before release. The standalone integration must be tested with the real account; synthetic tests cannot certify it.
+This implementation deliberately loads the consent platform separately from the advertising library. Copy the Google consent message tag's **script URL** from your account into `ADSENSE_CMP_SCRIPT_URL`. It must use HTTPS, the exact host `fundingchoicesmessages.google.com`, and the matching publisher path `/i/ca-pub-<your publisher digits>` or legacy `/i/pub-<your publisher digits>`. Use the validated request mode documented above. This setting takes a URL, not HTML. If your account only supplies the combined AdSense loader, do not substitute that URL or enable ads: obtain and validate the standalone Google message tag or adapt the integration to another certified CMP. If the generated tag includes additional required bootstrap code, compare it with this loader before release. The standalone integration must be tested with the real account; synthetic tests cannot certify it.
 
 The local “Allow advertising” choice is an additional opt-in, **not a certified CMP**. It does not replace Google's regional consent flow. This conservative launch:
 
@@ -126,4 +131,4 @@ After a release, confirm successful Railway deployment, both domain redirects/TL
 
 ## Validation limits
 
-Local tests use SQLite and mocked Google responses. They cover application regressions, consent gates and responsive placement behavior, not PostgreSQL production performance, real ad fill, AdSense account approval, or certified consent-message delivery. Those final checks require the new account and an explicitly authorized release. No revenue estimate is defensible without traffic data.
+Application tests were run against disposable PostgreSQL; JavaScript tests simulate Google responses. They cover application regressions and consent boundaries, not production database performance, real ad fill, AdSense approval, or certified regional delivery. Those final delivery checks require the actual account and regional browser signals. No revenue estimate is defensible without traffic data.

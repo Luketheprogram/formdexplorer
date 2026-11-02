@@ -24,8 +24,9 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,se
   };
   const window = {frames:{},setTimeout:fn=>timers.push(fn),addEventListener:(name,fn)=>events.set('window:'+name,fn),location:{search,reload(){reloads++;}}};
   vm.runInNewContext(source, {document,window,URL,URLSearchParams,navigator:{globalPrivacyControl:gpc},localStorage:{getItem:()=>stored,setItem:(_,value)=>{stored=value;}},console:{...console,info(){}}});
-  function settle({tcf=true,us=1,existing=false}={}) {
+  function settle({tcf=true,us=1,existing=false,inactive=false}={}) {
     window.__tcfapi=(_,version,cb)=>{
+      if (inactive) { cb({cmpStatus:'loaded',gdprApplies:true},true); return; }
       if (tcf && !existing) cb({cmpStatus:'loaded',gdprApplies:true,eventStatus:'cmpuishown'},true);
       cb({cmpStatus:'loaded',gdprApplies:tcf,eventStatus:existing?'tcloaded':'useractioncomplete',purpose:{consents:{1:true}},vendor:{consents:{755:true}}},true);
     };
@@ -33,7 +34,7 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,se
     window.googlefc.showRevocationMessage=()=>{revocations++;};
     while(window.googlefc.callbackQueue.length) for (const item of window.googlefc.callbackQueue.splice(0)) Object.values(item).forEach(fn=>fn());
   }
-  return {scripts,frames,settle,providerStatus,stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,loadProvider:fn=>{window.googlefc.__executeManualDeployment=fn;scripts[0].onload();},visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
+  return {scripts,frames,settle,providerStatus,stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
 }
 
 test('opening Google preferences does not opt into ads, including fully granted provider consent',()=>{
@@ -81,6 +82,14 @@ test('an unavailable provider produces clear feedback and never unlocks ads',()=
   assert.equal(f.providerStatus.dataset.phase,'unavailable');
   assert.match(f.providerStatus.textContent,/Advertising remains off/);
   assert.equal(f.scripts.length,1);
+});
+
+test('an inactive Google bootstrap is not mistaken for an existing consent decision',()=>{
+  const f=fixture(); f.click('partners'); f.settle({inactive:true,us:1}); f.timeout();
+  assert.equal(f.revocations(),0);
+  assert.equal(f.stored(),null);
+  assert.equal(f.scripts.length,1);
+  assert.equal(f.providerStatus.dataset.phase,'unavailable');
 });
 
 test('explicit non-applicability is shown without implying a consent grant',()=>{

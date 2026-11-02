@@ -26,6 +26,8 @@
   let usStatus;
   let cmpUiShown = false;
   let preferencesRequested = false;
+  let consentDataReady = false;
+  let existingEuropeanDecision = false;
   let observer;
   const gpc = () => navigator.globalPrivacyControl === true;
 
@@ -46,6 +48,14 @@
       const saved = JSON.parse(localStorage.getItem(key));
       return saved && saved.expires > Date.now() && ['allow', 'deny'].includes(saved.value) ? saved.value : null;
     } catch (_) { return null; }
+  }
+
+  function reopenExistingPreferences() {
+    if (preferencesRequested && consentDataReady && existingEuropeanDecision && !cmpUiShown &&
+        typeof window.googlefc.showRevocationMessage === 'function') {
+      preferencesRequested = false;
+      window.googlefc.showRevocationMessage();
+    }
   }
 
   function saveChoice(value) {
@@ -130,6 +140,8 @@
       if (typeof window.__tcfapi === 'function') {
         window.__tcfapi('addEventListener', 2, (data, success) => {
           gdprApplies = data?.gdprApplies;
+          existingEuropeanDecision = Boolean(success && data?.cmpStatus === 'loaded' &&
+            gdprApplies === true && data.eventStatus === 'tcloaded');
           report('tcf', {success, cmpStatus: data?.cmpStatus, eventStatus: data?.eventStatus, gdprApplies});
           // Opening preferences is not itself a new consent decision.
           if (success && data?.eventStatus === 'cmpuishown') {
@@ -143,6 +155,7 @@
             data.gdprApplies === false || (data.gdprApplies === true && settled &&
               data.purpose?.consents?.[1] === true && data.vendor?.consents?.[755] === true)
           ));
+          reopenExistingPreferences();
           maybeShowAd();
         });
       }
@@ -155,15 +168,11 @@
       }
     }});
     window.googlefc.callbackQueue.push({CONSENT_DATA_READY: () => {
+      consentDataReady = true;
       report('data-ready', {gdprApplies});
       // Fresh visitors get Google's initial message. Only reopen an existing
       // European decision, after data is ready, without restarting initialization.
-      if (preferencesRequested && !cmpUiShown && gdprApplies === true) {
-        preferencesRequested = false;
-        window.googlefc.callbackQueue.push({CONSENT_API_READY: () => {
-          if (typeof window.googlefc.showRevocationMessage === 'function') window.googlefc.showRevocationMessage();
-        }});
-      }
+      reopenExistingPreferences();
     }});
     window.googlefc.callbackQueue.push({INITIAL_US_STATES_OPT_OUT_DATA_READY: () => {
       const api = window.googlefc.usstatesoptout;
@@ -207,7 +216,7 @@
     };
     document.head.appendChild(script);
     window.setTimeout(() => {
-      if (!cmpUiShown && usStatus === undefined) report('unavailable');
+      if (!cmpUiShown && (gdprApplies !== false || usStatus === undefined)) report('unavailable');
     }, 12000);
     // Missing, blocked, or incomplete CMP callbacks never unlock ad requests.
   }
