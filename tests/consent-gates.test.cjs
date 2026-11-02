@@ -84,22 +84,6 @@ test('privacy settings cannot opt into ads even when the publisher serving flag 
   assert.equal(f.adQueue().length,0);
 });
 
-test('isolated native diagnostic pauses after publisher initialization and never enqueues ads',()=>{
-  const f=fixture({search:'?fc=alwaysshow&fctype=gdpr&cmp_init=native'});
-  f.click('partners');
-  assert.equal(f.scripts.length,1);
-  assert.equal(f.adQueue().length,0);
-  assert.equal(f.adQueue().pauseAdRequests,undefined);
-  f.scripts[0].onload();
-  assert.equal(f.adQueue().pauseAdRequests,1);
-  assert.equal(f.adQueue().length,0);
-  assert.equal(f.scripts.length,1);
-  assert.equal(f.frames.length,0);
-  f.settle();
-  assert.equal(f.stored(),null);
-  assert.equal(f.adQueue().length,0);
-});
-
 test('explicit privacy settings survive a return to the tab without advertising permission',()=>{
   const f=fixture({choice:'deny'});
   f.click('partners'); f.visible();
@@ -219,4 +203,17 @@ test('ad delivery still requires the site flag, local opt-in, and both known pro
   allowed.click('allow'); allowed.settle();
   assert.equal(allowed.scripts.length,2);
   assert.match(allowed.scripts[1].src,/^https:\/\/pagead2\.googlesyndication\.com\//);
+});
+
+
+test('diagnostic URL parameters cannot defer the publisher request pause',()=>{
+  const f=fixture({search:'?fc=alwaysshow&fctype=gdpr&cmp_init=native'});
+  f.click('partners');
+  assert.equal(f.adQueue().pauseAdRequests,1);
+  assert.equal(f.adQueue().length,0);
+  f.scripts[0].onload();
+  assert.equal(f.adQueue().pauseAdRequests,1);
+  assert.equal(f.adQueue().length,0);
+  assert.equal(f.scripts.length,2);
+  assert.equal(f.frames[0].name,'googlefcPresent');
 });
