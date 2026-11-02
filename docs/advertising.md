@@ -58,6 +58,18 @@ to the account-provided ad-blocking-recovery tag; that variable was not changed.
 The production pause-before-load path is restored, with
 no query-parameter bypass. Do not weaken it to continue troubleshooting.
 
+The owner subsequently authorized exactly one native-startup diagnostic. On
+November 1 (November 2 UTC), Google’s standard tag ran without the early pause,
+with Auto ads OFF, both site flags false and no ad-unit IDs. Its zero-size probe
+reached `/pagead/ads`, but no Google consent API, data-ready callback, or European
+UI appeared. The watchdog reported `apiReady=false`, `consentDataReady=false`,
+`tcfApiAvailable=false`, `cmpUiShown=false`, and zero configured ad slots. At
+12.018 seconds it paused and replaced the document with the ordinary settings
+page. The temporary diagnostic was then removed. This disproves the early pause
+as a sufficient explanation for this failed startup; it does not establish the
+underlying Google eligibility or message-delivery reason. No further unpaused
+tests are authorized. The alternative production-tag switch remains unapplied.
+
 Validation: **255 PostgreSQL application tests and 18 JavaScript consent tests
 pass**. These cover policy isolation, data readiness and the advertising gates;
 they do not validate Google's external message delivery. The normal US dialog opens and its opt-out persists after a fresh visit. Final evidence and a

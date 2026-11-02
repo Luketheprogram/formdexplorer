@@ -7,7 +7,7 @@ const source = fs.readFileSync('static/js/advertising.js', 'utf8');
 
 function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,search=''}={}) {
   const events = new Map(), scripts = [], frames = [], timers = [];
-  let reloads = 0, revocations = 0, gppCallback; const redirects=[];
+  let reloads = 0, revocations = 0, gppCallback;
   const control = id => ({hidden:true, addEventListener(event, callback) { events.set(id+':'+event, callback); }});
   const controls = Object.fromEntries(['status','allow','partners','close','deny'].map(x => [x,control(x)]));
   const dialog = {dataset:{adServing:String(serving)}, querySelector: selector => controls[selector.match(/data-ad-(\w+)/)[1]], close(){}, showModal(){}};
@@ -23,7 +23,7 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,se
     head:{appendChild: script => scripts.push(script)}, body:{appendChild: frame=>frames.push(frame)},
   };
   const page = new URL('https://publisher.example/privacy/'+search);
-  const window = {frames:{},setTimeout:fn=>timers.push(fn),addEventListener:(name,fn)=>events.set('window:'+name,fn),location:{href:page.href,search:page.search,replace(path){redirects.push(path);},reload(){reloads++;}}};
+  const window = {frames:{},setTimeout:fn=>timers.push(fn),addEventListener:(name,fn)=>events.set('window:'+name,fn),location:{href:page.href,search:page.search,reload(){reloads++;}}};
   vm.runInNewContext(source, {document,window,URL,URLSearchParams,navigator:{globalPrivacyControl:gpc},localStorage:{getItem:()=>stored,setItem:(_,value)=>{stored=value;}},console:{...console,info(){}}});
   function settle({tcf=true,us=1,existing=false,inactive=false,lateControls=false}={}) {
     window.__gpp=(_,callback)=>{gppCallback=callback;};
@@ -37,7 +37,7 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,se
     if (!lateControls) exposeControls();
     while(window.googlefc.callbackQueue.length) for (const item of window.googlefc.callbackQueue.splice(0)) Object.entries(item).forEach(([phase,fn])=>{if(lateControls&&phase==='CONSENT_DATA_READY')exposeControls();fn();});
   }
-  return {scripts,frames,settle,redirects,providerStatus,partnersVisible:()=>!controls.partners.hidden,adQueue:()=>window.adsbygoogle,sectionChange:()=>gppCallback({eventName:'sectionChange'},true),stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
+  return {scripts,frames,settle,providerStatus,partnersVisible:()=>!controls.partners.hidden,adQueue:()=>window.adsbygoogle,sectionChange:()=>gppCallback({eventName:'sectionChange'},true),stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
 }
 
 test('opening Google preferences does not opt into ads, including fully granted provider consent',()=>{
@@ -206,23 +206,14 @@ test('ad delivery still requires the site flag, local opt-in, and both known pro
 });
 
 
-test('authorized native test queues no slots and pauses on consent API readiness',()=>{
+test('diagnostic URL parameters cannot defer the publisher request pause',()=>{
   const f=fixture({search:'?fc=alwaysshow&fctype=gdpr&cmp_init=native'});
   f.click('partners');
-  assert.equal(f.adQueue().pauseAdRequests,undefined);
+  assert.equal(f.adQueue().pauseAdRequests,1);
   assert.equal(f.adQueue().length,0);
   f.scripts[0].onload();
-  assert.equal(f.scripts.length,1);
-  f.settle();
   assert.equal(f.adQueue().pauseAdRequests,1);
   assert.equal(f.adQueue().length,0);
-  assert.equal(f.stored(),null);
-});
-
-test('native test tears down its document at timeout even without provider callbacks',()=>{
-  const f=fixture({search:'?fc=alwaysshow&fctype=gdpr&cmp_init=native'});
-  f.click('partners'); f.timeout();
-  assert.equal(f.adQueue().pauseAdRequests,1);
-  assert.deepEqual(f.redirects,['/privacy-choices/']);
-  assert.equal(f.adQueue().length,0);
+  assert.equal(f.scripts.length,2);
+  assert.equal(f.frames[0].name,'googlefcPresent');
 });
