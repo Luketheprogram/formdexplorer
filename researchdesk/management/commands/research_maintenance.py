@@ -19,7 +19,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # A separate maintenance lock allows ingest to continue. Only explicit
         # source-recovery tasks acquire the global SEC network-request lock.
-        lock_key = 7042310902
+        lock_key = 7042310903
         if connection.vendor == "postgresql":
             with connection.cursor() as cursor:
                 cursor.execute("SELECT pg_try_advisory_lock(%s)", [lock_key])
