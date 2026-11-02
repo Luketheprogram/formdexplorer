@@ -115,6 +115,12 @@ class AdvertisingTests(TestCase):
         self.assertNotContains(response, 'id="advertising-config"')
         self.assertContains(self.client.get("/privacy/"), 'id="consent-config"')
 
+    @override_settings(ADSENSE_CMP_SCRIPT_URL="https://fundingchoicesmessages.google.com/i/ca-pub-1234567890123456?ers=2", ADSENSE_ENABLED=False)
+    def test_adsense_consent_loader_accepts_only_the_matching_publisher(self):
+        self.assertContains(self.client.get("/privacy/"), 'id="consent-config"')
+        with override_settings(ADSENSE_CMP_SCRIPT_URL="https://fundingchoicesmessages.google.com/i/ca-pub-0000000000000000?ers=2"):
+            self.assertNotContains(self.client.get("/privacy/"), 'id="consent-config"')
+
     @override_settings(ADSENSE_CMP_SCRIPT_URL="https://evil.example/tag.js")
     def test_invalid_consent_configuration_hides_preference_loader(self):
         response = self.client.get("/privacy/")

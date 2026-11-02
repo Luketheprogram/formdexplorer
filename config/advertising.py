@@ -21,7 +21,7 @@ def cmp_url():
             publisher_id()
             and url.scheme == "https"
             and url.netloc == "fundingchoicesmessages.google.com"
-            and url.path == f"/i/{publisher_id()[3:]}"
+            and url.path in {f"/i/{publisher_id()[3:]}", f"/i/{publisher_id()}"}
             and not url.fragment
         )
         return value if valid else ""

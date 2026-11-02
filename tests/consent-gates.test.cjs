@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const fs = require('node:fs');
 const source = fs.readFileSync('static/js/advertising.js', 'utf8');
 
-function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false}={}) {
+function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,search=''}={}) {
   const events = new Map(), scripts = [], frames = [], timers = [];
   let reloads = 0, revocations = 0;
   const control = id => ({hidden:true, addEventListener(event, callback) { events.set(id+':'+event, callback); }});
@@ -22,8 +22,8 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false}={
     createElement: tag => ({tag,style:{}}),
     head:{appendChild: script => scripts.push(script)}, body:{appendChild: frame=>frames.push(frame)},
   };
-  const window = {frames:{},setTimeout:fn=>timers.push(fn),addEventListener:(name,fn)=>events.set('window:'+name,fn),location:{reload(){reloads++;}}};
-  vm.runInNewContext(source, {document,window,navigator:{globalPrivacyControl:gpc},localStorage:{getItem:()=>stored,setItem:(_,value)=>{stored=value;}},console});
+  const window = {frames:{},setTimeout:fn=>timers.push(fn),addEventListener:(name,fn)=>events.set('window:'+name,fn),location:{search,reload(){reloads++;}}};
+  vm.runInNewContext(source, {document,window,URL,URLSearchParams,navigator:{globalPrivacyControl:gpc},localStorage:{getItem:()=>stored,setItem:(_,value)=>{stored=value;}},console:{...console,info(){}}});
   function settle({tcf=true,us=1,existing=false}={}) {
     window.__tcfapi=(_,version,cb)=>{
       if (tcf && !existing) cb({cmpStatus:'loaded',gdprApplies:true,eventStatus:'cmpuishown'},true);
@@ -58,16 +58,14 @@ test('explicit privacy settings survive a return to the tab without advertising 
   assert.equal(f.scripts.length,1);
 });
 
-test('standalone message initialization runs without loading advertising',()=>{
-  const f=fixture(); f.click('partners');
-  // The real account-issued Google tag exports this initializer after loading.
-  let deployed=0;
-  assert.equal(f.scripts.length,1);
-  assert.match(f.scripts[0].src,/fundingchoicesmessages/);
-  f.loadProvider(()=>{deployed++;});
-  assert.equal(deployed,1);
-  assert.equal(f.scripts.length,1);
-  assert.equal(f.stored(),null);
+test('privacy previews forward only Google privacy parameters to the message service',()=>{
+  const f=fixture({search:'?fc=alwaysshow&fctype=gdpr&private=never-share'}); f.click('partners');
+  const url=new URL(f.scripts[0].src);
+  assert.equal(url.searchParams.get('fc'),'alwaysshow');
+  assert.equal(url.searchParams.get('fctype'),'gdpr');
+  assert.equal(url.searchParams.has('private'),false);
+  const other=fixture({search:'?fc=alwaysshow&fctype=monetization'});other.click('partners');
+  assert.equal(new URL(other.scripts[0].src).searchParams.has('fc'),false);
 });
 
 test('an existing European decision is reopened only after consent data is ready',()=>{

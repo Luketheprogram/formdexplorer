@@ -186,19 +186,17 @@
     }
     const script = document.createElement('script');
     script.async = true;
-    script.src = config.cmpUrl;
-    script.onload = () => {
-      // The account-issued standalone tag separates its inactive API bootstrap
-      // from message deployment. This hook is exported by that delivered tag.
-      // It starts privacy messages only; the ad library remains independently
-      // gated. Treat a missing hook as an unavailable provider, never consent.
-      const deploy = window.googlefc?.__executeManualDeployment;
-      report('tag-loaded', {manualDeploymentAvailable: typeof deploy === 'function'});
-      if (typeof deploy === 'function') {
-        report('message-deployment');
-        deploy();
-      }
-    };
+    const cmpScript = new URL(config.cmpUrl);
+    // Google forwards these publisher-page preview parameters to its message
+    // endpoint. Forward only the documented privacy-message types, never other
+    // query parameters or offerwall/ad-blocking requests.
+    const previewType = new URLSearchParams(window.location.search || '').get('fctype');
+    if (debug && ['gdpr', 'ccpa', 'usnat', 'usfl'].includes(previewType)) {
+      cmpScript.searchParams.set('fc', 'alwaysshow');
+      cmpScript.searchParams.set('fctype', previewType);
+    }
+    script.src = cmpScript.href;
+    script.onload = () => report('tag-loaded');
     script.onerror = () => {
       if (container) container.hidden = true;
       cmpStarted = false;
@@ -209,7 +207,7 @@
     };
     document.head.appendChild(script);
     window.setTimeout(() => {
-      if (!apiReady || (gdprApplies === undefined && usStatus === undefined)) report('unavailable');
+      if (!cmpUiShown && usStatus === undefined) report('unavailable');
     }, 12000);
     // Missing, blocked, or incomplete CMP callbacks never unlock ad requests.
   }
