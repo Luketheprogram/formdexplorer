@@ -57,6 +57,20 @@ test('opening Google preferences does not opt into ads, including fully granted 
   assert.equal(f.adQueue().length,0);
 });
 
+test('the paused publisher tag explicitly starts the message tag without queuing ads',()=>{
+  const f=fixture({search:'?fc=alwaysshow&fctype=gdpr'}); f.click('partners');
+  assert.equal(f.adQueue().pauseAdRequests,1);
+  f.scripts[0].onload();
+  assert.equal(f.scripts.length,2);
+  assert.match(f.scripts[1].src,/fundingchoicesmessages\.google\.com/);
+  assert.equal(new URL(f.scripts[1].src).searchParams.get('fctype'),'gdpr');
+  assert.equal(f.frames[0].name,'googlefcPresent');
+  f.settle();
+  assert.equal(f.adQueue().length,0);
+  assert.equal(f.adQueue().pauseAdRequests,1);
+  assert.equal(f.scripts.length,2);
+});
+
 test('explicit privacy settings survive a return to the tab without advertising permission',()=>{
   const f=fixture({choice:'deny'});
   f.click('partners'); f.visible();

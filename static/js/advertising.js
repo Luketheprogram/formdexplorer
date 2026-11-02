@@ -186,19 +186,15 @@
       usAllowed = value === 1 || value === 2;
       maybeShowAd();
     }});
-    const script = document.createElement('script');
-    script.async = true;
-    if (config.preferencesOnly) {
-      // Google's supported European message entry point is its AdSense tag.
-      // Pause before loading it; never enqueue a slot or resume requests here.
-      // Let that tag bootstrap the CMP itself, without a competing direct tag.
-      const queue = window.adsbygoogle = window.adsbygoogle || [];
-      queue.pauseAdRequests = 1;
-      script.crossOrigin = 'anonymous';
-      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(config.client);
-    } else {
-      // Bootstrap from the publisher's actual Google message tag. This signals
-      // that the standalone CMP is present; it does not load an advertising tag.
+    const failed = () => {
+      if (container) container.hidden = true;
+      cmpStarted = false;
+      report('unavailable');
+      updateControls();
+      status.textContent = 'Google privacy settings could not load. Advertising remains off. Please try again or contact us using the privacy policy.';
+      if (!dialog.open) dialog.showModal();
+    };
+    function loadMessageTag() {
       if (!window.frames['googlefcPresent']) {
         const iframe = document.createElement('iframe');
         iframe.style.cssText = 'width: 0; height: 0; border: none; z-index: -1000; left: -1000px; top: -1000px;';
@@ -207,27 +203,35 @@
         document.body.appendChild(iframe);
       }
       const cmpScript = new URL(config.cmpUrl);
-      // Google forwards these publisher-page preview parameters to its message
-      // endpoint. Forward only the documented privacy-message types, never other
-      // query parameters or offerwall/ad-blocking requests.
       const previewType = new URLSearchParams(window.location.search || '').get('fctype');
       if (debug && ['gdpr', 'ccpa', 'usnat', 'usfl'].includes(previewType)) {
         cmpScript.searchParams.set('fc', 'alwaysshow');
         cmpScript.searchParams.set('fctype', previewType);
       }
+      const script = document.createElement('script');
+      script.async = true;
       script.src = cmpScript.href;
+      script.onload = () => report('cmp-tag-loaded');
+      script.onerror = failed;
+      document.head.appendChild(script);
     }
-    script.onload = () => report('tag-loaded', {preferencesOnly: config.preferencesOnly,
-      adRequestsPaused: config.preferencesOnly ? window.adsbygoogle?.pauseAdRequests === 1 : undefined});
-    script.onerror = () => {
-      if (container) container.hidden = true;
-      cmpStarted = false;
-      report('unavailable');
-      updateControls();
-      status.textContent = 'Google privacy settings could not load. Advertising remains off. Please try again or contact us using the privacy policy.';
-      if (!dialog.open) dialog.showModal();
-    };
-    document.head.appendChild(script);
+    if (config.preferencesOnly) {
+      // Google's request-pause API is a setter without a getter. Set it before
+      // the tag loads and never resume or enqueue advertising in this flow.
+      const queue = window.adsbygoogle = window.adsbygoogle || [];
+      queue.pauseAdRequests = 1;
+      const script = document.createElement('script');
+      script.async = true;
+      script.crossOrigin = 'anonymous';
+      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(config.client);
+      script.onload = () => {
+        report('tag-loaded', {adRequestsPauseConfigured: true});
+        // A paused publisher tag does not initialize its CMP automatically.
+        loadMessageTag();
+      };
+      script.onerror = failed;
+      document.head.appendChild(script);
+    } else loadMessageTag();
     window.setTimeout(() => {
       if (!cmpUiShown && (gdprApplies !== false || usStatus === undefined)) report('unavailable');
     }, 12000);
