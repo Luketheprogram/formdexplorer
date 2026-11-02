@@ -43,7 +43,7 @@ def context(request):
         # Explicit preference access does not opt the visitor into advertising.
         # No Google request occurs just by opening the privacy policy.
         "consent_config": {"client": client, "cmpUrl": cmp_url(), "preferencesOnly": True, "allowAds": False}
-        if consent_ready and getattr(getattr(request, "resolver_match", None), "url_name", "") == "privacy"
+        if consent_ready and getattr(getattr(request, "resolver_match", None), "url_name", "") == "privacy_choices"
         else None,
     }
 

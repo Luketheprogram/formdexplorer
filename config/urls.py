@@ -15,6 +15,18 @@ urlpatterns = [
     path("ads.txt", ads_txt, name="ads_txt"),
     path("admin/", admin.site.urls),
     path(
+        "privacy-choices/",
+        TemplateView.as_view(
+            template_name="legal/privacy_choices.html",
+            extra_context={
+                "page_title": "Privacy choices | Form D Explorer",
+                "meta_description": "Review Google privacy choices and keep optional advertising off.",
+                "canonical_path": "/privacy-choices/",
+            },
+        ),
+        name="privacy_choices",
+    ),
+    path(
         "privacy/",
         TemplateView.as_view(
             template_name="legal/privacy.html",

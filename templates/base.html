@@ -27,7 +27,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="{% static 'css/app.css' %}">
 <link rel="stylesheet" href="{% static 'css/research.css' %}">
-{% if advertising_ready or consent_config %}
+{% if ad_config or consent_config %}
 <link rel="stylesheet" href="{% static 'css/advertising.css' %}">
 <script src="{% static 'js/advertising.js' %}" defer></script>
 {% endif %}
@@ -155,7 +155,7 @@
           <li><a href="{% url 'subscriptions:pricing' %}" class="text-slate-600 transition-colors hover:text-indigo-600">Pricing</a></li>
           <li><a href="{% url 'terms' %}" class="text-slate-600 transition-colors hover:text-indigo-600">Terms of service</a></li>
           <li><a href="{% url 'privacy' %}" class="text-slate-600 transition-colors hover:text-indigo-600">Privacy</a></li>
-          {% if advertising_ready %}<li><button type="button" data-ad-choices hidden class="text-slate-600 hover:text-indigo-600">Advertising choices / Do not sell or share</button></li>{% elif consent_ready %}<li><a href="{% url 'privacy' %}#privacy-choices" class="text-slate-600 hover:text-indigo-600">Privacy choices / Do not sell or share</a></li>{% endif %}
+          {% if ad_config %}<li><button type="button" data-ad-choices hidden class="text-slate-600 hover:text-indigo-600">Advertising choices / Do not sell or share</button></li>{% elif consent_ready %}<li><a href="{% url 'privacy_choices' %}" class="text-slate-600 hover:text-indigo-600">Privacy choices / Do not sell or share</a></li>{% endif %}
           <li><a href="/sitemap.xml" class="text-slate-600 transition-colors hover:text-indigo-600">Sitemap</a></li>
         </ul>
       </div>
@@ -168,7 +168,7 @@
 <nav class="mx-auto mt-4 max-w-6xl px-4 text-sm" aria-label="Research directories"><a class="link" href="/states/">Browse states</a> · <a class="link" href="/industries/">Browse industries</a> · <a class="link" href="/learn/form-d-data-methodology/">Data methodology</a></nav>
 </footer>
 {% if consent_config %}{{ consent_config|json_script:"consent-config" }}{% endif %}
-{% if advertising_ready or consent_config %}{% include "_partials/ad_choices.html" %}{% endif %}
+{% if ad_config or consent_config %}{% include "_partials/ad_choices.html" %}{% endif %}
 
 <script>
 (function () {

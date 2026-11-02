@@ -72,6 +72,17 @@ test('the paused publisher tag explicitly starts the message tag without queuing
   assert.equal(f.scripts.length,2);
 });
 
+test('privacy settings cannot opt into ads even when the publisher serving flag is enabled',()=>{
+  const f=fixture({serving:true,preferencesOnly:true});
+  f.click('allow');
+  assert.equal(f.stored(),null);
+  assert.equal(f.scripts.length,0);
+  f.click('partners'); f.scripts[0].onload(); f.settle();
+  assert.equal(f.stored(),null);
+  assert.equal(f.adQueue().pauseAdRequests,1);
+  assert.equal(f.adQueue().length,0);
+});
+
 test('explicit privacy settings survive a return to the tab without advertising permission',()=>{
   const f=fixture({choice:'deny'});
   f.click('partners'); f.visible();

@@ -7,7 +7,7 @@
   const lifetime = 180 * 24 * 60 * 60 * 1000;
   const configNode = document.getElementById('advertising-config') || document.getElementById('consent-config');
   const config = configNode ? JSON.parse(configNode.textContent) : null;
-  const servingEnabled = dialog.dataset.adServing === 'true';
+  const servingEnabled = dialog.dataset.adServing === 'true' && config?.allowAds === true && !config.preferencesOnly;
   const container = document.querySelector('[data-ad-container]');
   const note = document.querySelector('[data-ad-note]');
   const status = dialog.querySelector('[data-ad-status]');
@@ -69,7 +69,7 @@
     allowButton.disabled = gpc() || !servingEnabled;
     partnersButton.disabled = gpc();
     status.textContent = gpc() ? 'Global Privacy Control is on. Advertising is disabled.' :
-      !servingEnabled ? 'Advertising is turned off for this site. Reviewing Google privacy choices cannot turn it on.' :
+      !servingEnabled ? (config?.preferencesOnly ? 'This page only manages privacy choices. Reviewing them cannot opt you into advertising.' : 'Advertising is turned off for this site. Reviewing Google privacy choices cannot turn it on.') :
       choice === 'allow' ? 'Advertising is allowed on this browser, subject to your Google consent settings.' :
         'Advertising is off. This does not affect access to any site features.';
     if (note) note.hidden = choice === 'allow' || gpc();
@@ -131,19 +131,20 @@
   function startCmp(preferences = false) {
     if (!config || cmpStarted || gpc() || (!preferences && (choice !== 'allow' || config.preferencesOnly))) return;
     cmpStarted = true;
-    report('loading');
+    report('loading', {topLevelWindow: window === window.top});
     window.googlefc = window.googlefc || {};
     window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
     window.googlefc.callbackQueue.push({CONSENT_API_READY: () => {
       apiReady = true;
-      report('api-ready');
+      report('api-ready', {europeanControlsAvailable: typeof window.googlefc.showRevocationMessage === 'function'});
       partnersButton.hidden = typeof window.googlefc.showRevocationMessage !== 'function';
       if (typeof window.__tcfapi === 'function') {
         window.__tcfapi('addEventListener', 2, (data, success) => {
           gdprApplies = data?.gdprApplies;
           existingEuropeanDecision = Boolean(success && data?.cmpStatus === 'loaded' &&
             gdprApplies === true && data.eventStatus === 'tcloaded');
-          report('tcf', {success, cmpStatus: data?.cmpStatus, eventStatus: data?.eventStatus, gdprApplies});
+          report('tcf', {success, cmpStatus: data?.cmpStatus, cmpId: data?.cmpId,
+            internalErrorState: data?.internalErrorState, eventStatus: data?.eventStatus, gdprApplies});
           // Opening preferences is not itself a new consent decision.
           if (success && data?.eventStatus === 'cmpuishown') {
             cmpUiShown = true;
@@ -171,7 +172,7 @@
     }});
     window.googlefc.callbackQueue.push({CONSENT_DATA_READY: () => {
       consentDataReady = true;
-      report('data-ready', {gdprApplies});
+      report('data-ready', {gdprApplies, europeanControlsAvailable: typeof window.googlefc.showRevocationMessage === 'function'});
       // Fresh visitors get Google's initial message. Only reopen an existing
       // European decision, after data is ready, without restarting initialization.
       reopenExistingPreferences();

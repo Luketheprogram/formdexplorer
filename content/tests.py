@@ -91,7 +91,7 @@ class AdvertisingTests(TestCase):
 
     @override_settings(ADSENSE_ENABLED=False, ADSENSE_CMP_READY=False, GOOGLE_PRIVACY_ENABLED=True)
     def test_published_consent_preferences_cannot_enable_advertising(self):
-        response = self.client.get("/privacy/")
+        response = self.client.get("/privacy-choices/")
         self.assertEqual(response["Referrer-Policy"], "strict-origin-when-cross-origin")
         self.assertContains(response, 'id="consent-config"')
         self.assertContains(response, '"preferencesOnly": true')
@@ -100,33 +100,45 @@ class AdvertisingTests(TestCase):
         self.assertContains(response, 'data-ad-serving="false"')
         self.assertNotContains(response, 'data-ad-slot=')
         self.assertNotContains(response, 'pagead2.googlesyndication.com')
-        for path in ["/", "/learn/", "/learn/test-guide/", "/search/", "/login/"]:
+        for path in ["/", "/privacy/", "/learn/", "/learn/test-guide/", "/search/", "/login/"]:
             with self.subTest(path=path):
                 response = self.client.get(path)
                 self.assertNotContains(response, 'id="consent-config"')
                 self.assertNotContains(response, 'id="advertising-config"')
                 self.assertNotContains(response, 'data-ad-slot=')
                 self.assertNotContains(response, 'advertising.js')
-                self.assertContains(response, '/privacy/#privacy-choices')
+                self.assertContains(response, '/privacy-choices/')
 
     @override_settings(ADSENSE_CMP_READY=False, GOOGLE_PRIVACY_ENABLED=True)
     def test_privacy_publication_does_not_assert_advertising_consent_readiness(self):
         response = self.client.get("/learn/test-guide/")
         self.assertNotContains(response, 'data-ad-slot=')
         self.assertNotContains(response, 'id="advertising-config"')
-        self.assertContains(self.client.get("/privacy/"), 'id="consent-config"')
+        self.assertContains(self.client.get("/privacy-choices/"), 'id="consent-config"')
 
     @override_settings(ADSENSE_CMP_SCRIPT_URL="https://fundingchoicesmessages.google.com/i/ca-pub-1234567890123456?ers=2", ADSENSE_ENABLED=False)
     def test_adsense_consent_loader_accepts_only_the_matching_publisher(self):
-        self.assertContains(self.client.get("/privacy/"), 'id="consent-config"')
+        self.assertContains(self.client.get("/privacy-choices/"), 'id="consent-config"')
         with override_settings(ADSENSE_CMP_SCRIPT_URL="https://fundingchoicesmessages.google.com/i/ca-pub-0000000000000000?ers=2"):
-            self.assertNotContains(self.client.get("/privacy/"), 'id="consent-config"')
+            self.assertNotContains(self.client.get("/privacy-choices/"), 'id="consent-config"')
 
     @override_settings(ADSENSE_CMP_SCRIPT_URL="https://evil.example/tag.js")
     def test_invalid_consent_configuration_hides_preference_loader(self):
-        response = self.client.get("/privacy/")
+        response = self.client.get("/privacy-choices/")
         self.assertNotContains(response, 'id="consent-config"')
         self.assertNotContains(response, 'advertising.js')
+
+    def test_policy_remains_script_free_and_choices_are_separate_even_when_ads_are_ready(self):
+        policy = self.client.get("/privacy/")
+        self.assertNotContains(policy, 'advertising.js')
+        self.assertNotContains(policy, 'id="consent-config"')
+        self.assertNotContains(policy, 'id="advertising-choices"')
+        self.assertContains(policy, '/privacy-choices/')
+        choices = self.client.get("/privacy-choices/")
+        self.assertContains(choices, 'id="consent-config"')
+        self.assertContains(choices, '"allowAds": false')
+        self.assertContains(choices, 'name="robots" content="noindex, follow"')
+        self.assertNotContains(choices, 'data-ad-slot=')
 
     @override_settings(ADSENSE_CLIENT_ID="")
     def test_no_fake_publisher_is_served(self):
