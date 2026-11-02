@@ -20,46 +20,50 @@ local advertising opt-in. GPC blocks both CMP and advertising requests. Utility
 pages link to the policy without loading provider code. The response referrer
 policy is `strict-origin-when-cross-origin`.
 
-The current message URL is
-`https://fundingchoicesmessages.google.com/i/ca-pub-1796408580720090?ers=2`, matching
-the full publisher identifier and request mode used by Google’s public AdSense
-loader. The original account-issued ad-blocking tag used the legacy matching
-`/i/pub-1796408580720090?ers=1` form; the validator accepts both matching publisher
-paths. Google’s documented `fc=alwaysshow` preview flag and allowlisted privacy
-`fctype` values are forwarded to the message request. Other page parameters and
-monetization previews are not forwarded. No undocumented deployment API is used.
-The standalone tag remains separate from the advertising library.
+Explicit privacy settings now load the Google AdSense tag with the verified
+publisher ID, after setting `(adsbygoogle = window.adsbygoogle || []).pauseAdRequests = 1`.
+This flow never resumes requests, adds an ad-slot ID, or pushes an advertising
+request. Google documents this as preventing ad requests; existing Google cookies
+may be read. No provider script loads until the visitor requests settings. Auto
+ads were confirmed OFF in the Google account. The normal page and utility routes
+still contain no provider script tags or advertising placements.
 
-Delivery repairs prevent a return to the tab from cancelling an explicitly
-opened privacy session while local advertising is denied. Initial API readiness
-is not treated as an existing consent decision: reopening waits for both consent
-data readiness and a settled European `tcloaded` event. US GPP updates do not reload
-an ads-off preferences session; they still stop active advertising. Missing UI or callbacks
-produce a visible failure message rather than an indefinite loading state.
-Preview-only diagnostics contain callback phases, not consent strings. A stored
-US opt-out is distinguished from an available opt-out prompt in the page status.
-The live US preview now opens Google’s actual opt-out dialog, and its Opt out
-action completes without reloading the page or enabling advertising.
+The paused publisher tag does not initialize the CMP itself. After it loads, the
+explicit message tag initializes consent using
+`https://fundingchoicesmessages.google.com/i/ca-pub-1796408580720090?ers=2`.
+Only documented privacy preview parameters are forwarded. The original matching
+`/i/pub-…` URL remains accepted for legacy configuration. No undocumented Google
+API is used. Google's pause API has a setter without a getter, so diagnostics
+report that pause was configured rather than pretending to read its internal state.
 
-Validation: **254 PostgreSQL application tests and 13 JavaScript consent tests
-pass**. Live checks confirm that the corrected European preview reaches the
-Google TCF path with `gdprApplies=true`. However, the European session does not settle or render a regional message. Published status alone is
-not successful delivery. Google accepted a refresh using **Publish changes**
-without unpublishing the message; its dialog warns propagation can take up to an
-hour. Automatic review rejected a proposed temporary unpublish; that action was
-cancelled. No publication interruption occurred.
+References: [message preview prerequisites](https://support.google.com/adsense/answer/10924669?hl=en),
+[Google's documented request pause](https://support.google.com/adsense/answer/7670312?hl=en),
+and [Privacy & messaging API](https://developers.google.com/funding-choices/fc-api-docs).
 
-**European delivery remains blocked and unverified.** Complete genuine live
-accept/reject/withdrawal, US opt-out, and geographic validation before enabling
-placements; publication does not establish those results. The precise
-provider-side cause is not established; pending site approval is an observed
-account state, not a proven explanation. Google’s
-[preview instructions](https://support.google.com/adsense/answer/10924669?hl=en)
-also require its AdSense tag. A prior documented paused-tag experiment likewise
-failed to render the message and was reverted; production does not load the ad
-library with advertising disabled. Keep both advertising gates false until
-approval and genuine regional delivery have been verified. Evidence and the
-remaining validation steps are under `outputs/adsense-release/`.
+Delivery repairs preserve explicit settings across tab returns and US GPP updates
+while ads are off. Existing European decisions are reopened only after consent
+data and a settled `tcloaded` event. Missing UI produces a visible error. A stored
+US opt-out is distinguished from an available opt-out prompt.
+
+Validation: **254 PostgreSQL application tests and 14 JavaScript consent tests
+pass**. The supported publisher-tag-only test did not initialize the CMP while
+paused. Explicit CMP initialization now receives European API callbacks with
+`gdprApplies=true`, but no settled consent event or regional UI. Google's public
+European revocation method is also unavailable in that response. The US opt-out
+continues to persist on a normal visit without preview flags. No ad-slot IDs,
+ad frames, or ad-request endpoints were observed in the browser asset inventory;
+the publisher SDK creates a zero-size probe, not a configured placement.
+
+**European delivery remains unverified.** A proposed provider-side refresh is to
+re-save the existing 198 common ad partners without changing the selection.
+Automatic approval review blocked Save because it changes account-level European
+privacy configuration. The values remain unsaved pending explicit owner approval.
+This is a next diagnostic repair, not an established cause or guaranteed fix.
+Do not change partners, switch providers, enable ads, or assert regional compliance
+on the strength of synthetic tests. Keep both advertising gates false pending
+AdSense approval and real regional validation. The previous publication refresh
+was accepted without unpublishing; no additional publication reset was performed.
+Evidence is under `outputs/adsense-release/`.
 
 ## Recommendation
 
