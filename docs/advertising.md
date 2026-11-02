@@ -13,57 +13,61 @@ Explorer, with privacy URL `https://formdexplorer.com/privacy/`. No offerwall or
 ad-blocking recovery campaign is enabled.
 
 Production keeps `ADSENSE_ENABLED=False` and `ADSENSE_CMP_READY=False`, with no ad
-unit IDs. `GOOGLE_PRIVACY_ENABLED=True` enables explicit privacy-settings access
-on `/privacy/`; it neither enables advertising nor certifies message delivery.
-Reading the policy makes no CMP request. Opening Google settings does not save a
-local advertising opt-in. GPC blocks both CMP and advertising requests. Utility
-pages link to the policy without loading provider code. The response referrer
-policy is `strict-origin-when-cross-origin`.
+unit IDs. `GOOGLE_PRIVACY_ENABLED=True` enables explicit settings access at
+`/privacy-choices/`; it neither enables advertising nor certifies message delivery.
+The policy at `/privacy/` contains no advertising/CMP code under any serving flags.
+It links to the separate, noindex privacy centre. Google specifically prohibits
+its consent tag on the configured privacy-policy page:
+[privacy-policy URL requirements](https://support.google.com/adsense/answer/10961370?hl=en-GB).
+No provider script loads until the visitor explicitly opens Google settings.
+GPC blocks both CMP and advertising requests.
 
-Explicit privacy settings now load the Google AdSense tag with the verified
-publisher ID, after setting `(adsbygoogle = window.adsbygoogle || []).pauseAdRequests = 1`.
-This flow never resumes requests, adds an ad-slot ID, or pushes an advertising
-request. Google documents this as preventing ad requests; existing Google cookies
-may be read. No provider script loads until the visitor requests settings. Auto
-ads were confirmed OFF in the Google account. The normal page and utility routes
-still contain no provider script tags or advertising placements.
-
-The paused publisher tag does not initialize the CMP itself. After it loads, the
-explicit message tag initializes consent using
+The settings flow sets `(adsbygoogle = window.adsbygoogle || []).pauseAdRequests = 1`
+**before** loading the verified publisher's Google AdSense tag. It never resumes
+requests or pushes an advertising request. After the paused publisher tag loads,
+the explicit message tag initializes consent at
 `https://fundingchoicesmessages.google.com/i/ca-pub-1796408580720090?ers=2`.
-Only documented privacy preview parameters are forwarded. The original matching
-`/i/pub-…` URL remains accepted for legacy configuration. No undocumented Google
-API is used. Google's pause API has a setter without a getter, so diagnostics
-report that pause was configured rather than pretending to read its internal state.
+Its `href` context matches Google's loader: credentials, query, fragment and the
+trailing slash are removed. Only allowlisted privacy preview parameters are forwarded.
+The legacy matching `/i/pub-…` configuration remains accepted. Google's pause API
+has a setter without a getter; diagnostics report configuration, not a fabricated read.
+
+The explicit European settings request waits for `CONSENT_DATA_READY`, when
+`showRevocationMessage` actually becomes available. It does not require an existing
+settled TCF record. The control remains accessible if it is absent at the earlier
+API-ready phase. Missing UI produces visible feedback. Privacy settings cannot
+save a local advertising opt-in, including when the owner later enables serving.
+Tab returns and US GPP updates preserve an ads-off settings session.
+
+**European delivery is still blocked, not validated.** Browser DOM evidence includes
+Google's own `googlefcInactive` and `googlefcLoaded` frames. TCF reports CMP 300,
+loaded, `gdprApplies=true`, but no `cmpuishown` or settled consent event. The public
+revocation method is available at data-ready and makes another message-service
+request, yet no European UI appears. The internal provider reason is not returned.
+The account's Getting ready status may be relevant; it is not a proven cause.
+Do not infer that approval alone will fix this or assert regional compliance.
+
+The owner-approved re-save of the existing **198 common ad partners** succeeded.
+After reload, 198 remained selected and Save/Undo were disabled. The site remains
+assigned to its published European message; Google CMP and the partner selection
+are unchanged. Auto ads remain OFF. A short native-startup diagnostic was tested,
+but did not display the CMP and generated SDK ad-endpoint traffic. It was removed.
+Automatic approval review rejected a longer unpaused startup diagnostic; that
+version was not deployed. Automatic review also rejected switching the live CMP URL
+to the account-provided ad-blocking-recovery tag; that variable was not changed.
+The production pause-before-load path is restored, with
+no query-parameter bypass. Do not weaken it to continue troubleshooting.
+
+Validation: **255 PostgreSQL application tests and 18 JavaScript consent tests
+pass**. These cover policy isolation, data readiness and the advertising gates;
+they do not validate Google's external message delivery. The normal US dialog opens and its opt-out persists after a fresh visit. Final evidence and a
+Google support request draft are under `outputs/adsense-release/`. Keep both
+advertising gates false pending approval and successful real regional validation.
 
 References: [message preview prerequisites](https://support.google.com/adsense/answer/10924669?hl=en),
-[Google's documented request pause](https://support.google.com/adsense/answer/7670312?hl=en),
+[request pause](https://support.google.com/adsense/answer/7670312?hl=en),
+[message troubleshooting](https://support.google.com/adsense/answer/14660912?hl=en),
 and [Privacy & messaging API](https://developers.google.com/funding-choices/fc-api-docs).
-
-Delivery repairs preserve explicit settings across tab returns and US GPP updates
-while ads are off. Existing European decisions are reopened only after consent
-data and a settled `tcloaded` event. Missing UI produces a visible error. A stored
-US opt-out is distinguished from an available opt-out prompt.
-
-Validation: **254 PostgreSQL application tests and 14 JavaScript consent tests
-pass**. The supported publisher-tag-only test did not initialize the CMP while
-paused. Explicit CMP initialization now receives European API callbacks with
-`gdprApplies=true`, but no settled consent event or regional UI. Google's public
-European revocation method is also unavailable in that response. The US opt-out
-continues to persist on a normal visit without preview flags. No ad-slot IDs,
-ad frames, or ad-request endpoints were observed in the browser asset inventory;
-the publisher SDK creates a zero-size probe, not a configured placement.
-
-**European delivery remains unverified.** A proposed provider-side refresh is to
-re-save the existing 198 common ad partners without changing the selection.
-Automatic approval review blocked Save because it changes account-level European
-privacy configuration. The values remain unsaved pending explicit owner approval.
-This is a next diagnostic repair, not an established cause or guaranteed fix.
-Do not change partners, switch providers, enable ads, or assert regional compliance
-on the strength of synthetic tests. Keep both advertising gates false pending
-AdSense approval and real regional validation. The previous publication refresh
-was accepted without unpublishing; no additional publication reset was performed.
-Evidence is under `outputs/adsense-release/`.
 
 ## Recommendation
 
@@ -83,9 +87,19 @@ AdSense approval and revenue are not guaranteed. The site's original educational
 
 ## 1. Verify the existing AdSense account
 
-On October 21, 2026, the existing AdMob-linked publisher account was extended to website AdSense and `formdexplorer.com` was added. Google shows **Requires review**; ownership verification and review submission remain pending. The verified public publisher ID is `ca-pub-1796408580720090`. Google reports that it already has the payment information. No new payment or identity information was submitted. Complete any further identity, phone, or address checks Google requests directly in the account.
+The existing AdMob-linked publisher account was extended to website AdSense on
+October 21, 2026. Ownership has since been verified and the review request was
+accepted. Current status is **Getting ready / Review requested**, with **Authorized**
+ads.txt. Do not repeatedly request review or remove/re-add the site while this
+review is pending. The verified public publisher ID is `ca-pub-1796408580720090`.
+Google reports that it already has the payment information. No new payment or
+identity information was submitted. Complete any additional checks Google asks
+for directly in the account.
 
-The exact proposed web-service settings are in [adsense-verification.env](adsense-verification.env). They have not been applied to Railway. Meta-tag verification is selected in AdSense; do not check “I've placed the HTML meta tag” until the authorized deployment is confirmed live.
+The verification configuration is now deployed on Railway. The environment file
+[adsense-verification.env](adsense-verification.env) is the initial setup reference;
+current advertising and consent-delivery status is recorded at the top of this guide.
+The steps below describe the verification sequence for future reference.
 
 Copy the public publisher ID, `ca-pub-` followed by 16 digits. Set only `ADSENSE_CLIENT_ID` on the web service for the initial verification release. Keep both enablement flags false. This adds a `google-adsense-account` meta tag and serves the corresponding seller record at `/ads.txt`; no Google advertising script is loaded. No guessed account identifiers are shipped.
 
@@ -97,11 +111,11 @@ References: [Connect your site](https://support.google.com/adsense/answer/758426
 
 In AdSense **Privacy & messaging**, publish European regulations and applicable US state privacy messages for the domain. Include the privacy URL `https://formdexplorer.com/privacy/`, the actual operator details, and appropriate ad partners. Offer **Consent**, **Do not consent**, and **Manage options**. Keep Google's regional opt-out links enabled. Review the privacy text against actual operations before release, including the existing hosting, email, retention, and error-monitoring claims.
 
-This implementation deliberately loads the consent platform separately from the advertising library. Copy the Google consent message tag's **script URL** from your account into `ADSENSE_CMP_SCRIPT_URL`. It must use HTTPS, the exact host `fundingchoicesmessages.google.com`, and the matching publisher path `/i/ca-pub-<your publisher digits>` or legacy `/i/pub-<your publisher digits>`. Use the validated request mode documented above. This setting takes a URL, not HTML. If your account only supplies the combined AdSense loader, do not substitute that URL or enable ads: obtain and validate the standalone Google message tag or adapt the integration to another certified CMP. If the generated tag includes additional required bootstrap code, compare it with this loader before release. The standalone integration must be tested with the real account; synthetic tests cannot certify it.
+This implementation deliberately loads the consent platform separately from the advertising library. Copy the Google consent message tag's **script URL** from your account into `ADSENSE_CMP_SCRIPT_URL`. It must use HTTPS, the exact host `fundingchoicesmessages.google.com`, and the matching publisher path `/i/ca-pub-<your publisher digits>` or legacy `/i/pub-<your publisher digits>`. Use the validated request mode documented above. This setting takes a URL, not HTML. The owner selected Google CMP and explicitly declined a provider switch. Keep advertising disabled until the account-specific Google integration actually delivers the regional messages; a published message or successful synthetic test is insufficient. If the generated tag includes additional required bootstrap code, compare it with this loader before release. The standalone integration must be tested with the real account; synthetic tests cannot certify it.
 
 The local “Allow advertising” choice is an additional opt-in, **not a certified CMP**. It does not replace Google's regional consent flow. This conservative launch:
 
-- Makes no Google advertising/CMP request before local opt-in, except a visitor's explicit request to review Google privacy settings on `/privacy/`. Reviewing those settings cannot opt the visitor into advertising. Google Fonts/HTMX are pre-existing unrelated resources.
+- Makes no Google advertising/CMP request before local opt-in, except a visitor's explicit request to review Google privacy settings on `/privacy-choices/`. Reviewing those settings cannot opt the visitor into advertising. Google Fonts/HTMX are pre-existing unrelated resources.
 - Requires a successfully loaded TCF API: either an explicit non-applicability result or settled consent for Google (vendor 755) and device storage (purpose 1). Google consumes the full TCF string for other required purposes.
 - Requires Google's initial US privacy status to be known and not opted out. Missing callbacks fail closed, even outside regulated regions.
 - Requests non-personalized ads; these still require appropriate consent and may use cookies.

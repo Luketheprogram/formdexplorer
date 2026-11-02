@@ -35,7 +35,7 @@
     if (!providerStatus) return;
     providerStatus.dataset.phase = phase;
     if (phase === 'loading') providerStatus.textContent = 'Loading Google privacy controls. Advertising remains off.';
-    if (phase === 'unavailable') providerStatus.textContent = 'Google privacy controls could not be loaded. Advertising remains off. Please try again or contact us using the email in this policy.';
+    if (phase === 'unavailable') providerStatus.textContent = 'Google privacy controls are unavailable. Advertising remains off. Please try again or contact us through our privacy policy.';
     if (phase === 'ui-shown') providerStatus.textContent = 'Google privacy controls are open. Reviewing them cannot turn advertising on.';
     if (phase === 'decision') providerStatus.textContent = 'Your Google privacy decision has been received. This does not enable advertising.';
     if (gdprApplies === false && usStatus === 1) providerStatus.textContent = 'Google reports that no regional privacy message applies to this browser. Advertising remains off.';
