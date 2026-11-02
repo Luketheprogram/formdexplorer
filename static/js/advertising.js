@@ -203,6 +203,15 @@
         document.body.appendChild(iframe);
       }
       const cmpScript = new URL(config.cmpUrl);
+      // Match Google's AdSense loader: the message service needs the published
+      // page URL as explicit context, without credentials, query, or fragment.
+      const pageContext = new URL(window.location.href);
+      pageContext.username = '';
+      pageContext.password = '';
+      pageContext.search = '';
+      pageContext.hash = '';
+      const pageHref = pageContext.href.replace(/\/$/, '');
+      if (pageHref.length <= 1000) cmpScript.searchParams.set('href', pageHref);
       const previewType = new URLSearchParams(window.location.search || '').get('fctype');
       if (debug && ['gdpr', 'ccpa', 'usnat', 'usfl'].includes(previewType)) {
         cmpScript.searchParams.set('fc', 'alwaysshow');

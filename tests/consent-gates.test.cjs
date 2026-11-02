@@ -22,7 +22,8 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,se
     createElement: tag => ({tag,style:{}}),
     head:{appendChild: script => scripts.push(script)}, body:{appendChild: frame=>frames.push(frame)},
   };
-  const window = {frames:{},setTimeout:fn=>timers.push(fn),addEventListener:(name,fn)=>events.set('window:'+name,fn),location:{search,reload(){reloads++;}}};
+  const page = new URL('https://publisher.example/privacy/'+search);
+  const window = {frames:{},setTimeout:fn=>timers.push(fn),addEventListener:(name,fn)=>events.set('window:'+name,fn),location:{href:page.href,search:page.search,reload(){reloads++;}}};
   vm.runInNewContext(source, {document,window,URL,URLSearchParams,navigator:{globalPrivacyControl:gpc},localStorage:{getItem:()=>stored,setItem:(_,value)=>{stored=value;}},console:{...console,info(){}}});
   function settle({tcf=true,us=1,existing=false,inactive=false}={}) {
     window.__gpp=(_,callback)=>{gppCallback=callback;};
@@ -76,6 +77,18 @@ test('explicit privacy settings survive a return to the tab without advertising 
   f.click('partners'); f.visible();
   assert.equal(f.reloads(),0);
   assert.equal(f.scripts.length,1);
+});
+
+test('Google receives the published page context without private query or fragment data',()=>{
+  const f=fixture({search:'?fc=alwaysshow&fctype=gdpr&private=never-share#private-section'});
+  f.click('partners'); f.scripts[0].onload();
+  const url=new URL(f.scripts[1].src);
+  assert.equal(url.searchParams.get('href'),'https://publisher.example/privacy');
+  assert.equal(url.searchParams.get('fctype'),'gdpr');
+  assert.equal(url.href.includes('never-share'),false);
+  assert.equal(url.href.includes('private-section'),false);
+  assert.equal(f.adQueue().pauseAdRequests,1);
+  assert.equal(f.adQueue().length,0);
 });
 
 test('US privacy updates cannot reload an ads-off preferences session',()=>{
