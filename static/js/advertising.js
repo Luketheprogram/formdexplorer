@@ -129,11 +129,13 @@
 
   function startCmp(preferences = false) {
     if (!config || cmpStarted || gpc() || (!preferences && (choice !== 'allow' || config.preferencesOnly))) return;
+    const nativeBootstrap = config.preferencesOnly && debug && new URLSearchParams(window.location.search || '').get('cmp_init') === 'native';
     cmpStarted = true;
     report('loading', {topLevelWindow: window === window.top});
     window.googlefc = window.googlefc || {};
     window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
     window.googlefc.callbackQueue.push({CONSENT_API_READY: () => {
+      if (nativeBootstrap) window.adsbygoogle.pauseAdRequests = 1;
       apiReady = true;
       report('api-ready', {europeanControlsAvailable: typeof window.googlefc.showRevocationMessage === 'function'});
       partnersButton.hidden = !config.preferencesOnly && typeof window.googlefc.showRevocationMessage !== 'function';
@@ -224,23 +226,30 @@
       document.head.appendChild(script);
     }
     if (config.preferencesOnly) {
-      // Google's request-pause API is a setter without a getter. Set it before
-      // the tag loads and never resume or enqueue advertising in this flow.
+      // Default settings pause requests before the tag. An explicitly approved
+      // diagnostic permits native initialization, then pauses at API readiness
+      // and tears down the document after 12 seconds. No ad slots are queued.
       const queue = window.adsbygoogle = window.adsbygoogle || [];
-      queue.pauseAdRequests = 1;
+      if (!nativeBootstrap) queue.pauseAdRequests = 1;
       const script = document.createElement('script');
       script.async = true;
       script.crossOrigin = 'anonymous';
       script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(config.client);
       script.onload = () => {
-        report('tag-loaded', {adRequestsPauseConfigured: true});
+        report('tag-loaded', {adRequestsPauseConfigured: !nativeBootstrap, nativeBootstrap});
         // A paused publisher tag does not initialize its CMP automatically.
-        loadMessageTag();
+        if (!nativeBootstrap) loadMessageTag();
       };
       script.onerror = failed;
       document.head.appendChild(script);
     } else loadMessageTag();
     window.setTimeout(() => {
+      if (nativeBootstrap) {
+        window.adsbygoogle.pauseAdRequests = 1;
+        report('native-test-ended', {apiReady, consentDataReady, gdprApplies, cmpUiShown, tcfApiAvailable: typeof window.__tcfapi === 'function', adSlots: document.querySelectorAll('[data-ad-slot]').length});
+        window.location.replace('/privacy-choices/');
+        return;
+      }
       if (!cmpUiShown && (gdprApplies !== false || usStatus === undefined)) report('unavailable');
     }, 12000);
     // Missing, blocked, or incomplete CMP callbacks never unlock ad requests.
