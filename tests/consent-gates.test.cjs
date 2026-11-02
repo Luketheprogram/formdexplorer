@@ -35,7 +35,7 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,se
     window.googlefc.showRevocationMessage=()=>{revocations++;};
     while(window.googlefc.callbackQueue.length) for (const item of window.googlefc.callbackQueue.splice(0)) Object.values(item).forEach(fn=>fn());
   }
-  return {scripts,frames,settle,providerStatus,sectionChange:()=>gppCallback({eventName:'sectionChange'},true),stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
+  return {scripts,frames,settle,providerStatus,adQueue:()=>window.adsbygoogle,sectionChange:()=>gppCallback({eventName:'sectionChange'},true),stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
 }
 
 test('opening Google preferences does not opt into ads, including fully granted provider consent',()=>{
@@ -45,12 +45,16 @@ test('opening Google preferences does not opt into ads, including fully granted 
   assert.equal(f.scripts.length,0);
   f.click('partners');
   assert.equal(f.scripts.length,1);
-  assert.match(f.scripts[0].src,/^https:\/\/fundingchoicesmessages\.google\.com\//);
-  assert.equal(f.frames[0].name,'googlefcPresent');
+  assert.match(f.scripts[0].src,/^https:\/\/pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle.js\?client=ca-pub-/);
+  assert.equal(f.adQueue().pauseAdRequests,1);
+  assert.equal(f.adQueue().length,0);
+  assert.equal(f.frames.length,0);
   f.settle();
   assert.equal(f.scripts.length,1);
   assert.equal(f.stored(),null);
   assert.equal(f.revocations(),0);
+  assert.equal(f.adQueue().pauseAdRequests,1);
+  assert.equal(f.adQueue().length,0);
 });
 
 test('explicit privacy settings survive a return to the tab without advertising permission',()=>{
@@ -77,12 +81,12 @@ test('US privacy changes still stop enabled advertising',()=>{
 });
 
 test('privacy previews forward only Google privacy parameters to the message service',()=>{
-  const f=fixture({search:'?fc=alwaysshow&fctype=gdpr&private=never-share'}); f.click('partners');
+  const f=fixture({serving:true,preferencesOnly:false,search:'?fc=alwaysshow&fctype=gdpr&private=never-share'}); f.click('allow');
   const url=new URL(f.scripts[0].src);
   assert.equal(url.searchParams.get('fc'),'alwaysshow');
   assert.equal(url.searchParams.get('fctype'),'gdpr');
   assert.equal(url.searchParams.has('private'),false);
-  const other=fixture({search:'?fc=alwaysshow&fctype=monetization'});other.click('partners');
+  const other=fixture({serving:true,preferencesOnly:false,search:'?fc=alwaysshow&fctype=monetization'});other.click('allow');
   assert.equal(new URL(other.scripts[0].src).searchParams.has('fc'),false);
 });
 
@@ -129,7 +133,8 @@ test('existing advertising permission cannot auto-load the privacy-page CMP or e
   assert.equal(f.scripts.length,0);
   f.click('partners'); f.settle();
   assert.equal(f.scripts.length,1);
-  assert.ok(f.scripts.every(s=>!s.src.includes('googlesyndication')));
+  assert.equal(f.adQueue().pauseAdRequests,1);
+  assert.equal(f.adQueue().length,0);
 });
 
 test('GPC prevents both advertising and explicit CMP loading',()=>{

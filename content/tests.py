@@ -95,6 +95,7 @@ class AdvertisingTests(TestCase):
         self.assertEqual(response["Referrer-Policy"], "strict-origin-when-cross-origin")
         self.assertContains(response, 'id="consent-config"')
         self.assertContains(response, '"preferencesOnly": true')
+        self.assertContains(response, '"client": "ca-pub-1234567890123456"')
         self.assertContains(response, '"allowAds": false')
         self.assertContains(response, 'data-ad-serving="false"')
         self.assertNotContains(response, 'data-ad-slot=')
