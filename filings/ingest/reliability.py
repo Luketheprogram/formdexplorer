@@ -1,4 +1,5 @@
 """Durable, bounded retries with lease fencing and atomic filing/checkpoint writes."""
+
 import hashlib
 import logging
 import uuid
@@ -13,8 +14,13 @@ from django.utils import timezone
 from filings.models import IngestionJob, IngestionRun, IngestionSource
 from .calendar import expected_closure
 from .edgar_client import retry_after_seconds
-from .health import METADATA_REVIEW_ERROR, review_only_jobs
-from .index_parser import IndexEntry, SourceCIKMismatch, accession_from_filename, iter_business_days
+from .health import METADATA_REVIEW_ERROR, review_only_jobs, historical_repair_jobs
+from .index_parser import (
+    IndexEntry,
+    SourceCIKMismatch,
+    accession_from_filename,
+    iter_business_days,
+)
 
 log = logging.getLogger(__name__)
 MAX_ATTEMPTS = 8
@@ -36,7 +42,12 @@ class RecordingClient:
 
     def get_bytes(self, path):
         content = self.client.get_bytes(path)
-        self.sources.append((path if path.startswith("https://") else "https://www.sec.gov" + path, content))
+        self.sources.append(
+            (
+                path if path.startswith("https://") else "https://www.sec.gov" + path,
+                content,
+            )
+        )
         return content
 
     def get_text(self, path):
@@ -47,13 +58,29 @@ def claim(pk, now=None):
     now = now or timezone.now()
     token = uuid.uuid4()
     IngestionJob.objects.filter(pk=pk, attempts__gte=MAX_ATTEMPTS).filter(
-        Q(state="pending", next_attempt_at__lte=now) | Q(state="running", lease_until__lte=now)
-    ).update(state="held", lease_token=None, lease_until=None,
-             last_error="Retry budget exhausted, including expired workers", updated_at=now)
-    changed = IngestionJob.objects.filter(pk=pk, attempts__lt=MAX_ATTEMPTS).filter(
-        Q(state="pending", next_attempt_at__lte=now) | Q(state="running", lease_until__lte=now)
-    ).update(state="running", lease_token=token, lease_until=now + LEASE_TIME,
-             attempts=F("attempts") + 1, updated_at=now)
+        Q(state="pending", next_attempt_at__lte=now)
+        | Q(state="running", lease_until__lte=now)
+    ).update(
+        state="held",
+        lease_token=None,
+        lease_until=None,
+        last_error="Retry budget exhausted, including expired workers",
+        updated_at=now,
+    )
+    changed = (
+        IngestionJob.objects.filter(pk=pk, attempts__lt=MAX_ATTEMPTS)
+        .filter(
+            Q(state="pending", next_attempt_at__lte=now)
+            | Q(state="running", lease_until__lte=now)
+        )
+        .update(
+            state="running",
+            lease_token=token,
+            lease_until=now + LEASE_TIME,
+            attempts=F("attempts") + 1,
+            updated_at=now,
+        )
+    )
     if not changed:
         return None
     return token
@@ -61,7 +88,11 @@ def claim(pk, now=None):
 
 def locked_job(pk, token):
     job = IngestionJob.objects.select_for_update().get(pk=pk)
-    if job.state != "running" or job.lease_token != token or job.lease_until <= timezone.now():
+    if (
+        job.state != "running"
+        or job.lease_token != token
+        or job.lease_until <= timezone.now()
+    ):
         raise LostLease("Ingestion lease expired or replaced")
     return job
 
@@ -69,7 +100,11 @@ def locked_job(pk, token):
 def archive(job, sources):
     for url, content in sources:
         IngestionSource.objects.get_or_create(
-            job=job, url=url, sha256=hashlib.sha256(content).hexdigest(), defaults={"content": content})
+            job=job,
+            url=url,
+            sha256=hashlib.sha256(content).hexdigest(),
+            defaults={"content": content},
+        )
 
 
 def complete(job, outcome):
@@ -88,8 +123,10 @@ def failed(pk, token, exc, sources):
         archive(job, sources)
         job.state = "held" if job.attempts >= MAX_ATTEMPTS else "pending"
         job.last_error = f"{type(exc).__name__}: {exc}"[:2000]
-        delay = max(min(86400, 900 * 2 ** min(job.attempts - 1, 7)),
-                    retry_after_seconds(getattr(exc, "response", None)))
+        delay = max(
+            min(86400, 900 * 2 ** min(job.attempts - 1, 7)),
+            retry_after_seconds(getattr(exc, "response", None)),
+        )
         job.next_attempt_at = timezone.now() + timedelta(seconds=delay)
         job.lease_token = None
         job.lease_until = None
@@ -113,29 +150,66 @@ def run_pipeline(pipeline, start, end, **kwargs):
             cursor.execute("SELECT pg_advisory_unlock(%s)", [lock_key])
 
 
-def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
+def _run_pipeline(
+    pipeline, start, end, *, retry_limit=100, filing_limit=2000, historical_only=False
+):
     if start > end or retry_limit < 1 or filing_limit < 1:
         raise ValueError("Invalid ingestion range or work limit")
-    run = IngestionRun.objects.create(dataset=pipeline.dataset, start_date=start, end_date=end)
-    stats = dict(days=0, entries=0, parsed=0, upserted=0, errors=0, skipped=0,
-                 existing=0, metadata=0, new_review_items=0)
+    run = IngestionRun.objects.create(
+        dataset=pipeline.dataset, start_date=start, end_date=end
+    )
+    stats = dict(
+        days=0,
+        entries=0,
+        parsed=0,
+        upserted=0,
+        errors=0,
+        skipped=0,
+        existing=0,
+        metadata=0,
+        new_review_items=0,
+    )
+    if historical_only:
+        stats["historical_scope"] = True
+    scoped_jobs = IngestionJob.objects.filter(dataset=pipeline.dataset)
+    scoped_jobs = (
+        scoped_jobs.filter(historical_repair_jobs())
+        if historical_only
+        else scoped_jobs.exclude(historical_repair_jobs())
+    )
     original_client = pipeline.client
     try:
         # Re-fetch successful recent indexes to discover additions; never reset failures,
         # retry deadlines or active leases. Successful accessions are not re-imported.
         # Recover scheduler downtime beyond the requested lookback. Once enqueued,
         # every missing day survives future bounded runs until resolved.
-        latest_index = IngestionJob.objects.filter(dataset=pipeline.dataset, kind="index",
-            last_success_at__isnull=False, source_date__lte=end).aggregate(value=Max("source_date"))["value"]
-        coverage_start = min(start, latest_index + timedelta(days=1)) if latest_index else start
-        for day in iter_business_days(coverage_start, end):
-            job, _ = IngestionJob.objects.get_or_create(dataset=pipeline.dataset, kind="index", key=str(day),
-                                                        defaults={"source_date": day})
+        latest_index = IngestionJob.objects.filter(
+            dataset=pipeline.dataset,
+            kind="index",
+            last_success_at__isnull=False,
+            source_date__lte=end,
+        ).aggregate(value=Max("source_date"))["value"]
+        coverage_start = (
+            min(start, latest_index + timedelta(days=1)) if latest_index else start
+        )
+        for day in ([] if historical_only else iter_business_days(coverage_start, end)):
+            job, _ = IngestionJob.objects.get_or_create(
+                dataset=pipeline.dataset,
+                kind="index",
+                key=str(day),
+                defaults={"source_date": day},
+            )
             IngestionJob.objects.filter(pk=job.pk, state="succeeded").update(
-                state="pending", attempts=0, next_attempt_at=timezone.now())
-        due = Q(state="pending", next_attempt_at__lte=timezone.now()) | Q(state="running", lease_until__lte=timezone.now())
-        indexes = list(IngestionJob.objects.filter(due, dataset=pipeline.dataset, kind="index").order_by(
-            "next_attempt_at", "pk").values_list("pk", flat=True)[:retry_limit])
+                state="pending", attempts=0, next_attempt_at=timezone.now()
+            )
+        due = Q(state="pending", next_attempt_at__lte=timezone.now()) | Q(
+            state="running", lease_until__lte=timezone.now()
+        )
+        indexes = list(
+            scoped_jobs.filter(due, kind="index")
+            .order_by("next_attempt_at", "pk")
+            .values_list("pk", flat=True)[:retry_limit]
+        )
         for pk in indexes:
             token = claim(pk)
             if not token:
@@ -153,40 +227,92 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
                         group = groups[accession_from_filename(entry.filename)]
                         if candidate not in group:
                             group.append(candidate)
-                    existing_ciks = dict(pipeline.filing_model.objects.filter(
-                        accession_number__in=groups).values_list("accession_number", "issuer__cik"))
+                    existing_ciks = dict(
+                        pipeline.filing_model.objects.filter(
+                            accession_number__in=groups
+                        ).values_list("accession_number", "issuer__cik")
+                    )
                     for accession, candidates in groups.items():
-                        selected = next((entry for entry in candidates if entry["cik"].lstrip("0") ==
-                                         existing_ciks.get(accession, "").lstrip("0")), candidates[0])
+                        selected = next(
+                            (
+                                entry
+                                for entry in candidates
+                                if entry["cik"].lstrip("0")
+                                == existing_ciks.get(accession, "").lstrip("0")
+                            ),
+                            candidates[0],
+                        )
                         payload = {**selected, "index_candidates": candidates}
                         queued, created = IngestionJob.objects.get_or_create(
-                            dataset=pipeline.dataset, kind="filing", key=accession,
-                            defaults={"source_date": date.fromisoformat(selected["filing_date"]), "entry": payload})
+                            dataset=pipeline.dataset,
+                            kind="filing",
+                            key=accession,
+                            defaults={
+                                "source_date": date.fromisoformat(
+                                    selected["filing_date"]
+                                ),
+                                "entry": payload,
+                            },
+                        )
                         if not created:
                             primary = primary_entry(queued.entry)
                             if primary not in candidates:
                                 # Isolate an actual correction to its accession. Do
                                 # not discard all other discoveries from this day.
                                 observed = queued.entry.get("metadata_conflicts", [])
-                                new_candidates = [entry for entry in candidates if entry not in observed]
+                                new_candidates = [
+                                    entry
+                                    for entry in candidates
+                                    if entry not in observed
+                                ]
                                 newly_held = queued.state != "held"
                                 # Keep these separate from co-issuer candidates;
                                 # an operator retry must not adopt a disputed value.
-                                queued.entry = {**queued.entry, "metadata_conflicts": observed + new_candidates}
-                                if queued.state != "held" or queued.last_error == METADATA_REVIEW_ERROR:
+                                queued.entry = {
+                                    **queued.entry,
+                                    "metadata_conflicts": observed + new_candidates,
+                                }
+                                if (
+                                    queued.state != "held"
+                                    or queued.last_error == METADATA_REVIEW_ERROR
+                                ):
                                     queued.last_error = METADATA_REVIEW_ERROR
                                 queued.state = "held"
-                                queued.save(update_fields=["entry", "state", "last_error", "updated_at"])
+                                queued.save(
+                                    update_fields=[
+                                        "entry",
+                                        "state",
+                                        "last_error",
+                                        "updated_at",
+                                    ]
+                                )
                                 if newly_held or new_candidates:
                                     stats["new_review_items"] += 1
-                                    log.warning("SEC metadata review required: dataset=%s accession=%s candidates=%s",
-                                                pipeline.dataset, accession, candidates)
-                                if not IngestionJob.objects.filter(pk=queued.pk).filter(review_only_jobs()).exists():
+                                    log.warning(
+                                        "SEC metadata review required: dataset=%s accession=%s candidates=%s",
+                                        pipeline.dataset,
+                                        accession,
+                                        candidates,
+                                    )
+                                if (
+                                    not IngestionJob.objects.filter(pk=queued.pk)
+                                    .filter(review_only_jobs())
+                                    .exists()
+                                ):
                                     stats["errors"] += 1
                             else:
-                                observed = queued.entry.get("index_candidates", [primary])
-                                observed += [entry for entry in candidates if entry not in observed]
-                                queued.entry = {**queued.entry, "index_candidates": observed}
+                                observed = queued.entry.get(
+                                    "index_candidates", [primary]
+                                )
+                                observed += [
+                                    entry
+                                    for entry in candidates
+                                    if entry not in observed
+                                ]
+                                queued.entry = {
+                                    **queued.entry,
+                                    "index_candidates": observed,
+                                }
                                 queued.save(update_fields=["entry", "updated_at"])
                     archive(job, recorder.sources)
                     job.discovered_count = len(entries)
@@ -197,7 +323,11 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
                 stats["errors"] += 1
             except Exception as exc:
                 response = getattr(exc, "response", None)
-                if response is not None and response.status_code == 404 and expected_closure(job.source_date):
+                if (
+                    response is not None
+                    and response.status_code == 404
+                    and expected_closure(job.source_date)
+                ):
                     with transaction.atomic():
                         job = locked_job(pk, token)
                         complete(job, "scheduled_closure")
@@ -207,9 +337,14 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
                     stats["errors"] += 1
                     log.exception("Index ingestion failed: %s", job.key)
         # Old due work is included even when its date is outside the lookback.
-        due = Q(state="pending", next_attempt_at__lte=timezone.now()) | Q(state="running", lease_until__lte=timezone.now())
-        pending = list(IngestionJob.objects.filter(due, dataset=pipeline.dataset, kind="filing").order_by(
-            "next_attempt_at", "pk").values_list("pk", flat=True)[:filing_limit])
+        due = Q(state="pending", next_attempt_at__lte=timezone.now()) | Q(
+            state="running", lease_until__lte=timezone.now()
+        )
+        pending = list(
+            scoped_jobs.filter(due, kind="filing")
+            .order_by("next_attempt_at", "pk")
+            .values_list("pk", flat=True)[:filing_limit]
+        )
         for pk in pending:
             token = claim(pk)
             if not token:
@@ -223,7 +358,11 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
                 entry = IndexEntry(**primary)
                 # Existing data (including reviewed historical repairs) is immutable
                 # under routine discovery. Explicit repair tools remain separate.
-                existing = pipeline.filing_model.objects.filter(accession_number=job.key).select_related("issuer").first()
+                existing = (
+                    pipeline.filing_model.objects.filter(accession_number=job.key)
+                    .select_related("issuer")
+                    .first()
+                )
                 parsed = None
                 if not existing:
                     try:
@@ -231,8 +370,14 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
                     except SourceCIKMismatch as exc:
                         # Co-issuers share an accession. Only an explicit source
                         # CIK present in the index can select a different entry.
-                        matched = next((candidate for candidate in candidates
-                                        if candidate["cik"].lstrip("0") == exc.source_cik), None)
+                        matched = next(
+                            (
+                                candidate
+                                for candidate in candidates
+                                if candidate["cik"].lstrip("0") == exc.source_cik
+                            ),
+                            None,
+                        )
                         if matched is None:
                             raise
                         entry = IndexEntry(**matched)
@@ -247,8 +392,16 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
                         outcome = "existing"
                     else:
                         pipeline._upsert(parsed)
-                        outcome = "metadata" if getattr(parsed, "metadata_only", False) else "structured"
-                    job.entry = {**job.entry, **asdict(entry), "index_candidates": candidates}
+                        outcome = (
+                            "metadata"
+                            if getattr(parsed, "metadata_only", False)
+                            else "structured"
+                        )
+                    job.entry = {
+                        **job.entry,
+                        **asdict(entry),
+                        "index_candidates": candidates,
+                    }
                     archive(job, recorder.sources)
                     complete(job, outcome)
                 stats["existing" if existing else "upserted"] += 1
@@ -260,7 +413,7 @@ def _run_pipeline(pipeline, start, end, *, retry_limit=100, filing_limit=2000):
                 failed(pk, token, exc, recorder.sources)
                 stats["errors"] += 1
                 log.exception("Failed to ingest accession %s", job.key)
-        unresolved = IngestionJob.objects.filter(dataset=pipeline.dataset).exclude(state="succeeded")
+        unresolved = scoped_jobs.exclude(state="succeeded")
         stats["backlog"] = unresolved.count()
         stats["review_items"] = unresolved.filter(review_only_jobs()).count()
         stats["failure_backlog"] = unresolved.exclude(review_only_jobs()).count()

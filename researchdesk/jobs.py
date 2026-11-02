@@ -217,6 +217,14 @@ def run(pk):
             qs = extraction_queryset(dataset)[:500]
             for item in qs.iterator(chunk_size=20):
                 materialize(dataset, item)
+        elif job.kind == "historical-ingestion":
+            from filings.ingest.pipeline import IngestPipeline
+            from filings.ingest.edgar_client import EdgarClient
+
+            today = timezone.localdate()
+            IngestPipeline(EdgarClient(rate_per_sec=4), store_raw_xml=True).run(
+                today, today, historical_only=True, filing_limit=25, retry_limit=1
+            )
         elif job.kind == "recover":
             from .recovery import recover
 

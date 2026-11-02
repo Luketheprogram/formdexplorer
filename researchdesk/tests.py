@@ -842,3 +842,86 @@ class ResearchDeskTests(TestCase):
         self.assertEqual(
             self.client.get(f"/research/exports/{job.pk}/download/").status_code, 200
         )
+
+    def test_live_ingestion_does_not_claim_or_count_historical_jobs(self):
+        from filings.ingest.pipeline import IngestPipeline
+
+        entry = {
+            "form_type": "D",
+            "company": "Example",
+            "cik": "123",
+            "filing_date": str(self.day),
+            "filename": "edgar/data/123/0000000123-26-000002.txt",
+            "historical_repair": True,
+        }
+        historical = IngestionJob.objects.create(
+            dataset="d",
+            kind="filing",
+            key=self.filing.accession_number,
+            source_date=self.day,
+            entry=entry,
+        )
+        weekend = date(2026, 11, 1)
+        stats = IngestPipeline().run(weekend, weekend)
+        historical.refresh_from_db()
+        self.assertEqual(historical.attempts, 0)
+        self.assertEqual(stats["failure_backlog"], 0)
+        stats = IngestPipeline().run(weekend, weekend, historical_only=True)
+        historical.refresh_from_db()
+        self.assertEqual(historical.state, "succeeded")
+        self.assertEqual(stats["existing"], 1)
+        self.assertTrue(stats["historical_scope"])
+
+    def test_historical_failures_do_not_mask_or_block_live_health(self):
+        from filings.models import IngestionRun
+        from filings.ingest.monitoring import freshness_report
+        from datetime import datetime, timezone as dt_timezone
+
+        now = datetime(2026, 11, 1, 12, tzinfo=dt_timezone.utc)
+        IngestionRun.objects.create(
+            dataset="d",
+            start_date=date(2026, 10, 30),
+            end_date=date(2026, 10, 30),
+            finished_at=now - timedelta(hours=1),
+            stats={},
+        )
+        IngestionRun.objects.create(
+            dataset="d",
+            start_date=date(2026, 11, 1),
+            end_date=date(2026, 11, 1),
+            finished_at=now,
+            stats={"historical_scope": True, "errors": 2},
+        )
+        IngestionJob.objects.create(
+            dataset="d",
+            kind="index",
+            key="2026-10-30",
+            source_date=date(2026, 10, 30),
+            state="succeeded",
+            outcome="indexed",
+            last_success_at=now,
+        )
+        job = IngestionJob.objects.create(
+            dataset="d",
+            kind="filing",
+            key="missing-history",
+            source_date=date(2025, 1, 1),
+            state="held",
+            entry={"historical_repair": True},
+        )
+        IngestionJob.objects.filter(pk=job.pk).update(
+            created_at=now - timedelta(days=30)
+        )
+        data = freshness_report(now=now)["datasets"]["d"]
+        self.assertEqual(data["issues"], [])
+        self.assertEqual(data["historical_failure_backlog"], 1)
+        self.assertIn("historical_repair_backlog", data["warnings"])
+        IngestionJob.objects.create(
+            dataset="d",
+            kind="filing",
+            key="missing-live",
+            source_date=date(2026, 10, 30),
+            state="held",
+            entry={},
+        )
+        self.assertIn("held_jobs", freshness_report(now=now)["datasets"]["d"]["issues"])

@@ -11,6 +11,7 @@ from django.utils import timezone
 from researchdesk.analysis import period
 from researchdesk.jobs import run, extraction_queryset
 from researchdesk.models import ResearchEdition, ResearchJob
+from filings.models import IngestionJob
 
 
 class Command(BaseCommand):
@@ -54,6 +55,17 @@ class Command(BaseCommand):
             )
             for pk in ids:
                 run(pk)
+            historical_due = Q(
+                state="pending", next_attempt_at__lte=timezone.now()
+            ) | Q(state="running", lease_until__lte=timezone.now())
+            if IngestionJob.objects.filter(
+                historical_due,
+                dataset="d",
+                kind="filing",
+                entry__historical_repair=True,
+            ).exists():
+                job = ResearchJob.objects.create(kind="historical-ingestion", params={})
+                run(job.pk)
             for dataset in ("d", "c", "a"):
                 if not extraction_queryset(dataset).exists():
                     continue
