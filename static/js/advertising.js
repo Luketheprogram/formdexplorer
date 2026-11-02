@@ -27,7 +27,6 @@
   let cmpUiShown = false;
   let preferencesRequested = false;
   let consentDataReady = false;
-  let existingEuropeanDecision = false;
   let observer;
   const gpc = () => navigator.globalPrivacyControl === true;
 
@@ -51,11 +50,11 @@
     } catch (_) { return null; }
   }
 
-  function reopenExistingPreferences() {
-    if (preferencesRequested && consentDataReady && existingEuropeanDecision && !cmpUiShown &&
+  function openRequestedEuropeanPreferences() {
+    if (preferencesRequested && consentDataReady && gdprApplies === true && !cmpUiShown &&
         typeof window.googlefc.showRevocationMessage === 'function') {
       preferencesRequested = false;
-      window.googlefc.showRevocationMessage();
+      window.googlefc.callbackQueue.push({CONSENT_DATA_READY: () => window.googlefc.showRevocationMessage()});
     }
   }
 
@@ -137,12 +136,10 @@
     window.googlefc.callbackQueue.push({CONSENT_API_READY: () => {
       apiReady = true;
       report('api-ready', {europeanControlsAvailable: typeof window.googlefc.showRevocationMessage === 'function'});
-      partnersButton.hidden = typeof window.googlefc.showRevocationMessage !== 'function';
+      partnersButton.hidden = !config.preferencesOnly && typeof window.googlefc.showRevocationMessage !== 'function';
       if (typeof window.__tcfapi === 'function') {
         window.__tcfapi('addEventListener', 2, (data, success) => {
           gdprApplies = data?.gdprApplies;
-          existingEuropeanDecision = Boolean(success && data?.cmpStatus === 'loaded' &&
-            gdprApplies === true && data.eventStatus === 'tcloaded');
           report('tcf', {success, cmpStatus: data?.cmpStatus, cmpId: data?.cmpId,
             internalErrorState: data?.internalErrorState, eventStatus: data?.eventStatus, gdprApplies});
           // Opening preferences is not itself a new consent decision.
@@ -157,7 +154,7 @@
             data.gdprApplies === false || (data.gdprApplies === true && settled &&
               data.purpose?.consents?.[1] === true && data.vendor?.consents?.[755] === true)
           ));
-          reopenExistingPreferences();
+          openRequestedEuropeanPreferences();
           maybeShowAd();
         });
       }
@@ -172,10 +169,11 @@
     }});
     window.googlefc.callbackQueue.push({CONSENT_DATA_READY: () => {
       consentDataReady = true;
+      partnersButton.hidden = !config.preferencesOnly && typeof window.googlefc.showRevocationMessage !== 'function';
       report('data-ready', {gdprApplies, europeanControlsAvailable: typeof window.googlefc.showRevocationMessage === 'function'});
-      // Fresh visitors get Google's initial message. Only reopen an existing
-      // European decision, after data is ready, without restarting initialization.
-      reopenExistingPreferences();
+      // An explicit settings request must also work before a consent record
+      // exists. Google's European entry point becomes available at data-ready.
+      openRequestedEuropeanPreferences();
     }});
     window.googlefc.callbackQueue.push({INITIAL_US_STATES_OPT_OUT_DATA_READY: () => {
       const api = window.googlefc.usstatesoptout;
@@ -265,9 +263,9 @@
     if (gpc() || !config) return;
     dialog.close();
     preferencesRequested = true;
-    if (apiReady && gdprApplies === true) {
+    if (apiReady && consentDataReady && gdprApplies === true && typeof window.googlefc.showRevocationMessage === 'function') {
       preferencesRequested = false;
-      window.googlefc.callbackQueue.push({CONSENT_API_READY: () => window.googlefc.showRevocationMessage()});
+      window.googlefc.callbackQueue.push({CONSENT_DATA_READY: () => window.googlefc.showRevocationMessage()});
       return;
     }
     startCmp(true);

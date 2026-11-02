@@ -25,7 +25,7 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,se
   const page = new URL('https://publisher.example/privacy/'+search);
   const window = {frames:{},setTimeout:fn=>timers.push(fn),addEventListener:(name,fn)=>events.set('window:'+name,fn),location:{href:page.href,search:page.search,reload(){reloads++;}}};
   vm.runInNewContext(source, {document,window,URL,URLSearchParams,navigator:{globalPrivacyControl:gpc},localStorage:{getItem:()=>stored,setItem:(_,value)=>{stored=value;}},console:{...console,info(){}}});
-  function settle({tcf=true,us=1,existing=false,inactive=false}={}) {
+  function settle({tcf=true,us=1,existing=false,inactive=false,lateControls=false}={}) {
     window.__gpp=(_,callback)=>{gppCallback=callback;};
     window.__tcfapi=(_,version,cb)=>{
       if (inactive) { cb({cmpStatus:'loaded',gdprApplies:true},true); return; }
@@ -33,10 +33,11 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,se
       cb({cmpStatus:'loaded',gdprApplies:tcf,eventStatus:existing?'tcloaded':'useractioncomplete',purpose:{consents:{1:true}},vendor:{consents:{755:true}}},true);
     };
     window.googlefc.usstatesoptout={getInitialUsStatesOptOutStatus:()=>us};
-    window.googlefc.showRevocationMessage=()=>{revocations++;};
-    while(window.googlefc.callbackQueue.length) for (const item of window.googlefc.callbackQueue.splice(0)) Object.values(item).forEach(fn=>fn());
+    const exposeControls=()=>{window.googlefc.showRevocationMessage=()=>{revocations++;};};
+    if (!lateControls) exposeControls();
+    while(window.googlefc.callbackQueue.length) for (const item of window.googlefc.callbackQueue.splice(0)) Object.entries(item).forEach(([phase,fn])=>{if(lateControls&&phase==='CONSENT_DATA_READY')exposeControls();fn();});
   }
-  return {scripts,frames,settle,providerStatus,adQueue:()=>window.adsbygoogle,sectionChange:()=>gppCallback({eventName:'sectionChange'},true),stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
+  return {scripts,frames,settle,providerStatus,partnersVisible:()=>!controls.partners.hidden,adQueue:()=>window.adsbygoogle,sectionChange:()=>gppCallback({eventName:'sectionChange'},true),stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
 }
 
 test('opening Google preferences does not opt into ads, including fully granted provider consent',()=>{
@@ -143,12 +144,22 @@ test('an unavailable provider produces clear feedback and never unlocks ads',()=
   assert.equal(f.scripts.length,1);
 });
 
-test('an inactive Google bootstrap is not mistaken for an existing consent decision',()=>{
+test('an explicit European settings request works without an existing settled consent record',()=>{
   const f=fixture(); f.click('partners'); f.settle({inactive:true,us:1}); f.timeout();
-  assert.equal(f.revocations(),0);
+  assert.equal(f.revocations(),1);
   assert.equal(f.stored(),null);
   assert.equal(f.scripts.length,1);
   assert.equal(f.providerStatus.dataset.phase,'unavailable');
+});
+
+test('European controls appearing at data-ready remain visible and satisfy the pending request',()=>{
+  const f=fixture(); f.click('partners');
+  f.settle({inactive:true,lateControls:true});
+  assert.equal(f.partnersVisible(),true);
+  assert.equal(f.revocations(),1);
+  assert.equal(f.stored(),null);
+  assert.equal(f.adQueue().pauseAdRequests,1);
+  assert.equal(f.adQueue().length,0);
 });
 
 test('explicit non-applicability is shown without implying a consent grant',()=>{
