@@ -117,6 +117,13 @@ test('explicit non-applicability is shown without implying a consent grant',()=>
   assert.equal(f.scripts.length,1);
 });
 
+test('a stored Google US opt-out blocks ads despite an earlier local opt-in',()=>{
+  const f=fixture({serving:true,preferencesOnly:false,choice:'allow'});
+  f.settle({us:3});
+  assert.equal(f.scripts.length,1);
+  assert.match(f.providerStatus.textContent,/have opted out/);
+});
+
 test('existing advertising permission cannot auto-load the privacy-page CMP or enable ads while the site is off',()=>{
   const f=fixture({choice:'allow'});
   assert.equal(f.scripts.length,0);

@@ -36,12 +36,14 @@ is not treated as an existing consent decision: reopening waits for both consent
 data readiness and a settled European `tcloaded` event. US GPP updates do not reload
 an ads-off preferences session; they still stop active advertising. Missing UI or callbacks
 produce a visible failure message rather than an indefinite loading state.
-Preview-only diagnostics contain callback phases, not consent strings.
+Preview-only diagnostics contain callback phases, not consent strings. A stored
+US opt-out is distinguished from an available opt-out prompt in the page status.
+The live US preview now opens Google’s actual opt-out dialog, and its Opt out
+action completes without reloading the page or enabling advertising.
 
-Validation: **254 PostgreSQL application tests and 12 JavaScript consent tests
+Validation: **254 PostgreSQL application tests and 13 JavaScript consent tests
 pass**. Live checks confirm that the corrected European preview reaches the
-Google TCF path with `gdprApplies=true`. However, Google returns an explicit
-inactive/error bundle and renders no regional message. Published status alone is
+Google TCF path with `gdprApplies=true`. However, the European session does not settle or render a regional message. Published status alone is
 not successful delivery. Google accepted a refresh using **Publish changes**
 without unpublishing the message; its dialog warns propagation can take up to an
 hour. Automatic review rejected a proposed temporary unpublish; that action was

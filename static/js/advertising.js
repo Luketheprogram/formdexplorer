@@ -40,7 +40,8 @@
     if (phase === 'ui-shown') providerStatus.textContent = 'Google privacy controls are open. Reviewing them cannot turn advertising on.';
     if (phase === 'decision') providerStatus.textContent = 'Your Google privacy decision has been received. This does not enable advertising.';
     if (gdprApplies === false && usStatus === 1) providerStatus.textContent = 'Google reports that no regional privacy message applies to this browser. Advertising remains off.';
-    else if (usStatus === 2 || usStatus === 3) providerStatus.textContent = 'Use Google’s “Do Not Sell or Share My Personal Information” control below to review your US privacy choices. Advertising remains off.';
+    else if (usStatus === 3) providerStatus.textContent = 'Google reports that you have opted out of advertising-related sale or sharing in this browser. Advertising remains off.';
+    else if (usStatus === 2) providerStatus.textContent = 'Use Google’s “Do Not Sell or Share My Personal Information” control below to review your US privacy choices. Advertising remains off.';
   }
 
   function readChoice() {
