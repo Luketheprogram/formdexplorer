@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load money %}
-{% block content %}
+{% block content %}<p class="mb-4 text-sm"><a class="link" data-export-search="adv" href="/research/exports/?dataset=adv&amp;query={{ request.GET.urlencode|urlencode }}">Prepare a background export of this search</a></p>
 <h1 class="text-2xl font-bold tracking-tight text-slate-900">Form ADV search</h1>
 <p class="mt-1 text-sm text-slate-500">SEC-registered investment advisers from Form ADV, cross-linked to Form D filings.</p>
-<form
+<form method="get" action="/adv/" data-search-form="advisers"
   class="mt-5"
   hx-get="{% url 'advisers:search_partial' %}"
   hx-trigger="keyup changed delay:250ms from:input[name=q], submit"
@@ -16,7 +16,7 @@
       <svg class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
         <circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5L17 17"/>
       </svg>
-      <input type="search" name="q" value="{{ q|default:'' }}"
+      <input type="search" aria-label="Search advisers by name or identifier" name="q" value="{{ q|default:'' }}"
              placeholder="Search advisers by name…"
              autocomplete="off"
              class="input py-3 pl-10 pr-4 text-base">
@@ -32,15 +32,8 @@
   Searching…
 </div>
 
-<div id="adv-results" class="mt-6">
+<div id="adv-results" data-search-results aria-busy="false" class="mt-6">
   {% include "advisers/_partials/results.html" with results=page_obj.object_list total=total %}
 </div>
 
-{% if page_obj.has_other_pages %}
-<div class="mt-6 flex items-center justify-between text-sm">
-  {% if page_obj.has_previous %}<a class="btn-secondary btn-sm" href="?q={{ q }}&page={{ page_obj.previous_page_number }}">← Prev</a>{% else %}<span></span>{% endif %}
-  <span class="text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-  {% if page_obj.has_next %}<a class="btn-secondary btn-sm" href="?q={{ q }}&page={{ page_obj.next_page_number }}">Next →</a>{% else %}<span></span>{% endif %}
-</div>
-{% endif %}
 {% endblock %}

@@ -17,10 +17,24 @@ from config.metadata import clean_text, metadata, short_name
 from .metadata import GUIDES
 
 
+def publication_stamp(article):
+    from .market_research import MARKET_RESEARCH, STAMP
+
+    article.data_as_of = (
+        STAMP if article.slug in {r["slug"] for r in MARKET_RESEARCH} else None
+    )
+    return article
+
+
 def article_list(request):
-    articles = Article.objects.filter(published_at__lte=timezone.now()).alias(content=Trim("body")).exclude(content="").order_by("-published_at")
+    articles = (
+        Article.objects.filter(published_at__lte=timezone.now())
+        .alias(content=Trim("body"))
+        .exclude(content="")
+        .order_by("-published_at")
+    )
     ctx = {
-        "articles": articles,
+        "articles": [publication_stamp(a) for a in articles],
         **metadata(
             "SEC Filing Guides: Form D, Form C, ADV & Reg A+",
             "Learn how to read SEC private market filings. Explore guides to Form D, "
@@ -36,8 +50,11 @@ def article_detail(request, slug: str):
     if slug == "api":
         return api_docs(request)
     article = get_object_or_404(Article, slug=slug, published_at__lte=timezone.now())
+    publication_stamp(article)
     body_html = mark_safe(md.markdown(article.body, extensions=["extra", "toc"]))
-    title, description = GUIDES.get(article.slug, (article.title, article.meta_description))
+    title, description = GUIDES.get(
+        article.slug, (article.title, article.meta_description)
+    )
     if not clean_text(description):
         description = Truncator(clean_text(unescape(strip_tags(body_html)))).chars(160)
     if not description:
@@ -45,7 +62,14 @@ def article_detail(request, slug: str):
     ctx = {
         "article": article,
         "body_html": body_html,
-        "related_guides": Article.objects.filter(slug__in=[g["slug"] for g in RESEARCH_GUIDES], published_at__lte=timezone.now()).exclude(pk=article.pk).alias(content=Trim("body")).exclude(content="").only("title", "slug"),
+        "related_guides": Article.objects.filter(
+            slug__in=[g["slug"] for g in RESEARCH_GUIDES],
+            published_at__lte=timezone.now(),
+        )
+        .exclude(pk=article.pk)
+        .alias(content=Trim("body"))
+        .exclude(content="")
+        .only("title", "slug"),
         **metadata(title, description),
         "canonical_path": f"/learn/{article.slug}/",
     }
@@ -86,7 +110,9 @@ def newsletter_unsubscribe(request, email: str):
     try:
         sub = NewsletterSubscriber.objects.get(email=email.lower())
     except NewsletterSubscriber.DoesNotExist:
-        return render(request, "content/unsubscribed.html", {"email": email, "already": True})
+        return render(
+            request, "content/unsubscribed.html", {"email": email, "already": True}
+        )
     sub.unsubscribed_at = timezone.now()
     sub.save(update_fields=["unsubscribed_at"])
     return render(request, "content/unsubscribed.html", {"email": email})

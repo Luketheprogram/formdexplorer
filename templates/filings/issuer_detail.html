@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load money %}
-{% block content %}
+{% block content %}<div class="research-sticky-context"><strong>{{ issuer.name }}</strong> · CIK {{ issuer.cik }}</div><aside class="research-note mb-4">CIK {{ issuer.cik }} identifies this filer. Similar company names can belong to different filers. The profile uses the current stored business address; it does not establish historical location or investor residence. Individual source evidence preserves available names and addresses as reported.</aside>
+<p class="explorer-toolbar"><a class="link" href="/research/brief/{{ issuer.cik }}/">Citable research brief</a><a class="link" href="/research/compare-issuers/?ciks={{ issuer.cik }}">Compare issuer</a><a class="link" href="/research/collections/">Private research collection</a><button class="copy-value" type="button" data-copy="{{ issuer.cik }}">Copy CIK</button></p>
 <nav class="mb-4 text-sm text-slate-500" aria-label="Breadcrumb">
   <a href="/" class="transition-colors hover:text-indigo-600">Home</a>
   <span class="mx-1 text-slate-300">/</span>

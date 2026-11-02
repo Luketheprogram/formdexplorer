@@ -27,6 +27,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="{% static 'css/app.css' %}">
 <link rel="stylesheet" href="{% static 'css/research.css' %}">
+<link rel="stylesheet" href="{% static 'css/explorer.css' %}?v=20261102">
+<script src="{% static 'js/explorer.js' %}?v=20261102" defer></script>
 {% if ad_config or consent_config %}
 <link rel="stylesheet" href="{% static 'css/advertising.css' %}">
 <script src="{% static 'js/advertising.js' %}" defer></script>
@@ -39,6 +41,7 @@
 {% block head_extra %}{% endblock %}
 </head>
 <body class="flex min-h-screen flex-col">
+<div id="explorer-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
   <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">

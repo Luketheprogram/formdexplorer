@@ -9,7 +9,8 @@ from rega.ingest.documents import primary_xml
 from crowdfunding.models import CrowdfundingFiling
 from filings.ingest.edgar_client import EdgarClient
 from filings.ingest.index_parser import (
-    IndexEntry, SourceCIKMismatch,
+    IndexEntry,
+    SourceCIKMismatch,
     accession_from_filename,
     daily_index_paths,
     parse_form_idx,
@@ -37,6 +38,7 @@ class FormCPipeline:
 
     def run(self, start: date, end: date, **kwargs) -> dict:
         from filings.ingest.reliability import run_pipeline
+
         return run_pipeline(self, start, end, **kwargs)
 
     def _fetch_day_index(self, day: date):
@@ -47,15 +49,23 @@ class FormCPipeline:
     def _fetch_and_parse(self, entry: IndexEntry):
         accession = accession_from_filename(entry.filename)
         xml_bytes = primary_xml(self.client, entry)
-        pf = parse_form_c(validate_xml(xml_bytes, required_tag="formData", expected_form=entry.form_type), accession)
+        pf = parse_form_c(
+            validate_xml(
+                xml_bytes, required_tag="formData", expected_form=entry.form_type
+            ),
+            accession,
+        )
         index_cik = entry.cik.lstrip("0")
         if pf.issuer.cik and pf.issuer.cik.lstrip("0") != index_cik:
             raise SourceCIKMismatch(accession, pf.issuer.cik)
         pf.issuer.cik = index_cik
         if not pf.issuer.name:
             pf.issuer.name = entry.company.strip()
+        # The SEC index filing date is authoritative; XML headers may carry
+        # a filer-supplied or earlier document date. Never use first-sale dates.
+        pf.filing_date = _parse_index_date(entry.filing_date)
         if pf.filing_date is None:
-            pf.filing_date = _parse_index_date(entry.filing_date)
+            raise ValueError("The SEC index filing date is invalid")
         pf.form_type = entry.form_type
         pf.is_amendment = "/A" in pf.form_type
         if not self.store_raw_xml:

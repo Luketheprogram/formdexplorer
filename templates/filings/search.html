@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block content %}
+{% block content %}<details class="mb-3"><summary>Search starting points</summary><nav class="explorer-toolbar" aria-label="Search starting points"><strong>Start with:</strong>{% for preset in search_presets %}<a class="btn-secondary" href="{{ preset.url }}">{{ preset.label }}</a>{% endfor %}</nav></details><p class="mb-4 text-sm"><a class="link" data-export-search="d" href="/research/exports/?dataset=d&amp;query={{ request.GET.urlencode|urlencode }}">Prepare a background export of this search</a></p>
 <h1 class="text-2xl font-bold tracking-tight text-slate-900">Form D search</h1>
 <p class="mt-1 text-sm text-slate-500">Private placement filings, updated daily from SEC EDGAR.</p>
 <div class="mt-5">{% include "_partials/search_form.html" %}</div>
@@ -10,7 +10,7 @@
   </svg>
   Searching…
 </div>
-<div id="search-results" class="mt-6">
+<div id="search-results" data-search-results aria-busy="false" class="mt-6">
   {% include "_partials/search_results.html" %}
 </div>
 {% endblock %}

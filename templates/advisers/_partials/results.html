@@ -1,3 +1,4 @@
+<p data-result-count class="sr-only">{{ total }} results{% if page_obj %}, page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% endif %}.</p>
 {% load money %}
 {% if results %}
 <div class="mb-3 flex items-center justify-between gap-2 text-sm text-slate-500">
@@ -47,3 +48,5 @@
   {% endif %}
 </div>
 {% endif %}
+
+{% include "_partials/search_pagination.html" %}

@@ -1,3 +1,4 @@
+from .search_ui import page_context, search_response
 import csv
 import logging
 from datetime import date, datetime, timedelta
@@ -67,7 +68,8 @@ def _search_context(request):
         errors = exc.errors
         qs = Filing.objects.none()
     total = qs.count()
-    visible = list(qs[:SEARCH_RESULT_LIMIT])
+    paging = page_context(request, qs)
+    visible = paging["results"]
     q_text = (request.GET.get("q") or "").strip()
     persons = search_persons(q_text, limit=6) if q_text and not errors else []
     selected_states = set(s.upper() for s in request.GET.getlist("state") if s.strip())
@@ -75,6 +77,7 @@ def _search_context(request):
     industry_mode = (request.GET.get("industry_mode") or "include").lower()
     viewed_ids = _viewed_issuer_ids(request.user, visible)
     return {
+        **paging,
         "search_errors": errors,
         "q": request.GET.get("q", ""),
         "results": visible,
@@ -105,10 +108,7 @@ def search(request):
 
 
 def search_partial(request):
-    response = render(request, "_partials/search_results.html", _search_context(request))
-    qs = request.GET.urlencode()
-    response["HX-Push-Url"] = f"/search/?{qs}" if qs else "/search/"
-    return response
+    return search_response(request, render(request, "_partials/search_results.html", _search_context(request)))
 
 
 def issuer_detail(request, slug_cik: str):
@@ -527,6 +527,7 @@ def saved_search_list(request):
 
 
 _SEARCH_PARAM_KEYS = {
+    "amount_status",
     "q", "min_amount", "max_amount", "min_sold", "min_remaining",
     "date_from", "date_to", "no_banker", "industry_mode", "sort",
 }

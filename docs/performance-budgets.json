@@ -1,0 +1,15 @@
+{
+  "scope": "Release budgets. Browser field metrics require actual mobile measurements; local server benchmarks are recorded separately.",
+  "budgets": {
+    "html_bytes_per_first_page": 150000,
+    "first_party_javascript_bytes": 100000,
+    "first_party_css_bytes": 100000,
+    "local_postgresql_cold_ms": 1500,
+    "local_postgresql_warm_ms": 250,
+    "warm_queries": 10,
+    "mobile_lcp_ms": 2500,
+    "mobile_inp_ms": 200,
+    "mobile_cls": 0.1
+  },
+  "mobile_field_status": "No physical mobile-device evidence available. Do not label desktop viewport or local timings as mobile Core Web Vitals."
+}

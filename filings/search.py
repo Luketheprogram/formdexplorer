@@ -4,12 +4,22 @@ from django.db.models import F, Q, QuerySet
 
 from .models import Filing, RelatedPerson
 from .search_params import normalize_search_params
+import re
+from django.http import QueryDict
 
 SORT_CHOICES = {
     "newest": ("-filing_date", "-id"),
     "oldest": ("filing_date", "id"),
-    "largest": ("-total_offering_amount", "-filing_date"),
-    "smallest": ("total_offering_amount", "-filing_date"),
+    "largest": (
+        F("total_offering_amount").desc(nulls_last=True),
+        "-filing_date",
+        "-id",
+    ),
+    "smallest": (
+        F("total_offering_amount").asc(nulls_last=True),
+        "-filing_date",
+        "-id",
+    ),
 }
 
 
@@ -23,7 +33,13 @@ def build_filing_query(params) -> QuerySet:
 
     q = (params.get("q") or "").strip()
     has_text_search = bool(q)
-    if q:
+    identifier = re.fullmatch(r"(?:CIK[: ]*)?([0-9]{1,10})", q, re.I)
+    if identifier:
+        number = identifier.group(1)
+        qs = qs.filter(
+            issuer__cik__in=[number, number.zfill(10), number.lstrip("0") or "0"]
+        )
+    elif q:
         if _is_postgres():
             qs = qs.annotate(sim=TrigramSimilarity("issuer__name", q)).filter(
                 Q(issuer__name__icontains=q) | Q(sim__gt=0.15)
@@ -31,13 +47,19 @@ def build_filing_query(params) -> QuerySet:
         else:
             qs = qs.filter(issuer__name__icontains=q)
 
-    states = [s.strip().upper() for s in params.getlist("state") if s.strip()] \
-        if hasattr(params, "getlist") else [s.strip().upper() for s in [params.get("state", "")] if s.strip()]
+    states = (
+        [s.strip().upper() for s in params.getlist("state") if s.strip()]
+        if hasattr(params, "getlist")
+        else [s.strip().upper() for s in [params.get("state", "")] if s.strip()]
+    )
     if states:
         qs = qs.filter(issuer__state__in=states)
 
-    industries = [i.strip() for i in params.getlist("industry") if i.strip()] \
-        if hasattr(params, "getlist") else [i.strip() for i in [params.get("industry", "")] if i.strip()]
+    industries = (
+        [i.strip() for i in params.getlist("industry") if i.strip()]
+        if hasattr(params, "getlist")
+        else [i.strip() for i in [params.get("industry", "")] if i.strip()]
+    )
     industry_mode = (params.get("industry_mode") or "include").lower()
     if industries:
         if industry_mode == "exclude":
@@ -77,18 +99,30 @@ def build_filing_query(params) -> QuerySet:
         # when both are populated and the gap is at least the threshold.
         try:
             threshold = int(min_remaining)
-            qs = qs.filter(
-                total_offering_amount__isnull=False,
-                total_amount_sold__isnull=False,
-            ).annotate(
-                remaining_amt=F("total_offering_amount") - F("total_amount_sold")
-            ).filter(remaining_amt__gte=threshold)
+            qs = (
+                qs.filter(
+                    total_offering_amount__isnull=False,
+                    total_amount_sold__isnull=False,
+                )
+                .annotate(
+                    remaining_amt=F("total_offering_amount") - F("total_amount_sold")
+                )
+                .filter(remaining_amt__gte=threshold)
+            )
         except (TypeError, ValueError):
             pass
 
+    status = params.get("amount_status", "")
+    if status == "known":
+        qs = qs.filter(total_offering_amount__gte=0)
+    elif status == "missing":
+        qs = qs.filter(
+            Q(total_offering_amount__isnull=True) | Q(total_offering_amount__lt=0)
+        )
+
     sort = params.get("sort") or ("relevance" if has_text_search else "newest")
-    if sort == "relevance" and has_text_search and _is_postgres():
-        qs = qs.order_by("-sim", "-filing_date")
+    if sort == "relevance" and has_text_search and _is_postgres() and not identifier:
+        qs = qs.order_by("-sim", "-filing_date", "-id")
     elif sort in SORT_CHOICES:
         qs = qs.order_by(*SORT_CHOICES[sort])
     else:
@@ -118,7 +152,7 @@ def search_persons(q: str, limit: int = 20) -> list[dict]:
         )
     # Rank by aggregate similarity of the best-matching row for each slug.
     seen: dict[str, dict] = {}
-    for row in qs[:limit * 3]:
+    for row in qs[: limit * 3]:
         slug = row["name_slug"]
         if slug and slug not in seen:
             seen[slug] = row
@@ -157,4 +191,25 @@ def active_filters(params) -> list[dict]:
             vals = [v] if v else []
         for v in vals:
             chips.append({"label": f"{prefix}: {v}", "remove_key": key})
+    for chip in chips:
+        remaining = (
+            params.copy()
+            if hasattr(params, "urlencode")
+            else QueryDict("", mutable=True)
+        )
+        if not hasattr(params, "urlencode"):
+            for key, value in params.items():
+                remaining.setlist(key, value if isinstance(value, list) else [value])
+        key = chip["remove_key"]
+        if key in {"state", "industry"}:
+            value = chip["label"].split(": ", 1)[-1]
+            remaining.setlist(key, [v for v in remaining.getlist(key) if v != value])
+            if not remaining.getlist(key):
+                remaining.pop(key, None)
+        else:
+            remaining.pop(key, None)
+        remaining.pop("page", None)
+        chip["remove_url"] = "/search/" + (
+            "?" + remaining.urlencode() if remaining else ""
+        )
     return chips

@@ -1,3 +1,4 @@
+from filings.search_ui import page_context, search_response
 import logging
 import re
 
@@ -29,15 +30,21 @@ def _is_postgres() -> bool:
 
 def _build_queryset(q: str):
     qs = Adviser.objects.all()
-    if q:
+    identifier = re.fullmatch(r"(?:CRD[: ]*)?([0-9]+)|((?:801|802)-[0-9]+)", q, re.I)
+    if identifier:
+        value = identifier.group(1) or identifier.group(2)
+        qs = qs.filter(crd__in={value, value.lstrip("0") or "0"}).order_by("crd", "pk")
+    elif q:
         if _is_postgres():
-            qs = qs.annotate(sim=TrigramSimilarity("name", q)).filter(
-                Q(name__icontains=q) | Q(sim__gt=0.15)
-            ).order_by("-sim", "name")
+            qs = (
+                qs.annotate(sim=TrigramSimilarity("name", q))
+                .filter(Q(name__icontains=q) | Q(sim__gt=0.15))
+                .order_by("-sim", "name", "pk")
+            )
         else:
-            qs = qs.filter(name__icontains=q).order_by("name")
+            qs = qs.filter(name__icontains=q).order_by("name", "pk")
     else:
-        qs = qs.order_by("-regulatory_aum", "name")
+        qs = qs.order_by("-regulatory_aum", "name", "pk")
     return qs
 
 
@@ -58,16 +65,15 @@ def search(request):
         ),
         "canonical_path": "/adv/",
     }
+    ctx.update(page_context(request, qs))
     return render(request, "advisers/search.html", ctx)
 
 
 def search_partial(request):
     q = (request.GET.get("q") or "").strip()
-    qs = _build_queryset(q)
-    return render(
-        request,
-        "advisers/_partials/results.html",
-        {"results": qs[:50], "total": qs.count(), "q": q},
+    context = dict(page_context(request, _build_queryset(q)), q=q)
+    return search_response(
+        request, render(request, "advisers/_partials/results.html", context)
     )
 
 
@@ -83,8 +89,9 @@ def adviser_detail(request, crd: str):
     if matched_issuer_ids:
         matched_filings = list(
             Filing.objects.filter(issuer_id__in=matched_issuer_ids)
-            .select_related("issuer").defer("raw_xml")
-            .order_by("-filing_date")[:25]
+            .select_related("issuer")
+            .defer("raw_xml")
+            .order_by("-filing_date", "-id")[:25]
         )
     ctx = {
         "adviser": adviser,
@@ -111,23 +118,34 @@ def export_xlsx(request):
         q = (request.GET.get("q") or "").strip()
         qs = _build_queryset(q)[:EXPORT_ROW_LIMIT]
         headers = [
-            "Firm name", "Website", "Last filed", "Discretionary AUM ($)", "Regulatory AUM ($)",
-            "State", "CRD",
+            "Firm name",
+            "Website",
+            "Last filed",
+            "Discretionary AUM ($)",
+            "Regulatory AUM ($)",
+            "State",
+            "CRD",
         ]
         rows = []
         for a in qs:
-            rows.append([
-                a.name,
-                a.website or "",
-                a.last_filed_at.isoformat() if a.last_filed_at else "",
-                a.discretionary_aum,
-                a.regulatory_aum,
-                a.state or "",
-                a.crd,
-            ])
+            rows.append(
+                [
+                    a.name,
+                    a.website or "",
+                    a.last_filed_at.isoformat() if a.last_filed_at else "",
+                    a.discretionary_aum,
+                    a.regulatory_aum,
+                    a.state or "",
+                    a.crd,
+                ]
+            )
         filename = f"form-adv-firms-{timezone.now().date().isoformat()}.xlsx"
         response = xlsx_response(filename, rows, headers)
         return finish_export(request, response, token)
     except Exception:
-        logger.exception("advisers.export_xlsx failed for user=%s GET=%s", request.user, request.GET.urlencode())
+        logger.exception(
+            "advisers.export_xlsx failed for user=%s GET=%s",
+            request.user,
+            request.GET.urlencode(),
+        )
         raise

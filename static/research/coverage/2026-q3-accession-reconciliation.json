@@ -1,0 +1,14 @@
+{
+  "source_url": "https://www.sec.gov/files/datastandardsinnovation/data/form-d-data-sets/2026q3_d.zip",
+  "source_page": "https://www.sec.gov/data-research/sec-markets-data/form-d-data-sets",
+  "documentation": "https://www.sec.gov/files/Form_D.pdf",
+  "source_sha256": "03669a23e724645a8bbcad51822cf7f4b27f91c3f2bedac9dcff3c23e68e84bf",
+  "checked_at": "2026-11-02T05:16:40.945261+00:00",
+  "expected": 15952,
+  "matched": 15952,
+  "missing": [],
+  "first_manifest_filing_date": "2026-07-01",
+  "last_manifest_filing_date": "2026-09-30",
+  "status": "matched_manifest",
+  "limitations": "Compares exact accessions in this quarterly posting only. Late final-day filings may appear in the subsequent posting. This does not establish daily or market completeness. No filing is created, removed or merged."
+}

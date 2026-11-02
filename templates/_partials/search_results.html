@@ -1,10 +1,11 @@
+<p data-result-count class="sr-only">{{ total }} results{% if page_obj %}, page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% endif %}.</p>
 {% load money %}
 {% include "_partials/search_errors.html" %}
 {% if active_filters %}
 <div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
   <div class="flex flex-wrap gap-1.5">
     {% for chip in active_filters %}
-    <span class="chip-filter">{{ chip.label }}</span>
+    <a class="chip-filter" href="{{ chip.remove_url }}" aria-label="Remove {{ chip.label }}">{{ chip.label }} ×</a>
     {% endfor %}
   </div>
   {% if user.is_authenticated %}
@@ -39,7 +40,7 @@
 
 {% if results %}
 <div class="mb-3 text-sm text-slate-500">
-  <span class="font-medium text-slate-700">{{ total }}</span> match{{ total|pluralize:"es" }}{% if total > results|length %} — showing the first {{ results|length }}{% endif %}
+  <span class="font-medium text-slate-700">{{ total }}</span> match{{ total|pluralize:"es" }}{% if total > results|length %} — showing {{ page_obj.start_index }}–{{ page_obj.end_index }}{% endif %}
 </div>
 <ul class="card-list">
   {% for f in results %}
@@ -72,3 +73,5 @@
   <p class="mt-1 text-sm text-slate-500">Try a shorter company name, or clear a filter or two.</p>
 </div>
 {% endif %}
+
+{% include "_partials/search_pagination.html" %}

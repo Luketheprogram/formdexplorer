@@ -1,0 +1,1055 @@
+{
+  "baseline_commit": "e8a25a36aeb761eda3591128639d8254ca002b88",
+  "constraints": {
+    "advertising": "disabled",
+    "cmp": "Google",
+    "google_support_report": "private",
+    "existing_user_edits": "preserve"
+  },
+  "items": [
+    {
+      "id": 1,
+      "title": "Reconcile dataset coverage",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/coverage.py",
+        "researchdesk/evidence.py",
+        "researchdesk/recovery.py",
+        "filings/ingest/reliability.py"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Build a coverage calendar",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/coverage.py",
+        "researchdesk/evidence.py",
+        "researchdesk/recovery.py",
+        "filings/ingest/reliability.py"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Track filing import status",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/coverage.py",
+        "researchdesk/evidence.py",
+        "researchdesk/recovery.py",
+        "filings/ingest/reliability.py"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Improve freshness indicators",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/coverage.py",
+        "researchdesk/evidence.py",
+        "researchdesk/recovery.py",
+        "filings/ingest/reliability.py"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Persistent retry queue",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/coverage.py",
+        "researchdesk/evidence.py",
+        "researchdesk/recovery.py",
+        "filings/ingest/reliability.py"
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Quarantine ambiguous parsing",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/coverage.py",
+        "researchdesk/evidence.py",
+        "researchdesk/recovery.py",
+        "filings/ingest/reliability.py"
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Recover missing source documents",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/coverage.py",
+        "researchdesk/evidence.py",
+        "researchdesk/recovery.py",
+        "filings/ingest/reliability.py"
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Separate numeric value states",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/coverage.py",
+        "researchdesk/evidence.py",
+        "researchdesk/recovery.py",
+        "filings/ingest/reliability.py"
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Preserve source qualifiers",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/coverage.py",
+        "researchdesk/evidence.py",
+        "researchdesk/recovery.py",
+        "filings/ingest/reliability.py"
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Store SEC acceptance timestamps",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/coverage.py",
+        "researchdesk/evidence.py",
+        "researchdesk/recovery.py",
+        "filings/ingest/reliability.py"
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Monthly research series",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/analysis.py",
+        "researchdesk/models.py",
+        "content/market_research.py"
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Year over year comparisons",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/analysis.py",
+        "researchdesk/models.py",
+        "content/market_research.py"
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Analyze exemptions",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/analysis.py",
+        "researchdesk/models.py",
+        "content/market_research.py"
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Compare fund categories",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/analysis.py",
+        "researchdesk/models.py",
+        "content/market_research.py"
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Offering size distributions",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/analysis.py",
+        "researchdesk/models.py",
+        "content/market_research.py"
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Minimum investment research",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/analysis.py",
+        "researchdesk/models.py",
+        "content/market_research.py"
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Investor count analysis",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/analysis.py",
+        "researchdesk/models.py",
+        "content/market_research.py"
+      ]
+    },
+    {
+      "id": 18,
+      "title": "Amendment changes",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/analysis.py",
+        "researchdesk/models.py",
+        "content/market_research.py"
+      ]
+    },
+    {
+      "id": 19,
+      "title": "Crowdfunding research",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/analysis.py",
+        "researchdesk/models.py",
+        "content/market_research.py"
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Reg A research",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/analysis.py",
+        "researchdesk/models.py",
+        "content/market_research.py"
+      ]
+    },
+    {
+      "id": 21,
+      "title": "Public research revision histories",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/analysis.py",
+        "researchdesk/models.py",
+        "content/market_research.py"
+      ]
+    },
+    {
+      "id": 22,
+      "title": "Author profiles",
+      "status": "profile_workflow_ready_details_unavailable",
+      "evidence": [
+        "researchdesk/models.py",
+        "researchdesk/learning.py",
+        "researchdesk/forms.py",
+        "content/views.py"
+      ],
+      "remaining": "Owner confirmed no verified biographies are available; no personal profile was invented or published."
+    },
+    {
+      "id": 23,
+      "title": "Editorial review records",
+      "status": "review_workflow_ready_actual_reviews_pending",
+      "evidence": [
+        "researchdesk/models.py",
+        "researchdesk/learning.py",
+        "researchdesk/forms.py",
+        "content/views.py"
+      ],
+      "remaining": "Named source/calculation/interpretation reviews require actual reviewers. Publication is gated; no reviews invented."
+    },
+    {
+      "id": 24,
+      "title": "Research article cards",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/models.py",
+        "researchdesk/learning.py",
+        "researchdesk/forms.py",
+        "content/views.py"
+      ]
+    },
+    {
+      "id": 25,
+      "title": "Interpretation boxes",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/models.py",
+        "researchdesk/learning.py",
+        "researchdesk/forms.py",
+        "content/views.py"
+      ]
+    },
+    {
+      "id": 26,
+      "title": "Searchable glossary",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/models.py",
+        "researchdesk/learning.py",
+        "researchdesk/forms.py",
+        "content/views.py"
+      ]
+    },
+    {
+      "id": 27,
+      "title": "Annotated filing walkthrough",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/models.py",
+        "researchdesk/learning.py",
+        "researchdesk/forms.py",
+        "content/views.py"
+      ]
+    },
+    {
+      "id": 28,
+      "title": "Interpretation exercises",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/models.py",
+        "researchdesk/learning.py",
+        "researchdesk/forms.py",
+        "content/views.py"
+      ]
+    },
+    {
+      "id": 29,
+      "title": "Editorial source checks",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/models.py",
+        "researchdesk/learning.py",
+        "researchdesk/forms.py",
+        "content/views.py"
+      ]
+    },
+    {
+      "id": 30,
+      "title": "Research topic requests",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/models.py",
+        "researchdesk/learning.py",
+        "researchdesk/forms.py",
+        "content/views.py"
+      ]
+    },
+    {
+      "id": 31,
+      "title": "Shareable searches",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "filings/search.py",
+        "filings/search_ui.py",
+        "static/js/explorer.js"
+      ]
+    },
+    {
+      "id": 32,
+      "title": "Exact CIK lookup",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "filings/search.py",
+        "filings/search_ui.py",
+        "static/js/explorer.js"
+      ]
+    },
+    {
+      "id": 33,
+      "title": "Active filter chips",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "filings/search.py",
+        "filings/search_ui.py",
+        "static/js/explorer.js"
+      ]
+    },
+    {
+      "id": 34,
+      "title": "Search without JavaScript",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "filings/search.py",
+        "filings/search_ui.py",
+        "static/js/explorer.js"
+      ]
+    },
+    {
+      "id": 35,
+      "title": "Inline errors",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "filings/search.py",
+        "filings/search_ui.py",
+        "static/js/explorer.js"
+      ]
+    },
+    {
+      "id": 36,
+      "title": "Restore browsing position",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "filings/search.py",
+        "filings/search_ui.py",
+        "static/js/explorer.js"
+      ]
+    },
+    {
+      "id": 37,
+      "title": "Undo clear filters",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "filings/search.py",
+        "filings/search_ui.py",
+        "static/js/explorer.js"
+      ]
+    },
+    {
+      "id": 38,
+      "title": "Missing amount filters",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "filings/search.py",
+        "filings/search_ui.py",
+        "static/js/explorer.js"
+      ]
+    },
+    {
+      "id": 39,
+      "title": "Deterministic sorting",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "filings/search.py",
+        "filings/search_ui.py",
+        "static/js/explorer.js"
+      ]
+    },
+    {
+      "id": 40,
+      "title": "Search presets",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "filings/search.py",
+        "filings/search_ui.py",
+        "static/js/explorer.js"
+      ]
+    },
+    {
+      "id": 41,
+      "title": "Historical issuer identity",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/evidence.py",
+        "researchdesk/views.py",
+        "researchdesk/learning.py"
+      ]
+    },
+    {
+      "id": 42,
+      "title": "Value provenance",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/evidence.py",
+        "researchdesk/views.py",
+        "researchdesk/learning.py"
+      ]
+    },
+    {
+      "id": 43,
+      "title": "Reviewed offering groups",
+      "status": "source_linking_ready_publisher_review_pending",
+      "evidence": [
+        "researchdesk/evidence.py",
+        "researchdesk/views.py",
+        "researchdesk/learning.py"
+      ],
+      "remaining": "Explicit source references and same-CIK comparisons are implemented; reviewed offering groups require actual recorded publisher verification."
+    },
+    {
+      "id": 44,
+      "title": "Citable issuer briefs",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/evidence.py",
+        "researchdesk/views.py",
+        "researchdesk/learning.py"
+      ]
+    },
+    {
+      "id": 45,
+      "title": "Company disambiguation",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/evidence.py",
+        "researchdesk/views.py",
+        "researchdesk/learning.py"
+      ]
+    },
+    {
+      "id": 46,
+      "title": "Related person matches",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/evidence.py",
+        "researchdesk/views.py",
+        "researchdesk/learning.py"
+      ]
+    },
+    {
+      "id": 47,
+      "title": "Location labels",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/evidence.py",
+        "researchdesk/views.py",
+        "researchdesk/learning.py"
+      ]
+    },
+    {
+      "id": 48,
+      "title": "Document status explanations",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/evidence.py",
+        "researchdesk/views.py",
+        "researchdesk/learning.py"
+      ]
+    },
+    {
+      "id": 49,
+      "title": "Export field dictionary",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/evidence.py",
+        "researchdesk/views.py",
+        "researchdesk/learning.py"
+      ]
+    },
+    {
+      "id": 50,
+      "title": "Record correction form",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/evidence.py",
+        "researchdesk/views.py",
+        "researchdesk/learning.py"
+      ]
+    },
+    {
+      "id": 51,
+      "title": "Mobile filter drawer",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 52,
+      "title": "Advanced filter disclosure",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 53,
+      "title": "Mobile result cards",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 54,
+      "title": "Sticky issuer context",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 55,
+      "title": "Vertical comparisons",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 56,
+      "title": "Mobile column selection",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 57,
+      "title": "Touch targets",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 58,
+      "title": "Input zoom",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 59,
+      "title": "Copy actions",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 60,
+      "title": "Physical mobile testing",
+      "status": "physical_device_testing_pending",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ],
+      "remaining": "Desktop responsive CSS viewport checks are distinct from actual iPhone/Android hardware testing."
+    },
+    {
+      "id": 61,
+      "title": "Keyboard workflows",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 62,
+      "title": "Visible focus",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 63,
+      "title": "Accessible search announcements",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 64,
+      "title": "Dialog focus behavior",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 65,
+      "title": "Table semantics",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 66,
+      "title": "Text contrast",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 67,
+      "title": "Chart alternatives",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 68,
+      "title": "Changes without color",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 69,
+      "title": "Browser zoom",
+      "status": "responsive_reflow_implemented_zoom_validation_pending",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ],
+      "remaining": "Responsive reflow and focus styles implemented; explicit physical-browser zoom certification remains pending."
+    },
+    {
+      "id": 70,
+      "title": "Reduced motion",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "static/css/explorer.css",
+        "static/js/explorer.js",
+        "templates/research/compare.html"
+      ]
+    },
+    {
+      "id": 71,
+      "title": "Multiple category comparisons",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/comparisons.py",
+        "researchdesk/views.py",
+        "researchdesk/jobs.py"
+      ]
+    },
+    {
+      "id": 72,
+      "title": "Period presets",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/comparisons.py",
+        "researchdesk/views.py",
+        "researchdesk/jobs.py"
+      ]
+    },
+    {
+      "id": 73,
+      "title": "Comparison coverage checks",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/comparisons.py",
+        "researchdesk/views.py",
+        "researchdesk/jobs.py"
+      ]
+    },
+    {
+      "id": 74,
+      "title": "Aggregate drilldowns",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/comparisons.py",
+        "researchdesk/views.py",
+        "researchdesk/jobs.py"
+      ]
+    },
+    {
+      "id": 75,
+      "title": "Private collections",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/comparisons.py",
+        "researchdesk/views.py",
+        "researchdesk/jobs.py"
+      ]
+    },
+    {
+      "id": 76,
+      "title": "Selected issuer comparisons",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/comparisons.py",
+        "researchdesk/views.py",
+        "researchdesk/jobs.py"
+      ]
+    },
+    {
+      "id": 77,
+      "title": "Private annotations",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/comparisons.py",
+        "researchdesk/views.py",
+        "researchdesk/jobs.py"
+      ]
+    },
+    {
+      "id": 78,
+      "title": "Aggregate CSV and methods",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/comparisons.py",
+        "researchdesk/views.py",
+        "researchdesk/jobs.py"
+      ]
+    },
+    {
+      "id": 79,
+      "title": "Chart graphics export",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/comparisons.py",
+        "researchdesk/views.py",
+        "researchdesk/jobs.py"
+      ]
+    },
+    {
+      "id": 80,
+      "title": "Printable reports",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/comparisons.py",
+        "researchdesk/views.py",
+        "researchdesk/jobs.py"
+      ]
+    },
+    {
+      "id": 81,
+      "title": "Broken link audits",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "scripts/audit_content_links.py",
+        "filings/sitemaps.py",
+        "researchdesk/views.py"
+      ]
+    },
+    {
+      "id": 82,
+      "title": "Metadata audits",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "scripts/audit_content_links.py",
+        "filings/sitemaps.py",
+        "researchdesk/views.py"
+      ]
+    },
+    {
+      "id": 83,
+      "title": "Legacy issuer URL checks",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "scripts/audit_content_links.py",
+        "filings/sitemaps.py",
+        "researchdesk/views.py"
+      ]
+    },
+    {
+      "id": 84,
+      "title": "Malformed input checks",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "scripts/audit_content_links.py",
+        "filings/sitemaps.py",
+        "researchdesk/views.py"
+      ]
+    },
+    {
+      "id": 85,
+      "title": "Unfamiliar source values",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "scripts/audit_content_links.py",
+        "filings/sitemaps.py",
+        "researchdesk/views.py"
+      ]
+    },
+    {
+      "id": 86,
+      "title": "Aging guide review",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "scripts/audit_content_links.py",
+        "filings/sitemaps.py",
+        "researchdesk/views.py"
+      ]
+    },
+    {
+      "id": 87,
+      "title": "Sitemap audits",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "scripts/audit_content_links.py",
+        "filings/sitemaps.py",
+        "researchdesk/views.py"
+      ]
+    },
+    {
+      "id": 88,
+      "title": "Redirect checks",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "scripts/audit_content_links.py",
+        "filings/sitemaps.py",
+        "researchdesk/views.py"
+      ]
+    },
+    {
+      "id": 89,
+      "title": "Search failure recovery",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "scripts/audit_content_links.py",
+        "filings/sitemaps.py",
+        "researchdesk/views.py"
+      ]
+    },
+    {
+      "id": 90,
+      "title": "Financial formatting",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "scripts/audit_content_links.py",
+        "filings/sitemaps.py",
+        "researchdesk/views.py"
+      ]
+    },
+    {
+      "id": 91,
+      "title": "Ingestion health dashboard",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/runtime.py",
+        "researchdesk/jobs.py",
+        "researchdesk/management/commands/research_maintenance.py",
+        "researchdesk/tests.py"
+      ]
+    },
+    {
+      "id": 92,
+      "title": "Database benchmarks",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/runtime.py",
+        "researchdesk/jobs.py",
+        "researchdesk/management/commands/research_maintenance.py",
+        "researchdesk/tests.py"
+      ]
+    },
+    {
+      "id": 93,
+      "title": "Resumable imports",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/runtime.py",
+        "researchdesk/jobs.py",
+        "researchdesk/management/commands/research_maintenance.py",
+        "researchdesk/tests.py"
+      ]
+    },
+    {
+      "id": 94,
+      "title": "Cache consistency",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/runtime.py",
+        "researchdesk/jobs.py",
+        "researchdesk/management/commands/research_maintenance.py",
+        "researchdesk/tests.py"
+      ]
+    },
+    {
+      "id": 95,
+      "title": "Background exports",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/runtime.py",
+        "researchdesk/jobs.py",
+        "researchdesk/management/commands/research_maintenance.py",
+        "researchdesk/tests.py"
+      ]
+    },
+    {
+      "id": 96,
+      "title": "Source regression fixtures",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/runtime.py",
+        "researchdesk/jobs.py",
+        "researchdesk/management/commands/research_maintenance.py",
+        "researchdesk/tests.py"
+      ]
+    },
+    {
+      "id": 97,
+      "title": "Backup restore drill",
+      "status": "full_restore_validated_private_copy_deleted",
+      "evidence": [
+        "outputs/100-improvements-full-restore.json"
+      ]
+    },
+    {
+      "id": 98,
+      "title": "Deployment smoke checks",
+      "status": "implemented_locally_validation_passed",
+      "evidence": [
+        "researchdesk/runtime.py",
+        "researchdesk/jobs.py",
+        "researchdesk/management/commands/research_maintenance.py",
+        "researchdesk/tests.py"
+      ]
+    },
+    {
+      "id": 99,
+      "title": "Mobile performance",
+      "status": "performance_budgets_implemented_mobile_field_metrics_pending",
+      "evidence": [
+        "researchdesk/runtime.py",
+        "researchdesk/jobs.py",
+        "researchdesk/management/commands/research_maintenance.py",
+        "researchdesk/tests.py"
+      ],
+      "remaining": "First-party asset budgets and actual-data PostgreSQL benchmarks pass. No mobile field Core Web Vitals are claimed."
+    },
+    {
+      "id": 100,
+      "title": "Usability sessions",
+      "status": "workflow_ready_real_sessions_pending",
+      "evidence": [
+        "researchdesk/runtime.py",
+        "researchdesk/jobs.py",
+        "researchdesk/management/commands/research_maintenance.py",
+        "researchdesk/tests.py"
+      ],
+      "remaining": "Consent-based recruitment and session-recording workflow implemented; owner has no consenting testers yet. No synthetic sessions are claimed as real."
+    }
+  ],
+  "validation": {
+    "postgresql_tests": 308,
+    "test_result": "passed",
+    "public_data_restore": "197085 public issuer/filing rows; enrichment blanked; private tables excluded",
+    "postgresql_benchmark": "110481 actual public Form D filings; nine routes; seven repetitions",
+    "quarterly_reconciliation": "15952 of 15952 SEC 2026 Q3 accessions matched",
+    "bounded_local_link_audit": "120 pages; zero HTTP, heading, ads-slot or duplicate-metadata issues",
+    "deployment": "prepared, pending scoped source publication",
+    "full_restore": "99 production tables, 609916 rows verified; private local database, dump and diagnostics deleted",
+    "source_metadata_repair": "Production: 30585 source-verified amendment label/flag corrections applied; all official filing dates and financial fields preserved; missing historical records not yet queued in production"
+  }
+}

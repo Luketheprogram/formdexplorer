@@ -1,4 +1,4 @@
-<form
+<form method="get" action="/search/" data-search-form="filings"
   class="w-full"
   hx-get="{% url 'filings:search_partial' %}"
   hx-trigger="keyup changed delay:250ms from:input[name=q], change from:select, change from:input[type=checkbox], change from:input[type=date], change from:input[type=number], submit"
@@ -14,10 +14,10 @@
       </svg>
       <input
         type="search"
-        aria-label="Search issuers by name"
+        aria-label="Search issuers by name or exact CIK"
         name="q"
         value="{{ q|default:'' }}"
-        placeholder="Search issuers by name…"
+        placeholder="Search by issuer name or CIK…"
         class="input py-3 pl-10 pr-4 text-base"
         autocomplete="off"
       >
@@ -32,7 +32,8 @@
     <button type="submit" class="btn-primary px-6 py-3">Search</button>
   </div>
 
-  <div class="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 text-sm md:grid-cols-4">
+  <div data-advanced-filters class="mt-4 grid grid-cols-2 gap-x-3 gap-y-3 text-sm md:grid-cols-4">
+    <div><label class="field-label" for="amount-status">Offering disclosure</label><select class="input" name="amount_status" id="amount-status"><option value="">Any disclosure</option><option value="known"{% if request.GET.amount_status == "known" %} selected{% endif %}>Known numeric amount</option><option value="missing"{% if request.GET.amount_status == "missing" %} selected{% endif %}>Unavailable amount</option></select></div>
     {# Industries multi-select with include/exclude toggle #}
     <div>
       <span class="field-label">Industry</span>
@@ -83,11 +84,11 @@
 
     <div>
       <label class="field-label" for="f-min-amount">Min offering ($)</label>
-      <input id="f-min-amount" name="min_amount" type="number" min="0" placeholder="e.g. 1,000,000" value="{{ request.GET.min_amount|default:'' }}" class="input">
+      <input id="f-min-amount" name="min_amount" type="text" inputmode="numeric" pattern="[0-9,]*" min="0" placeholder="e.g. 1,000,000" value="{{ request.GET.min_amount|default:'' }}" class="input">
     </div>
     <div>
       <label class="field-label" for="f-max-amount">Max offering ($)</label>
-      <input id="f-max-amount" name="max_amount" type="number" min="0" placeholder="No limit" value="{{ request.GET.max_amount|default:'' }}" class="input">
+      <input id="f-max-amount" name="max_amount" type="text" inputmode="numeric" pattern="[0-9,]*" min="0" placeholder="No limit" value="{{ request.GET.max_amount|default:'' }}" class="input">
     </div>
 
     <div>

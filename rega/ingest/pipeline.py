@@ -5,7 +5,8 @@ from filings.ingest.issuers import upsert_issuer
 
 from filings.ingest.edgar_client import EdgarClient
 from filings.ingest.index_parser import (
-    IndexEntry, SourceCIKMismatch,
+    IndexEntry,
+    SourceCIKMismatch,
     accession_from_filename,
     daily_index_paths,
     parse_form_idx,
@@ -14,7 +15,23 @@ from rega.ingest.xml_parser import parse_form_1a, ParsedRegAFiling
 from rega.ingest.documents import primary_document, validate_xml
 from rega.models import Form1AFiling
 
-FORM_1A_TYPES = ("1-A", "1-A/A", "1-A POS", "1-K", "1-K/A", "1-U", "1-U/A", "1-Z", "1-Z/A", "1-SA", "1-SA/A", "1-A-W", "1-Z-W", "1-A-W/A", "1-Z-W/A")
+FORM_1A_TYPES = (
+    "1-A",
+    "1-A/A",
+    "1-A POS",
+    "1-K",
+    "1-K/A",
+    "1-U",
+    "1-U/A",
+    "1-Z",
+    "1-Z/A",
+    "1-SA",
+    "1-SA/A",
+    "1-A-W",
+    "1-Z-W",
+    "1-A-W/A",
+    "1-Z-W/A",
+)
 
 
 def _parse_index_date(raw: str) -> date | None:
@@ -36,6 +53,7 @@ class Form1APipeline:
 
     def run(self, start: date, end: date, **kwargs) -> dict:
         from filings.ingest.reliability import run_pipeline
+
         return run_pipeline(self, start, end, **kwargs)
 
     def _fetch_day_index(self, day: date):
@@ -47,7 +65,14 @@ class Form1APipeline:
         accession = accession_from_filename(entry.filename)
         document = primary_document(self.client, entry)
         if document.structured:
-            pf = parse_form_1a(validate_xml(document.content, required_tag="formData", expected_form=entry.form_type), accession)
+            pf = parse_form_1a(
+                validate_xml(
+                    document.content,
+                    required_tag="formData",
+                    expected_form=entry.form_type,
+                ),
+                accession,
+            )
         else:
             pf = ParsedRegAFiling(accession_number=accession, metadata_only=True)
         index_cik = entry.cik.lstrip("0")
@@ -56,8 +81,11 @@ class Form1APipeline:
         pf.issuer.cik = index_cik
         if not pf.issuer.name:
             pf.issuer.name = entry.company.strip()
+        # The SEC index filing date is authoritative; XML headers may carry
+        # a filer-supplied or earlier document date. Never use first-sale dates.
+        pf.filing_date = _parse_index_date(entry.filing_date)
         if pf.filing_date is None:
-            pf.filing_date = _parse_index_date(entry.filing_date)
+            raise ValueError("The SEC index filing date is invalid")
         pf.form_type = entry.form_type
         pf.is_amendment = "/A" in pf.form_type or pf.form_type == "1-A POS"
         if not self.store_raw_xml:
@@ -71,14 +99,21 @@ class Form1APipeline:
             raise ValueError(f"Missing CIK for {pf.accession_number}")
         if pf.metadata_only:
             from filings.models import Issuer
+
             # A validated HTML filing can add coverage without changing any known
             # issuer values or the freshness baseline for its structured identity.
             issuer, _ = Issuer.objects.select_for_update().get_or_create(
-                cik=cik, defaults={"name": pf.issuer.name[:255] or f"CIK {cik}"})
+                cik=cik, defaults={"name": pf.issuer.name[:255] or f"CIK {cik}"}
+            )
             Form1AFiling.objects.get_or_create(
                 accession_number=pf.accession_number,
-                defaults={"issuer": issuer, "filing_date": pf.filing_date,
-                          "form_type": pf.form_type, "is_amendment": pf.is_amendment})
+                defaults={
+                    "issuer": issuer,
+                    "filing_date": pf.filing_date,
+                    "form_type": pf.form_type,
+                    "is_amendment": pf.is_amendment,
+                },
+            )
             return
         issuer = upsert_issuer(pf.issuer, pf.filing_date, pf.accession_number)
         Form1AFiling.objects.update_or_create(

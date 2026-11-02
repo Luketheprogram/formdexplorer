@@ -12,7 +12,7 @@
     Listed on {{ filings_total }} Form D filing{{ filings_total|pluralize }} across {{ issuers|length }}+ issuer{{ issuers|length|pluralize }}
     {% if relationships %} &middot; {{ relationships|join:", " }}{% endif %}
   </div>
-</header>
+</header><aside class="research-note mt-4">These are name-based matches from disclosures. Different people can share this name; the results do not establish a single verified identity or relationship. Inspect the original filings and context before relying on a match.</aside>
 
 {% if issuers %}
 <section class="mt-8">

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load money %}
 {% block content %}
+<p class="explorer-toolbar"><a class="link" href="/research/evidence/d/{{ filing.accession_number }}/">Inspect source fields</a><a class="link" href="/research/feedback/?kind=correction&amp;dataset=d&amp;reference={{ filing.accession_number }}">Report a record issue</a><button class="copy-value" type="button" data-copy="{{ filing.accession_number }}">Copy accession</button></p>
 <nav class="mb-4 text-sm text-slate-500" aria-label="Breadcrumb">
   <a href="/" class="transition-colors hover:text-indigo-600">Home</a>
   <span class="mx-1 text-slate-300">/</span>

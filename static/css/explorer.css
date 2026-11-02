@@ -1,0 +1,62 @@
+/* Progressive enhancements to the established Form D Explorer visual system. */
+:root { --focus-color:#4338ca; }
+:focus-visible { outline:3px solid var(--focus-color); outline-offset:3px; outline-style:solid !important; outline-width:3px !important; outline-color:var(--focus-color) !important; }
+body { overflow-wrap:break-word; }
+main { min-width:0; }
+main :is(h1,h2,h3,dd,a) { overflow-wrap:anywhere; }
+input:not([type=checkbox]):not([type=radio]),select,textarea { font-size:16px !important; }
+button,summary,input:not([type=checkbox]):not([type=radio]),select { min-height:44px; }
+.dropdown-option { min-height:44px; }
+.text-slate-400,.text-slate-500 { color:#475569; }
+.amount { font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.explorer-toolbar,.filter-chips { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin:1rem 0; }
+.explorer-toolbar button,.filter-chips button { border:1px solid #cbd5e1; border-radius:.5rem; padding:.4rem .7rem; background:#fff; color:#334155; }
+.filter-chips button { font-size:.8rem; }
+.explorer-message { padding:.75rem 1rem; background:#eef2ff; border-left:3px solid #6366f1; margin:.75rem 0; }
+.field-error { color:#991b1b; font-size:.875rem; margin-top:.4rem; }
+[aria-invalid=true] { border-color:#b91c1c !important; }
+.mobile-filter-toggle { display:inline-flex; }
+.research-sticky-context { position:sticky; top:3.5rem; z-index:20; background:#fff; padding:.5rem 0; border-bottom:1px solid #e2e8f0; }
+.table-tools { display:flex; gap:.5rem; flex-wrap:wrap; margin:.75rem 0; }
+.table-tools button,.copy-value { font-size:.8rem; border:1px solid #cbd5e1; border-radius:.4rem; padding:.3rem .6rem; background:white; }
+table { font-variant-numeric:tabular-nums; }
+@media(max-width:767px) {
+  .mobile-filter-toggle { display:inline-flex; }
+  .filters-enhanced:not(.filters-open) [data-advanced-filters] { display:none; }
+  .filters-enhanced.filters-open [data-advanced-filters] { display:grid; }
+  [data-search-results] li.row-hover>div { flex-direction:column; gap:.75rem; }
+  [data-search-results] li.row-hover .shrink-0 { text-align:left; }
+  [data-search-results] .truncate { white-space:normal; overflow:visible; }
+  table[data-stacked=true] thead { position:absolute; width:1px; height:1px; clip-path:inset(50%); }
+  table[data-stacked=true],table[data-stacked=true] tbody,table[data-stacked=true] tr,table[data-stacked=true] td,table[data-stacked=true] tbody th { display:block; width:100%; }
+  table[data-stacked=true] td::before { content:attr(data-column-label) ': '; font-weight:600; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; scroll-behavior:auto !important; }
+}
+@media print {
+  body>header,body>footer,form,.explorer-toolbar,.table-tools,button,.copy-value,[data-ad-container],#advertising-choices { display:none !important; }
+  main { width:100% !important; max-width:none !important; padding:0 !important; }
+  .research-table-wrap { overflow:visible; border:0; }
+  table { display:table !important; font-size:10pt; }
+  thead { display:table-header-group !important; }
+  tr { break-inside:avoid; }
+  h1,h2,h3 { break-after:avoid; }
+  .research-sticky-context { position:static; }
+  main a[href^="https://www.sec.gov"]::after { content:' (' attr(href) ')'; font-size:8pt; }
+}
+
+.desk-form p { margin:.75rem 0; }
+.desk-form label { display:block; font-weight:500; margin:.4rem 0; }
+.desk-form :is(input:not([type=checkbox]),select,textarea) { width:100%; border:1px solid #94a3b8; border-radius:.5rem; padding:.6rem; }
+.desk-form textarea { min-height:8rem; }
+
+@media print { table[data-stacked=true],table[data-stacked=true] tbody { display:table-row-group !important; } table[data-stacked=true] { display:table !important; } table[data-stacked=true] tr { display:table-row !important; } table[data-stacked=true] :is(td,th) { display:table-cell !important; width:auto !important; } table[data-stacked=true] thead { position:static; width:auto; height:auto; clip-path:none; } table[data-stacked=true] td::before { content:none; } }
+
+.search-filter-dialog { width:min(56rem,calc(100vw - 2rem)); max-height:90dvh; padding:1.5rem; border:1px solid #cbd5e1; border-radius:1rem; color:#0f172a; overflow:auto; }
+.search-filter-dialog::backdrop { background:rgb(15 23 42 / .45); }
+.filter-dialog-title { font-size:1.5rem; font-weight:600; margin-bottom:1rem; }
+.search-filter-dialog>button { margin-top:1rem; }
+@media(max-width:767px) { .search-filter-dialog { margin:0 0 0 auto; height:100dvh; max-height:100dvh; width:min(100vw,30rem); border-radius:0; } }
+/* Component font rules must not shrink native pickers below the iOS zoom threshold. */
+select, textarea { font-size:16px !important; }

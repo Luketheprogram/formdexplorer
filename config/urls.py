@@ -9,6 +9,7 @@ from content import trust_views
 _UPDATED = "2026-04-24"
 
 urlpatterns = [
+    path("", include("researchdesk.urls")),
     path("about/", trust_views.about, name="about"),
     path("editorial/", trust_views.editorial, name="editorial"),
     path("research/coverage/", trust_views.coverage, name="data_coverage"),

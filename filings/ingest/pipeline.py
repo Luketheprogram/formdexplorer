@@ -7,7 +7,8 @@ from filings.ingest.issuers import upsert_issuer
 from ..models import Filing, RelatedPerson
 from .edgar_client import EdgarClient
 from .index_parser import (
-    IndexEntry, SourceCIKMismatch,
+    IndexEntry,
+    SourceCIKMismatch,
     accession_from_filename,
     daily_index_paths,
     parse_form_idx,
@@ -35,6 +36,7 @@ class IngestPipeline:
 
     def run(self, start: date, end: date, **kwargs) -> dict:
         from filings.ingest.reliability import run_pipeline
+
         return run_pipeline(self, start, end, **kwargs)
 
     def _fetch_day_index(self, day: date):
@@ -46,15 +48,23 @@ class IngestPipeline:
         url = primary_doc_url(entry.filename)
         accession = accession_from_filename(entry.filename)
         xml_bytes = self.client.get_bytes(url)
-        pf = parse_primary_doc(validate_xml(xml_bytes, required_tag="primaryIssuer", expected_form=entry.form_type), accession)
+        pf = parse_primary_doc(
+            validate_xml(
+                xml_bytes, required_tag="primaryIssuer", expected_form=entry.form_type
+            ),
+            accession,
+        )
         index_cik = entry.cik.lstrip("0")
         if pf.issuer.cik and pf.issuer.cik.lstrip("0") != index_cik:
             raise SourceCIKMismatch(accession, pf.issuer.cik)
         pf.issuer.cik = index_cik
         if not pf.issuer.name:
             pf.issuer.name = entry.company.strip()
+        # The SEC index filing date is authoritative; XML headers may carry
+        # a filer-supplied or earlier document date. Never use first-sale dates.
+        pf.filing_date = _parse_index_date(entry.filing_date)
         if pf.filing_date is None:
-            pf.filing_date = _parse_index_date(entry.filing_date)
+            raise ValueError("The SEC index filing date is invalid")
         # The SEC index supplies the submission type even when XML omits it.
         # ParsedFiling defaults to D, so testing that default used to silently
         # discard D/A from the index. Prefer this authoritative entry for both.

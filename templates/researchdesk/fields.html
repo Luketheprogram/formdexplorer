@@ -1,0 +1,7 @@
+{% extends "researchdesk/layout.html" %}
+{% block desk_content %}
+<h1 class="text-3xl font-bold">Field dictionary</h1>
+<p class="research-note mt-4">These definitions describe display fields and their source limits. A field’s availability depends on the form, filing date, source format and extraction status. Source evidence shows the original text and XML location when available. No missing field is converted into zero.</p>
+<div class="research-table-wrap mt-6"><table class="research-table"><caption>Display meanings, units and interpretation limits</caption><thead><tr><th scope="col">Field</th><th scope="col">Dataset</th><th scope="col">Meaning and limits</th></tr></thead><tbody>{% for name,dataset,meaning in fields %}<tr><th scope="row">{{ name }}</th><td>{{ dataset }}</td><td>{{ meaning }}</td></tr>{% endfor %}</tbody></table></div>
+<p class="mt-6">For the source schema, use the <a class="link" href="https://www.sec.gov/files/Form_D.pdf">SEC Form D data dictionary</a>, the linked original filing, or the adviser’s IAPD record. <a class="link" href="/research/glossary/">Research glossary</a>.</p>
+{% endblock %}

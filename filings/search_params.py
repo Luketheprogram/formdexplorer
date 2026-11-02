@@ -1,4 +1,5 @@
 """One validation path for browser, saved-search, API and export filters."""
+
 import re
 from datetime import date
 from functools import wraps
@@ -23,14 +24,20 @@ def normalize_search_params(params):
             errors[key] = "Search filters must contain text or numbers."
             continue
         normalized.setlist(key, [str(v).strip() for v in values])
-    labels = {"min_amount": "Minimum offering", "max_amount": "Maximum offering",
-              "min_sold": "Minimum sold", "min_remaining": "Minimum remaining"}
+    labels = {
+        "min_amount": "Minimum offering",
+        "max_amount": "Maximum offering",
+        "min_sold": "Minimum sold",
+        "min_remaining": "Minimum remaining",
+    }
     for key, label in labels.items():
         raw = normalized.get(key, "")
         if not raw:
             continue
-        if (not re.fullmatch(r"(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)", raw)
-                or len(raw) > 26):
+        if (
+            not re.fullmatch(r"(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)", raw)
+            or len(raw) > 26
+        ):
             errors[key] = f"{label} must be a non-negative whole dollar amount."
             continue
         value = int(raw.replace(",", ""))
@@ -51,10 +58,14 @@ def normalize_search_params(params):
     if not errors:
         if normalized.get("min_amount") and normalized.get("max_amount"):
             if int(normalized["min_amount"]) > int(normalized["max_amount"]):
-                errors["max_amount"] = "Maximum offering must be at least the minimum offering."
+                errors["max_amount"] = (
+                    "Maximum offering must be at least the minimum offering."
+                )
         if normalized.get("date_from") and normalized.get("date_to"):
             if normalized["date_from"] > normalized["date_to"]:
                 errors["date_to"] = "The end date must be on or after the start date."
+    if normalized.get("amount_status", "") not in {"", "any", "known", "missing"}:
+        errors["amount_status"] = "Choose any, known, or unavailable offering amounts."
     if errors:
         raise SearchValidationError(errors)
     return normalized
@@ -67,4 +78,5 @@ def validated_export(view):
             return view(request, *args, **kwargs)
         except SearchValidationError as exc:
             return HttpResponseBadRequest(str(exc), content_type="text/plain")
+
     return wrapped

@@ -49,6 +49,7 @@ EDGAR_USER_AGENT = os.environ.get(
 )
 
 INSTALLED_APPS = [
+    "researchdesk",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -218,3 +219,6 @@ ALERT_EMAIL_TIMEOUT = 30
 ALERT_BATCH_SIZE = 50
 ALERT_MATCH_LIMIT = 1000
 ALERT_SEND_LIMIT = 100
+
+# Uses the existing application access; no separate worker receives credentials.
+RESEARCH_MAINTENANCE_ENABLED = _bool(os.environ.get("RESEARCH_MAINTENANCE_ENABLED"), default=False)

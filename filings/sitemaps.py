@@ -1,4 +1,5 @@
 """Bounded, canonical sitemap sections. No searches, empty hubs or pagination."""
+
 from types import SimpleNamespace
 from urllib.parse import urlsplit
 
@@ -24,15 +25,29 @@ class CanonicalSitemap(Sitemap):
 
     def get_urls(self, page=1, site=None, protocol=None):
         origin = urlsplit(settings.SITE_URL)
-        return super().get_urls(page, SimpleNamespace(domain=origin.netloc), origin.scheme)
+        return super().get_urls(
+            page, SimpleNamespace(domain=origin.netloc), origin.scheme
+        )
 
 
 class StaticSitemap(CanonicalSitemap):
     def items(self):
-        urls = ["/", "/recent/", "/learn/", "/learn/api/", "/pricing/", "/privacy/", "/terms/"]
+        urls = [
+            "/",
+            "/recent/",
+            "/learn/",
+            "/learn/api/",
+            "/pricing/",
+            "/privacy/",
+            "/terms/",
+        ]
         urls += ["/about/", "/editorial/", "/research/coverage/"]
         if research_queryset().exists():
-            urls += ["/research/", "/research/filing-activity/", "/research/amendments/"]
+            urls += [
+                "/research/",
+                "/research/filing-activity/",
+                "/research/amendments/",
+            ]
         urls += [f"/{kind}/" for kind, rows in directory_data().items() if rows]
         return urls
 
@@ -42,9 +57,15 @@ class StaticSitemap(CanonicalSitemap):
 
 class IssuerSitemap(CanonicalSitemap):
     def items(self):
-        return Issuer.objects.filter(
-            Exists(Filing.objects.filter(issuer_id=OuterRef("pk")))
-        ).alias(issuer_name=Trim("name")).exclude(issuer_name="").only("id", "name_slug", "cik").order_by("id")
+        return (
+            Issuer.objects.filter(
+                Exists(Filing.objects.filter(issuer_id=OuterRef("pk")))
+            )
+            .alias(issuer_name=Trim("name"))
+            .exclude(issuer_name="")
+            .only("id", "name_slug", "cik")
+            .order_by("id")
+        )
 
     def location(self, obj):
         return f"/issuer/{obj.url_slug}/"
@@ -53,7 +74,12 @@ class IssuerSitemap(CanonicalSitemap):
 class FilingSitemap(CanonicalSitemap):
     def items(self):
         # Avoid loading potentially large raw XML into each sitemap response.
-        return Filing.objects.alias(issuer_name=Trim("issuer__name")).exclude(issuer_name="").only("id", "accession_number").order_by("id")
+        return (
+            Filing.objects.alias(issuer_name=Trim("issuer__name"))
+            .exclude(issuer_name="")
+            .only("id", "accession_number")
+            .order_by("id")
+        )
 
     def location(self, obj):
         return f"/filing/{obj.accession_number}/"
@@ -61,8 +87,19 @@ class FilingSitemap(CanonicalSitemap):
 
 class IndustrySitemap(CanonicalSitemap):
     def items(self):
-        present = set(Filing.objects.alias(issuer_name=Trim("issuer__name")).exclude(issuer_name="").order_by().annotate(key=Lower("industry_group")).values_list("key", flat=True).distinct())
-        return [f"/industry/{slug}/" for name, slug in NAME_TO_SLUG.items() if name.lower() in present]
+        present = set(
+            Filing.objects.alias(issuer_name=Trim("issuer__name"))
+            .exclude(issuer_name="")
+            .order_by()
+            .annotate(key=Lower("industry_group"))
+            .values_list("key", flat=True)
+            .distinct()
+        )
+        return [
+            f"/industry/{slug}/"
+            for name, slug in NAME_TO_SLUG.items()
+            if name.lower() in present
+        ]
 
     def location(self, item):
         return item
@@ -70,11 +107,23 @@ class IndustrySitemap(CanonicalSitemap):
 
 class StateSitemap(CanonicalSitemap):
     def items(self):
-        states = Issuer.objects.filter(
-            Exists(Filing.objects.filter(issuer_id=OuterRef("pk")))
-        ).alias(issuer_name=Trim("name")).exclude(issuer_name="").exclude(state="").order_by("state").values_list("state", flat=True).distinct()
+        states = (
+            Issuer.objects.filter(
+                Exists(Filing.objects.filter(issuer_id=OuterRef("pk")))
+            )
+            .alias(issuer_name=Trim("name"))
+            .exclude(issuer_name="")
+            .exclude(state="")
+            .order_by("state")
+            .values_list("state", flat=True)
+            .distinct()
+        )
         # The state view uses uppercase SEC codes; don't advertise invalid aliases.
-        return [f"/state/{state}/" for state in states if state.isalpha() and state == state.upper()]
+        return [
+            f"/state/{state}/"
+            for state in states
+            if state.isalpha() and state == state.upper()
+        ]
 
     def location(self, item):
         return item
@@ -82,9 +131,14 @@ class StateSitemap(CanonicalSitemap):
 
 class ArticleSitemap(CanonicalSitemap):
     def items(self):
-        return Article.objects.filter(published_at__lte=timezone.now()).alias(
-            content=Trim("body")
-        ).exclude(content="").exclude(slug="api").only("slug", "updated_at").order_by("id")
+        return (
+            Article.objects.filter(published_at__lte=timezone.now())
+            .alias(content=Trim("body"))
+            .exclude(content="")
+            .exclude(slug="api")
+            .only("slug", "updated_at")
+            .order_by("id")
+        )
 
     def location(self, obj):
         return f"/learn/{obj.slug}/"
@@ -93,9 +147,42 @@ class ArticleSitemap(CanonicalSitemap):
         return obj.updated_at
 
 
+class ResearchWorkbenchSitemap(CanonicalSitemap):
+    def items(self):
+        from researchdesk.analysis import REPORTS, analysis, indexable_report
+        from researchdesk.models import ResearchEdition
+
+        urls = [
+            "/research/workbench/",
+            "/research/glossary/",
+            "/research/exercises/",
+            "/research/fields/",
+            "/research/calendar/",
+        ]
+        if Filing.objects.exclude(raw_xml="").exists():
+            urls.append("/research/walkthrough/")
+        for slug in REPORTS:
+            report = analysis(slug, {})
+            if indexable_report(report):
+                urls.append("/research/analysis/" + slug + "/")
+        editions = ResearchEdition.objects.filter(
+            status="published", published_at__lte=timezone.now()
+        ).values_list("pk", flat=True)
+        urls.extend("/research/editions/" + str(pk) + "/" for pk in editions)
+        return urls
+
+    def location(self, item):
+        return item
+
+
 SITEMAPS = {
-    "static": StaticSitemap, "issuers": IssuerSitemap, "filings": FilingSitemap,
-    "industries": IndustrySitemap, "states": StateSitemap, "articles": ArticleSitemap,
+    "research-workbench": ResearchWorkbenchSitemap,
+    "static": StaticSitemap,
+    "issuers": IssuerSitemap,
+    "filings": FilingSitemap,
+    "industries": IndustrySitemap,
+    "states": StateSitemap,
+    "articles": ArticleSitemap,
 }
 
 
@@ -110,7 +197,12 @@ def sitemap_index(request):
         url = settings.SITE_URL + reverse("sitemap_section", kwargs={"section": name})
         for page in range(1, section.paginator.num_pages + 1):
             sections.append({"location": url + (f"?p={page}" if page > 1 else "")})
-    return TemplateResponse(request, "sitemap_index.xml", {"sitemaps": sections}, content_type="application/xml")
+    return TemplateResponse(
+        request,
+        "sitemap_index.xml",
+        {"sitemaps": sections},
+        content_type="application/xml",
+    )
 
 
 sitemap_section = cache_page(900)(sitemap)
