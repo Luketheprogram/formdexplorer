@@ -84,6 +84,22 @@ test('privacy settings cannot opt into ads even when the publisher serving flag 
   assert.equal(f.adQueue().length,0);
 });
 
+test('isolated native diagnostic pauses after publisher initialization and never enqueues ads',()=>{
+  const f=fixture({search:'?fc=alwaysshow&fctype=gdpr&cmp_init=native'});
+  f.click('partners');
+  assert.equal(f.scripts.length,1);
+  assert.equal(f.adQueue().length,0);
+  assert.equal(f.adQueue().pauseAdRequests,undefined);
+  f.scripts[0].onload();
+  assert.equal(f.adQueue().pauseAdRequests,1);
+  assert.equal(f.adQueue().length,0);
+  assert.equal(f.scripts.length,1);
+  assert.equal(f.frames.length,0);
+  f.settle();
+  assert.equal(f.stored(),null);
+  assert.equal(f.adQueue().length,0);
+});
+
 test('explicit privacy settings survive a return to the tab without advertising permission',()=>{
   const f=fixture({choice:'deny'});
   f.click('partners'); f.visible();

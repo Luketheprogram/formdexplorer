@@ -224,18 +224,22 @@
       document.head.appendChild(script);
     }
     if (config.preferencesOnly) {
+      // Isolated native-bootstrap diagnostic. Auto ads and all site placements
+      // remain disabled; no advertising request is ever enqueued here.
+      const nativeBootstrap = debug && new URLSearchParams(window.location.search || '').get('cmp_init') === 'native';
       // Google's request-pause API is a setter without a getter. Set it before
       // the tag loads and never resume or enqueue advertising in this flow.
       const queue = window.adsbygoogle = window.adsbygoogle || [];
-      queue.pauseAdRequests = 1;
+      if (!nativeBootstrap) queue.pauseAdRequests = 1;
       const script = document.createElement('script');
       script.async = true;
       script.crossOrigin = 'anonymous';
       script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(config.client);
       script.onload = () => {
-        report('tag-loaded', {adRequestsPauseConfigured: true});
+        if (nativeBootstrap) window.adsbygoogle.pauseAdRequests = 1;
+        report('tag-loaded', {adRequestsPauseConfigured: true, nativeBootstrap});
         // A paused publisher tag does not initialize its CMP automatically.
-        loadMessageTag();
+        if (!nativeBootstrap) loadMessageTag();
       };
       script.onerror = failed;
       document.head.appendChild(script);
