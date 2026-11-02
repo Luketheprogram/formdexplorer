@@ -33,11 +33,12 @@ The standalone tag remains separate from the advertising library.
 Delivery repairs prevent a return to the tab from cancelling an explicitly
 opened privacy session while local advertising is denied. Initial API readiness
 is not treated as an existing consent decision: reopening waits for both consent
-data readiness and a settled European `tcloaded` event. Missing UI or callbacks
+data readiness and a settled European `tcloaded` event. US GPP updates do not reload
+an ads-off preferences session; they still stop active advertising. Missing UI or callbacks
 produce a visible failure message rather than an indefinite loading state.
 Preview-only diagnostics contain callback phases, not consent strings.
 
-Validation: **254 PostgreSQL application tests and 10 JavaScript consent tests
+Validation: **254 PostgreSQL application tests and 12 JavaScript consent tests
 pass**. Live checks confirm that the corrected European preview reaches the
 Google TCF path with `gdprApplies=true`. However, Google returns an explicit
 inactive/error bundle and renders no regional message. Published status alone is
@@ -46,8 +47,9 @@ without unpublishing the message; its dialog warns propagation can take up to an
 hour. Automatic review rejected a proposed temporary unpublish; that action was
 cancelled. No publication interruption occurred.
 
-**Regional delivery remains blocked and unverified.** Do not claim successful
-live accept/reject/withdrawal, US opt-out, or geographic validation. The precise
+**European delivery remains blocked and unverified.** Complete genuine live
+accept/reject/withdrawal, US opt-out, and geographic validation before enabling
+placements; publication does not establish those results. The precise
 provider-side cause is not established; pending site approval is an observed
 account state, not a proven explanation. Google’s
 [preview instructions](https://support.google.com/adsense/answer/10924669?hl=en)

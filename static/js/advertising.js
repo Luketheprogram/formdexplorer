@@ -163,7 +163,8 @@
       // US privacy changes; require a fresh opt-in rather than keep old requests.
       if (typeof window.__gpp === 'function') {
         window.__gpp('addEventListener', (event, success) => {
-          if (success && event?.eventName === 'sectionChange' && (adStarted || usAllowed)) disable();
+          if (servingEnabled && config.allowAds === true && success &&
+              event?.eventName === 'sectionChange' && (adStarted || usAllowed)) disable();
         });
       }
     }});

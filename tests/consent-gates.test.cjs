@@ -7,7 +7,7 @@ const source = fs.readFileSync('static/js/advertising.js', 'utf8');
 
 function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,search=''}={}) {
   const events = new Map(), scripts = [], frames = [], timers = [];
-  let reloads = 0, revocations = 0;
+  let reloads = 0, revocations = 0, gppCallback;
   const control = id => ({hidden:true, addEventListener(event, callback) { events.set(id+':'+event, callback); }});
   const controls = Object.fromEntries(['status','allow','partners','close','deny'].map(x => [x,control(x)]));
   const dialog = {dataset:{adServing:String(serving)}, querySelector: selector => controls[selector.match(/data-ad-(\w+)/)[1]], close(){}, showModal(){}};
@@ -25,6 +25,7 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,se
   const window = {frames:{},setTimeout:fn=>timers.push(fn),addEventListener:(name,fn)=>events.set('window:'+name,fn),location:{search,reload(){reloads++;}}};
   vm.runInNewContext(source, {document,window,URL,URLSearchParams,navigator:{globalPrivacyControl:gpc},localStorage:{getItem:()=>stored,setItem:(_,value)=>{stored=value;}},console:{...console,info(){}}});
   function settle({tcf=true,us=1,existing=false,inactive=false}={}) {
+    window.__gpp=(_,callback)=>{gppCallback=callback;};
     window.__tcfapi=(_,version,cb)=>{
       if (inactive) { cb({cmpStatus:'loaded',gdprApplies:true},true); return; }
       if (tcf && !existing) cb({cmpStatus:'loaded',gdprApplies:true,eventStatus:'cmpuishown'},true);
@@ -34,7 +35,7 @@ function fixture({serving=false, preferencesOnly=true, choice=null, gpc=false,se
     window.googlefc.showRevocationMessage=()=>{revocations++;};
     while(window.googlefc.callbackQueue.length) for (const item of window.googlefc.callbackQueue.splice(0)) Object.values(item).forEach(fn=>fn());
   }
-  return {scripts,frames,settle,providerStatus,stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
+  return {scripts,frames,settle,providerStatus,sectionChange:()=>gppCallback({eventName:'sectionChange'},true),stored:()=>stored,reloads:()=>reloads,revocations:()=>revocations,visible:()=>events.get('document:visibilitychange')(),timeout:()=>timers.forEach(fn=>fn()),click: id=>events.get(id+':click')()};
 }
 
 test('opening Google preferences does not opt into ads, including fully granted provider consent',()=>{
@@ -57,6 +58,22 @@ test('explicit privacy settings survive a return to the tab without advertising 
   f.click('partners'); f.visible();
   assert.equal(f.reloads(),0);
   assert.equal(f.scripts.length,1);
+});
+
+test('US privacy updates cannot reload an ads-off preferences session',()=>{
+  const f=fixture(); f.click('partners'); f.settle({tcf:false,us:2}); f.sectionChange();
+  assert.equal(f.reloads(),0);
+  assert.equal(f.stored(),null);
+  assert.equal(f.scripts.length,1);
+});
+
+test('US privacy changes still stop enabled advertising',()=>{
+  const f=fixture({serving:true,preferencesOnly:false,choice:'allow'});
+  f.settle({tcf:false,us:2});
+  assert.equal(f.scripts.length,2);
+  f.sectionChange();
+  assert.equal(f.reloads(),1);
+  assert.equal(JSON.parse(f.stored()).value,'deny');
 });
 
 test('privacy previews forward only Google privacy parameters to the message service',()=>{
